@@ -1,0 +1,105 @@
+// Storage manager with LocalStorage persistence, JSON export/import, CSV export and demo reset
+
+import { getInitialData, getDemoData, getCleanUserData } from './seedData';
+
+const STORAGE_KEY = 'project90_data_v1';
+
+export const loadDataFromStorage = (userId = null) => {
+  if (typeof window === 'undefined') {
+    return getDemoData();
+  }
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.challenge && parsed.categories) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.error('Failed to parse stored Project 90 data', e);
+  }
+  const initial = getDemoData();
+  saveDataToStorage(initial);
+  return initial;
+};
+
+export const saveDataToStorage = (data) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch (e) {
+    console.error('Failed to save Project 90 data', e);
+  }
+};
+
+export const exportDataAsJSON = (data) => {
+  if (typeof window === 'undefined') return;
+  const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', dataStr);
+  downloadAnchor.setAttribute('download', `project90_backup_${new Date().toISOString().split('T')[0]}.json`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+};
+
+export const exportTimeEntriesAsCSV = (timeEntries = [], categories = []) => {
+  if (typeof window === 'undefined') return;
+
+  const headers = ['ID', 'Date', 'Activity Name', 'Category', 'Project', 'Start Time', 'End Time', 'Duration (Minutes)', 'Duration (Formatted)', 'Description'];
+  
+  const rows = timeEntries.map((e) => {
+    const cat = categories.find((c) => c.id === e.categoryId);
+    const proj = cat?.projects?.find((p) => p.id === e.projectId);
+    const durationHours = (e.durationMinutes / 60).toFixed(2);
+    
+    return [
+      `"${e.id || ''}"`,
+      `"${e.date || ''}"`,
+      `"${(e.activityName || '').replace(/"/g, '""')}"`,
+      `"${cat?.name || e.categoryId || ''}"`,
+      `"${proj?.name || ''}"`,
+      `"${e.startTime || ''}"`,
+      `"${e.endTime || ''}"`,
+      e.durationMinutes || 0,
+      `"${durationHours}h"`,
+      `"${(e.description || '').replace(/"/g, '""')}"`
+    ];
+  });
+
+  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  const encodedUri = encodeURI(csvContent);
+  const downloadAnchor = document.createElement('a');
+  downloadAnchor.setAttribute('href', encodedUri);
+  downloadAnchor.setAttribute('download', `project90_time_entries_${new Date().toISOString().split('T')[0]}.csv`);
+  document.body.appendChild(downloadAnchor);
+  downloadAnchor.click();
+  downloadAnchor.remove();
+};
+
+export const importDataFromJSON = (jsonString) => {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (parsed && parsed.challenge && parsed.categories) {
+      saveDataToStorage(parsed);
+      return parsed;
+    }
+    throw new Error('Invalid Project 90 data format');
+  } catch (err) {
+    throw err;
+  }
+};
+
+export const resetToDemoData = () => {
+  const initial = getDemoData();
+  saveDataToStorage(initial);
+  return initial;
+};
+
+export const resetToCleanUserData = (profile = {}) => {
+  const initial = getCleanUserData(profile);
+  saveDataToStorage(initial);
+  return initial;
+};
+
