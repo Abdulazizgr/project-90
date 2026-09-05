@@ -56,7 +56,7 @@ export const DailyReflectionView = () => {
   };
 
   // Past reflections list
-  const pastEntries = Object.entries(data.journalEntries || {}).sort((a, b) => new Date(b[0]) - new Date(a[0]));
+  const pastEntries = Object.entries((data.journalEntries || {}) as Record<string, any>).sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
 
   return (
     <div className="page-container">

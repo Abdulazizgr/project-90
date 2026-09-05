@@ -1,17 +1,17 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToDemoData } from '../utils/storage';
+import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToDemoData, resetToCleanUserData } from '../utils/storage';
 import { playSound } from '../utils/sound';
-import { calculateDailyScore } from '../utils/calculations';
+import { calculateDailyScore, calculateExecutionScore } from '../utils/calculations';
 import { authClient } from '../lib/auth-client';
 
-const AppContext = createContext(null);
+const AppContext = createContext<any>(null);
 
-export const AppProvider = ({ children }) => {
-  const [data, setData] = useState(() => loadDataFromStorage());
+export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
+  const [data, setData] = useState<any>(() => loadDataFromStorage());
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeModal, setActiveModal] = useState(null); // 'manual_time' | 'add_habit' | 'edit_habit' | 'routine_runner' | 'day_detail' | 'add_routine' | 'edit_routine' | 'add_goal' | 'category_manager' | 'sunday_planner'
-  const [modalData, setModalData] = useState(null);
+  const [activeModal, setActiveModal] = useState<string | null>(null); // 'manual_time' | 'add_habit' | 'edit_habit' | 'routine_runner' | 'day_detail' | 'add_routine' | 'edit_routine' | 'add_goal' | 'category_manager' | 'sunday_planner'
+  const [modalData, setModalData] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSetupWizardOpen, setIsSetupWizardOpen] = useState(false);
   const [isDbSynced, setIsDbSynced] = useState(false);
@@ -23,7 +23,9 @@ export const AppProvider = ({ children }) => {
   });
 
   // Better Auth session hook
-  const { data: sessionData, isPending: isSessionPending } = authClient.useSession ? authClient.useSession() : { data: null, isPending: false };
+  const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
+  const sessionData: any = sessionResult?.data;
+  const isSessionPending = sessionResult?.isPending;
   const user = sessionData?.user;
 
   // Sync user login status
@@ -666,7 +668,7 @@ export const AppProvider = ({ children }) => {
   };
 
   // Clockify-style Timer Actions
-  const startTimer = (details = {}) => {
+  const startTimer = (details: any = {}) => {
     triggerSound('timer-start');
     setData((prev) => ({
       ...prev,
@@ -924,7 +926,7 @@ export const AppProvider = ({ children }) => {
     });
   };
 
-  const setWeeklyEventStatus = (eventId, status, earnedPoints) => {
+  const setWeeklyEventStatus = (eventId: string, status: string, earnedPoints?: number) => {
     const isCompleted = status === 'done' || status === 'completed';
     const isProgress = status === 'in_progress';
     const event = (data.recurringWeeklySchedule || []).find((e) => e.id === eventId);
@@ -1121,7 +1123,7 @@ export const AppProvider = ({ children }) => {
 
   const handleSignOut = async () => {
     try {
-      await authClient.signOut();
+      await (authClient as any)?.signOut?.();
     } catch (e) {
       console.debug('Sign out error', e);
     }

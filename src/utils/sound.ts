@@ -1,9 +1,9 @@
 // Web Audio API sound effect synthesizers
-let audioCtx = null;
+let audioCtx: AudioContext | null = null;
 
 const getAudioContext = () => {
   if (!audioCtx && typeof window !== 'undefined') {
-    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       audioCtx = new AudioContextClass();
     }

@@ -15,7 +15,12 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
-export const CategoryManagerModal = ({ isOpen, onClose }) => {
+interface CategoryManagerModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOpen, onClose }) => {
   const { 
     data, 
     addCategory, 

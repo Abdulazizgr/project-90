@@ -8,7 +8,12 @@ import { TodayHabitsQuickList } from './TodayHabitsQuickList';
 import { QuickRoutineWidget } from './QuickRoutineWidget';
 import { TodayExecutionBoard } from './TodayExecutionBoard';
 
-export const DashboardView = ({ onOpenCategoryManager, onOpenSundayPlanner }) => {
+interface DashboardViewProps {
+  onOpenCategoryManager?: () => void;
+  onOpenSundayPlanner?: () => void;
+}
+
+export const DashboardView: React.FC<DashboardViewProps> = ({ onOpenCategoryManager, onOpenSundayPlanner }) => {
   const isSunday = new Date().getDay() === 0;
 
   return (

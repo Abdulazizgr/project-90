@@ -1072,7 +1072,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                     type="number"
                     className="input"
                     value={newEventDuration}
-                    onChange={(e) => setNewEventDuration(e.target.value)}
+                    onChange={(e) => setNewEventDuration(Number(e.target.value) || 0)}
                     style={{ width: '100%', fontSize: '0.82rem', padding: '0.5rem 0.75rem' }}
                   />
                 </div>

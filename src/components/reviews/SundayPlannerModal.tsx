@@ -18,7 +18,12 @@ import {
 import { useApp } from '@/context/AppContext';
 import { formatDurationHuman } from '@/utils/calculations';
 
-export const SundayPlannerModal = ({ isOpen, onClose }) => {
+interface SundayPlannerModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const SundayPlannerModal: React.FC<SundayPlannerModalProps> = ({ isOpen, onClose }) => {
   const { data, saveWeeklyPlan, todayStr } = useApp();
 
   const [step, setStep] = useState(1); // 1: Retrospective, 2: Diagnosis, 3: Plan Next Week
@@ -34,13 +39,13 @@ export const SundayPlannerModal = ({ isOpen, onClose }) => {
 
   const categories = data.categories || [];
   const timeEntries = data.timeEntries || [];
-  const dayScores = data.dayScores || {};
+  const dayScores: Record<string, number> = data.dayScores || {};
 
   // Compute 7-day stats
   const totalTrackedMin = timeEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
   const scoreValues = Object.values(dayScores);
   const avgScore = scoreValues.length > 0 
-    ? Math.round(scoreValues.reduce((a, b) => a + b, 0) / scoreValues.length) 
+    ? Math.round(scoreValues.reduce((a: number, b: number) => a + Number(b), 0) / scoreValues.length) 
     : 85;
 
   // Category breakdown
@@ -283,7 +288,7 @@ export const SundayPlannerModal = ({ isOpen, onClose }) => {
                     max="60"
                     className="form-input"
                     value={weeklyHourCap}
-                    onChange={(e) => setWeeklyHourCap(e.target.value)}
+                    onChange={(e) => setWeeklyHourCap(Number(e.target.value) || 0)}
                     style={{ maxWidth: '100px' }}
                   />
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Hours / Week (Prevents over-exhaustion)</span>

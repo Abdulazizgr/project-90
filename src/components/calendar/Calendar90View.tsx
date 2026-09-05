@@ -54,7 +54,7 @@ export const Calendar90View = () => {
     setActiveModal('day_detail');
   };
 
-  const getStatusColor = (status, isToday) => {
+  const getStatusColor = (status: string, isToday?: boolean) => {
     if (status === 'excellent') return '#10b981';
     if (status === 'good') return '#3b82f6';
     if (status === 'average') return '#eab308';
@@ -62,7 +62,7 @@ export const Calendar90View = () => {
     return 'rgba(255, 255, 255, 0.08)'; // future
   };
 
-  const getStatusBg = (status, isToday) => {
+  const getStatusBg = (status: string, isToday?: boolean) => {
     if (status === 'excellent') return 'rgba(16, 185, 129, 0.15)';
     if (status === 'good') return 'rgba(59, 130, 246, 0.15)';
     if (status === 'average') return 'rgba(234, 179, 8, 0.15)';

@@ -115,7 +115,7 @@ export const GoalsView = () => {
                   min="1"
                   className="form-input"
                   value={newTarget}
-                  onChange={(e) => setNewTarget(e.target.value)}
+                  onChange={(e) => setNewTarget(Number(e.target.value))}
                 />
               </div>
 

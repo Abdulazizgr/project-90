@@ -195,7 +195,7 @@ export const ManualEntryModal = () => {
                 step="5"
                 className="form-input"
                 value={durationMinutes}
-                onChange={(e) => setDurationMinutes(e.target.value)}
+                onChange={(e) => setDurationMinutes(Number(e.target.value) || 0)}
                 style={{ maxWidth: '140px' }}
               />
               <div style={{ display: 'flex', gap: '0.35rem' }}>

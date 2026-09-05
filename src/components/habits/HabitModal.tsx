@@ -214,7 +214,7 @@ export const HabitModal = () => {
                 max="50"
                 className="form-input"
                 value={points}
-                onChange={(e) => setPoints(e.target.value)}
+                onChange={(e) => setPoints(Number(e.target.value))}
               />
             </div>
           </div>

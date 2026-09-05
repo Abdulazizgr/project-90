@@ -17,7 +17,12 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-export const UserManualModal = ({ isOpen, onClose }) => {
+interface UserManualModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClose }) => {
   const [activeSection, setActiveSection] = useState('daily_use_case');
 
   if (!isOpen) return null;

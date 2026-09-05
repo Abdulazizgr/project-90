@@ -20,7 +20,12 @@ import {
 import { useApp } from '../../context/AppContext';
 import { getScoreLevel } from '../../utils/calculations';
 
-export const Sidebar = ({ isMobileOpen, setIsMobileOpen }) => {
+interface SidebarProps {
+  isMobileOpen?: boolean;
+  setIsMobileOpen?: any;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen }) => {
   const { data, activeTab, setActiveTab, todayStr, setIsSetupWizardOpen } = useApp();
   const challenge = data.challenge || {};
   const isPlanning = challenge.status === 'planning';

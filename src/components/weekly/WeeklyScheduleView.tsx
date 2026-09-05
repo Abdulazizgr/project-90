@@ -745,7 +745,7 @@ export const WeeklyScheduleView = () => {
                       color: '#ef4444',
                       fontSize: '0.74rem'
                     }}>
-                      <AlertTriangle size={14} flexShrink={0} />
+                      <AlertTriangle size={14} style={{ flexShrink: 0 }} />
                       <span>
                         Assigning <strong>{points} pts</strong> exceeds the 100-point daily limit on <strong>{modalBudgetAnalysis.overDays.join(', ')}</strong>. Consider setting points to <strong>{modalBudgetAnalysis.minSafeMax} pts</strong> or lower.
                       </span>

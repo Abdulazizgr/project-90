@@ -23,7 +23,15 @@ import { useApp } from '@/context/AppContext';
 import { getScoreLevel } from '@/utils/calculations';
 import { getPrayerTimes } from '@/utils/prayerTimes';
 
-export const Topbar = ({ 
+interface TopbarProps {
+  isMobileOpen?: boolean;
+  setIsMobileOpen?: any;
+  onOpenNotifications?: () => void;
+  onOpenManual?: () => void;
+  onOpenCommandPalette?: () => void;
+}
+
+export const Topbar: React.FC<TopbarProps> = ({ 
   isMobileOpen, 
   setIsMobileOpen,
   onOpenNotifications,

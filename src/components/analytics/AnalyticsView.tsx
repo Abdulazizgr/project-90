@@ -43,12 +43,12 @@ export const AnalyticsView = () => {
   }).sort((a, b) => b.minutes - a.minutes);
 
   // Project breakdown
-  const projectMap = {};
-  relevantEntries.forEach((entry) => {
+  const projectMap: Record<string, { name: string; category: string; color: string; icon: string; minutes: number; count: number }> = {};
+  relevantEntries.forEach((entry: any) => {
     const key = entry.projectId || 'unassigned';
     if (!projectMap[key]) {
-      const cat = categories.find((c) => c.id === entry.categoryId);
-      const proj = cat?.projects?.find((p) => p.id === entry.projectId);
+      const cat = categories.find((c: any) => c.id === entry.categoryId);
+      const proj = (cat as any)?.projects?.find((p: any) => p.id === entry.projectId);
       projectMap[key] = {
         name: proj?.name || entry.activityName || 'General Activity',
         category: cat?.name || 'General',
@@ -68,10 +68,10 @@ export const AnalyticsView = () => {
   const scoreEntries = Object.entries(dayScores).map(([date, score], idx) => ({
     dayNumber: idx + 1,
     date,
-    score
+    score: Number(score) || 0
   })).slice(-12);
 
-  const bestDay = scoreEntries.reduce((max, curr) => (curr.score > max.score ? curr : max), scoreEntries[0] || { dayNumber: 1, score: 0 });
+  const bestDay = scoreEntries.reduce((max, curr) => (curr.score > max.score ? curr : max), scoreEntries[0] || { dayNumber: 1, date: '', score: 0 });
   const avgScore = scoreEntries.length > 0 
     ? Math.round(scoreEntries.reduce((acc, curr) => acc + curr.score, 0) / scoreEntries.length)
     : 0;

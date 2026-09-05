@@ -56,12 +56,13 @@ export const TimeTrackerView = () => {
   });
 
   // Group entries by date
-  const groupedEntries = filteredEntries.reduce((groups, entry) => {
+  const initialGroups: Record<string, any[]> = {};
+  const groupedEntries: Record<string, any[]> = (filteredEntries as any[]).reduce((groups, entry) => {
     const date = entry.date || todayStr;
     if (!groups[date]) groups[date] = [];
     groups[date].push(entry);
     return groups;
-  }, {});
+  }, initialGroups);
 
   // Calculate totals
   const todayEntries = timeEntries.filter((e) => e.date === todayStr);

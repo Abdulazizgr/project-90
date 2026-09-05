@@ -4,7 +4,12 @@ import confetti from 'canvas-confetti';
 import { useApp } from '@/context/AppContext';
 import { formatDurationHuman } from '@/utils/calculations';
 
-export const WeeklyReviewModal = ({ isOpen, onClose }) => {
+interface WeeklyReviewModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const WeeklyReviewModal: React.FC<WeeklyReviewModalProps> = ({ isOpen, onClose }) => {
   const { data, triggerSound, todayStr } = useApp();
 
   const [qWell, setQWell] = useState('Achieved 100% Salah consistency, built full authentication and MongoDB persistence for RHIZAN.');

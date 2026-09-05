@@ -25,7 +25,16 @@ import {
 import { useApp } from '@/context/AppContext';
 import { exportTimeEntriesAsCSV } from '@/utils/storage';
 
-export const CommandPaletteModal = ({ 
+interface CommandPaletteModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+  onOpenManual?: () => void;
+  onOpenWeeklyReview?: () => void;
+  onOpenCategoryManager?: () => void;
+  onOpenSundayPlanner?: () => void;
+}
+
+export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({ 
   isOpen, 
   onClose, 
   onOpenManual, 

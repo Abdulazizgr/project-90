@@ -18,7 +18,12 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
-export const SetupWizardModal = ({ isOpen, onClose }) => {
+interface SetupWizardModalProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export const SetupWizardModal: React.FC<SetupWizardModalProps> = ({ isOpen, onClose }) => {
   const { 
     data, 
     isSetupWizardOpen, 

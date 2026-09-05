@@ -20,7 +20,8 @@ export const RoutinesView = () => {
     data, 
     deleteRoutine, 
     setActiveModal, 
-    setModalData 
+    setModalData,
+    setActiveTab
   } = useApp();
 
   const routines = data.routines || [];
