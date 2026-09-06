@@ -30,6 +30,7 @@ export const SettingsView = () => {
     handleExport, 
     handleImport, 
     handleReset,
+    clearAllDataToScratch,
     loadCleanUserAccount 
   } = useApp();
 
@@ -293,36 +294,23 @@ export const SettingsView = () => {
                 />
               </label>
 
-              {/* Reset to Clean Slate */}
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  if (window.confirm('Start a fresh, clean 90-day sprint starting at Day 1 with 0 logs?')) {
-                    if (loadCleanUserAccount) {
-                      loadCleanUserAccount({ name: profile.name || 'User', email: profile.email || '' });
-                    }
-                  }
-                }}
-                style={{ gap: '0.4rem' }}
-              >
-                <RotateCcw size={15} color="var(--primary-light)" />
-                <span>Start Clean Day 1 Sprint</span>
-              </button>
-
-              {/* Reset to Demo Data */}
+              {/* Wipe & Reset to Scratch */}
               <button
                 type="button"
                 className="btn btn-danger btn-sm"
                 onClick={() => {
-                  if (window.confirm('Reset all data to the pre-populated Day 12 demonstration seed data?')) {
-                    handleReset();
+                  if (window.confirm('Are you sure you want to wipe all data from scratch? This will reset your database and local state to Day 1 with 0 logs.')) {
+                    if (clearAllDataToScratch) {
+                      clearAllDataToScratch();
+                    } else if (handleReset) {
+                      handleReset();
+                    }
                   }
                 }}
                 style={{ gap: '0.4rem', marginLeft: 'auto' }}
               >
                 <RotateCcw size={15} />
-                <span>Reset to Day 12 Demo Data</span>
+                <span>Wipe & Reset All Data to Scratch (Day 1)</span>
               </button>
             </div>
           </div>

@@ -18,7 +18,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { getScoreLevel } from '../../utils/calculations';
+import { getScoreLevel, calculateCategoryDayScore } from '../../utils/calculations';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -34,20 +34,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
   const daysLeft = Math.max(0, totalDays - currentDay);
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
-  const todayScore = data.dayScores?.[todayStr] || 0;
+  const hasEvaluatedToday = data.categoryScores?.[todayStr] !== undefined;
+  const todayScore = hasEvaluatedToday 
+    ? calculateCategoryDayScore(data.categoryScores[todayStr]) 
+    : (data.dayScores?.[todayStr] || 0);
   const scoreMeta = getScoreLevel(todayScore);
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'projects', label: 'Projects & Tasks', icon: FolderKanban },
-    { id: 'routines', label: 'Daily Routines', icon: SunMedium },
+    { id: 'routines', label: 'Daily Routines & Tasks', icon: SunMedium },
     { id: 'weekly', label: 'Weekly Schedule', icon: Calendar },
-    { id: 'habits', label: 'Habits & Scores', icon: CheckSquare },
     { id: 'timer', label: 'Time Tracker', icon: Timer, badge: data.activeTimer?.isRunning ? 'LIVE' : null },
     { id: 'timeline', label: 'Daily Timeline', icon: Clock },
     { id: 'calendar', label: '90-Day Calendar', icon: CalendarDays },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'journal', label: 'Daily Reflection', icon: BookOpen },
+    { id: 'analytics', label: 'Analytics & Balance', icon: BarChart3 },
+    { id: 'journal', label: 'Daily Reflection & Scoring', icon: BookOpen },
     { id: 'goals', label: 'Goals & Targets', icon: Target },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
     { id: 'settings', label: 'Settings', icon: Settings }
@@ -194,15 +196,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
             fontWeight: 700,
             fontSize: '0.85rem'
           }}>
-            {data.profile?.name?.[0] || 'A'}
+            {data.profile?.name?.[0]?.toUpperCase() || 'U'}
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{data.profile?.name || 'User'}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>12 Day Streak 🔥</div>
+            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+              {Object.keys(data.dayScores || {}).length} Days Logged 🔥
+            </div>
           </div>
         </div>
-        <div className={`badge ${scoreMeta.badgeClass}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
-          {todayScore} pts
+        <div className={`badge ${hasEvaluatedToday ? scoreMeta.badgeClass : 'badge-spiritual'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
+          {hasEvaluatedToday ? `${todayScore}%` : 'Active'}
         </div>
       </div>
     </aside>

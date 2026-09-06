@@ -96,15 +96,15 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       action: () => { setActiveTab('timer'); onClose(); }
     },
     {
-      id: 'tab_habits',
-      title: 'Go to Habits & 100-Point Scorecard',
+      id: 'tab_weekly',
+      title: 'Go to Weekly Schedule & Routines',
       category: 'Navigation',
-      icon: <CheckSquare size={16} />,
-      action: () => { setActiveTab('habits'); onClose(); }
+      icon: <Calendar size={16} />,
+      action: () => { setActiveTab('weekly'); onClose(); }
     },
     {
       id: 'tab_routines',
-      title: 'Go to Routines & Protocols',
+      title: 'Go to Actionable Routines & Protocols',
       category: 'Navigation',
       icon: <SunMedium size={16} />,
       action: () => { setActiveTab('routines'); onClose(); }

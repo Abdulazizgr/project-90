@@ -123,10 +123,10 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                   <h5 style={{ fontSize: '1rem', fontWeight: 800 }}>Phase 2: High-Impact Deep Work (08:30 AM – 05:00 PM)</h5>
                 </div>
                 <ul style={{ paddingLeft: '1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <li><strong>Start Focus Session</strong>: In bottom Clockify bar, enter <em>"RHIZAN ERP Backend Architecture"</em>, select <em>💻 Career &gt; RHIZAN</em>, and click <strong>Start</strong> (or toggle 50m Pomodoro).</li>
-                  <li><strong>Digital Discipline</strong>: Put phone in another room or on Do Not Disturb.</li>
-                  <li><strong>Salah Breaks</strong>: Keep an eye on the Topbar Salah countdown for Dhuhr and Asr.</li>
-                  <li><strong>Stop & Log</strong>: Click <strong>Stop</strong> when taking a break. Time entry is instantly saved to MongoDB Atlas and charted in Analytics.</li>
+                  <li><strong>Start Focus Session</strong>: In the bottom Clockify bar, enter your task name, select your category/project, and click <strong>Start</strong> (or toggle 25m/50m Pomodoro).</li>
+                  <li><strong>Digital Discipline</strong>: Put your phone in another room or on Do Not Disturb.</li>
+                  <li><strong>Salah / Mindful Breaks</strong>: Keep an eye on the Topbar Salah countdown for prayer times and breaks.</li>
+                  <li><strong>Stop & Log</strong>: Click <strong>Stop</strong> when taking a break. Time entry is instantly saved to your database and charted in Analytics.</li>
                   <li><span className="badge badge-excellent" style={{ fontSize: '0.7rem' }}>Result: 4+ Hours of verified deep work logged!</span></li>
                 </ul>
               </div>
@@ -138,9 +138,18 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                   <h5 style={{ fontSize: '1rem', fontWeight: 800 }}>Phase 3: Evening Reflection & Wind-down (07:30 PM – 10:00 PM)</h5>
                 </div>
                 <ul style={{ paddingLeft: '1.25rem', fontSize: '0.85rem', color: 'var(--text-secondary)', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-                  <li><strong>Maghrib & Isha</strong>: Pray on time, family dinner with zero phone scrolling.</li>
-                  <li><strong>Reading Habit</strong>: Read 20 pages of non-fiction book &rarr; check off in Habits.</li>
-                  <li><strong>Daily Reflection Protocol</strong>: Open <em>Daily Reflection</em> tab &rarr; select mood (😊 Great) &rarr; answer the 4 questions:
+                  <li><strong>Maghrib & Isha</strong>: Pray on time (log mosque attendance or reason if delayed), family dinner with zero phone scrolling.</li>
+                  <li><strong>Reading Routine</strong>: Read 20 pages of non-fiction book &rarr; mark complete in Routines.</li>
+                  <li><strong>5-Pillar Evening Self-Evaluation</strong>: Open <em>Daily Reflection</em> tab &rarr; evaluate each of your 5 life categories (0–100) with auto-suggest baseline support:
+                    <ul style={{ paddingLeft: '1.2rem', marginTop: '0.2rem' }}>
+                      <li>Spiritual (Prayers on time in mosque, Quran recitation)</li>
+                      <li>Digital Discipline (Screen time limits, phone docking)</li>
+                      <li>Personal Mastery (Reading, family presence, mindset)</li>
+                      <li>Health & Energy (Gym/workout, hydration, sleep)</li>
+                      <li>Career Execution (Deep work sprints, high-impact deliverables)</li>
+                    </ul>
+                  </li>
+                  <li><strong>Answer 4 Evening Questions</strong>:
                     <ol style={{ paddingLeft: '1.2rem', marginTop: '0.25rem' }}>
                       <li><em>What did I do well today?</em></li>
                       <li><em>What did I fail to do?</em></li>
@@ -148,7 +157,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                       <li><em>What will I improve tomorrow?</em></li>
                     </ol>
                   </li>
-                  <li><strong>Save & Celebrate</strong>: Click <strong>Save Reflection</strong> &rarr; Earns +10 pts, score reaches <strong>90+ 🟢 Excellent</strong>, triggering celebration confetti!</li>
+                  <li><strong>Save & Celebrate</strong>: Click <strong>Save Reflection & 5-Pillar Scores</strong> &rarr; Calculates your overall day score as the pure average of all 5 categories, triggering celebration when reaching <strong>90+ 🟢 Excellent</strong>!</li>
                   <li><strong>Lights Out</strong>: Dock phone in the living room at 09:45 PM; sleep by 10:15 PM.</li>
                 </ul>
               </div>
@@ -173,12 +182,12 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                 <p style={{ color: 'var(--text-secondary)' }}>Tracks second-precision time entries. Switch between standard Stopwatch count-up and 25m/50m Pomodoro countdowns. Filter history by category and export clean CSV spreadsheets anytime.</p>
               </div>
               <div className="card">
-                <h5 style={{ fontWeight: 800, color: 'var(--cat-spiritual)', marginBottom: '0.3rem' }}>⚡ Habits & 100-Point Daily Scorecard</h5>
-                <p style={{ color: 'var(--text-secondary)' }}>Each habit has point weights. Toggle Done (full pts), In Progress (50% pts), or Skip. Scoring tiers: 🟢 90-100 (Excellent), 🔵 70-89 (Good), 🟡 50-69 (Average), 🔴 &lt;50 (Needs Improvement).</p>
+                <h5 style={{ fontWeight: 800, color: 'var(--cat-spiritual)', marginBottom: '0.3rem' }}>⚡ Actionable Routines & 5-Pillar Evaluation</h5>
+                <p style={{ color: 'var(--text-secondary)' }}>Routines are actionable tasks scheduled for daily or selected days (e.g. Gym 3 days/week, Deep Work 5 days/week). Log on-time vs late, mosque attendance, and reasons for missed or partial tasks. In the evening, evaluate each of the 5 categories (0-100) with the overall day score computed as the average.</p>
               </div>
               <div className="card">
-                <h5 style={{ fontWeight: 800, color: 'var(--cat-career)', marginBottom: '0.3rem' }}>🗓️ 90-Day Calendar Matrix</h5>
-                <p style={{ color: 'var(--text-secondary)' }}>Visual 90-day sprint heatmap. Click any past or current day to open the Day Inspector Modal displaying completed habits, time entries breakdown, and journal reflection.</p>
+                <h5 style={{ fontWeight: 800, color: 'var(--cat-career)', marginBottom: '0.3rem' }}>🗓️ 90-Day Calendar Matrix & Weekly Schedule</h5>
+                <p style={{ color: 'var(--text-secondary)' }}>Visual 90-day sprint heatmap and weekly schedule that automatically syncs your routines for each day alongside custom tasks and events.</p>
               </div>
               <div className="card">
                 <h5 style={{ fontWeight: 800, color: 'var(--cat-personal)', marginBottom: '0.3rem' }}>💾 MongoDB Atlas & Better Auth Sync</h5>

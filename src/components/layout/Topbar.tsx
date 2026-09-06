@@ -17,10 +17,11 @@ import {
   Bell,
   BookOpen,
   Search,
-  Clock
+  Clock,
+  SlidersHorizontal
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { getScoreLevel } from '@/utils/calculations';
+import { getScoreLevel, calculateCategoryDayScore } from '@/utils/calculations';
 import { getPrayerTimes } from '@/utils/prayerTimes';
 
 interface TopbarProps {
@@ -42,6 +43,7 @@ export const Topbar: React.FC<TopbarProps> = ({
     data, 
     user, 
     activeTab, 
+    setActiveTab,
     toggleTheme, 
     toggleSound, 
     setActiveModal, 
@@ -86,20 +88,27 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   const currentTheme = data.profile?.theme || 'dark';
   const soundEnabled = data.profile?.soundEnabled !== false;
-  const todayScore = data.dayScores?.[todayStr] || 0;
+  const hasEvaluatedToday = data.categoryScores?.[todayStr] !== undefined;
+  const todayScore = hasEvaluatedToday 
+    ? calculateCategoryDayScore(data.categoryScores[todayStr]) 
+    : (data.dayScores?.[todayStr] || 0);
   const scoreMeta = getScoreLevel(todayScore);
   const isTimerRunning = data.activeTimer?.isRunning;
 
+  const currentDay = data.challenge?.currentDay || 1;
+  const scoreKeys = Object.keys(data.dayScores || {});
+  const streakDays = scoreKeys.filter(k => (data.dayScores[k] || 0) >= 70).length || (hasEvaluatedToday && todayScore >= 70 ? 1 : 0);
+
   const getPageTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return { title: 'Life Dashboard', sub: 'Today is Day 12 of your 90-day transformation' };
+      case 'dashboard': return { title: 'Life Dashboard', sub: `Today is Day ${currentDay} of your 90-day transformation` };
       case 'projects': return { title: 'Projects & Tasks', sub: 'Manage structured outcomes and task tracking' };
       case 'weekly': return { title: 'Weekly Recurring Schedule', sub: 'Fixed weekly commitments and routine blocks' };
       case 'timer': return { title: 'Time Tracking', sub: 'Clockify-style deep work and activity logger' };
       case 'habits': return { title: 'Habits & Daily Score', sub: 'Hit 100 points every single day' };
       case 'routines': return { title: 'Routines & Protocols', sub: 'Morning, Work, and Evening structured blocks' };
       case 'timeline': return { title: 'Daily Timeline', sub: 'Chronological visual stream of your day' };
-      case 'calendar': return { title: '90-Day Challenge Matrix', sub: 'Inspect historical scores and journal archives' };
+      case 'calendar': return { title: '90-Day Challenge Matrix', sub: 'Inspect daily scores and journal archives' };
       case 'analytics': return { title: 'Productivity Analytics', sub: 'Category time breakdown and consistency metrics' };
       case 'journal': return { title: 'Daily Reflection & Journal', sub: 'Evening 4-question review and mood tracking' };
       case 'goals': return { title: 'Goals & Milestones', sub: 'Weekly targets and 90-day mastery goals' };
@@ -202,26 +211,40 @@ export const Topbar: React.FC<TopbarProps> = ({
           color: '#f97316',
           fontSize: '0.82rem',
           fontWeight: 700
-        }}>
+        }} title="Consecutive days maintaining momentum">
           <span className="flame-icon">🔥</span>
-          <span>12 DAYS</span>
+          <span>{streakDays} DAY STREAK</span>
         </div>
 
-        {/* Today's Score Pill */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.45rem',
-          padding: '0.35rem 0.75rem',
-          borderRadius: 'var(--radius-full)',
-          background: scoreMeta.color ? `rgba(16, 185, 129, 0.12)` : 'var(--bg-surface)',
-          border: `1px solid ${scoreMeta.color || 'var(--border-color)'}`,
-          color: scoreMeta.color,
-          fontSize: '0.82rem',
-          fontWeight: 700
-        }}>
-          <span>⭐</span>
-          <span>{todayScore} / 100</span>
+        {/* Today's Evening Score Pill */}
+        <div 
+          onClick={() => setActiveTab('journal')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.35rem 0.75rem',
+            borderRadius: 'var(--radius-full)',
+            background: hasEvaluatedToday ? `${scoreMeta.color}20` : 'var(--bg-surface)',
+            border: `1px solid ${hasEvaluatedToday ? scoreMeta.color : 'var(--border-color)'}`,
+            color: hasEvaluatedToday ? scoreMeta.color : 'var(--text-muted)',
+            fontSize: '0.82rem',
+            fontWeight: 700,
+            cursor: 'pointer'
+          }}
+          title={hasEvaluatedToday ? `Today's evaluated day score: ${todayScore}% (${scoreMeta.label})` : "Click to evaluate today's performance in Daily Reflection"}
+        >
+          {hasEvaluatedToday ? (
+            <>
+              <span>✨</span>
+              <span>{todayScore}%</span>
+            </>
+          ) : (
+            <>
+              <SlidersHorizontal size={13} color="var(--primary-light)" />
+              <span style={{ color: 'var(--text-secondary)' }}>Score Pending</span>
+            </>
+          )}
         </div>
 
         {/* Quick Start Timer Button */}
