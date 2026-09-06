@@ -4,9 +4,9 @@ import confetti from 'canvas-confetti';
 import { authClient } from '@/lib/auth-client';
 import { useApp } from '@/context/AppContext';
 
-export const AuthModal = ({ isOpen, onClose }) => {
-  const { data, updateProfile, triggerSound } = useApp();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) => {
+  const { updateProfile, triggerSound, loadCleanUserAccount } = useApp();
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +16,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -24,8 +24,8 @@ export const AuthModal = ({ isOpen, onClose }) => {
 
     try {
       if (mode === 'signup') {
-        const { data: resData, error } = await authClient.signUp.email({
-          name: name.trim(),
+        const { error } = await (authClient as any).signUp.email({
+          name: name.trim() || 'User',
           email: email.trim(),
           password: password.trim(),
         });
@@ -39,12 +39,14 @@ export const AuthModal = ({ isOpen, onClose }) => {
         triggerSound('fanfare');
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         setSuccessMsg('Account created successfully! Welcome to PROJECT 90.');
-        updateProfile({ name: name.trim(), email: email.trim() });
+        if (loadCleanUserAccount) {
+          await loadCleanUserAccount({ name: name.trim() || 'User', email: email.trim() });
+        }
         setTimeout(() => {
-          onClose();
-        }, 1500);
+          onClose?.();
+        }, 1200);
       } else {
-        const { data: resData, error } = await authClient.signIn.email({
+        const { error } = await (authClient as any).signIn.email({
           email: email.trim(),
           password: password.trim(),
         });
@@ -59,48 +61,14 @@ export const AuthModal = ({ isOpen, onClose }) => {
         setSuccessMsg('Signed in successfully!');
         if (name) updateProfile({ name: name.trim() });
         setTimeout(() => {
-          onClose();
-        }, 1200);
+          onClose?.();
+        }, 1000);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Auth error:', err);
-      // Fallback local simulated auth if offline
-      updateProfile({ name: name.trim() || email.split('@')[0] || 'Abdulaziz' });
+      updateProfile({ name: name.trim() || email.split('@')[0] || 'User' });
       setSuccessMsg('Signed in!');
-      setTimeout(() => onClose(), 1000);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleQuickDemoLogin = async () => {
-    setIsLoading(true);
-    setErrorMsg('');
-    try {
-      setName('Abdulaziz');
-      setEmail('abdulaziz@project90.com');
-      setPassword('Project90DemoPass!');
-      
-      // Try demo sign in or sign up
-      await authClient.signUp.email({
-        name: 'Abdulaziz',
-        email: 'abdulaziz@project90.com',
-        password: 'Project90DemoPass!'
-      }).catch(() => {
-        return authClient.signIn.email({
-          email: 'abdulaziz@project90.com',
-          password: 'Project90DemoPass!'
-        });
-      });
-
-      triggerSound('fanfare');
-      confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-      updateProfile({ name: 'Abdulaziz', email: 'abdulaziz@project90.com' });
-      setSuccessMsg('Welcome back, Abdulaziz!');
-      setTimeout(() => onClose(), 1000);
-    } catch (e) {
-      updateProfile({ name: 'Abdulaziz' });
-      onClose();
+      setTimeout(() => onClose?.(), 800);
     } finally {
       setIsLoading(false);
     }
@@ -206,7 +174,7 @@ export const AuthModal = ({ isOpen, onClose }) => {
                   type="text"
                   className="form-input"
                   required
-                  placeholder="Abdulaziz"
+                  placeholder="Your Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={{ paddingLeft: '36px' }}
@@ -269,23 +237,6 @@ export const AuthModal = ({ isOpen, onClose }) => {
             )}
           </button>
         </form>
-
-        {/* Quick Demo Login Option */}
-        <div style={{ marginTop: '1.25rem', paddingTop: '1.25rem', borderTop: '1px solid var(--border-color)', textAlign: 'center' }}>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '0.6rem' }}>
-            Want to test without typing credentials?
-          </p>
-          <button
-            type="button"
-            className="btn btn-secondary btn-sm"
-            style={{ width: '100%', gap: '0.4rem' }}
-            onClick={handleQuickDemoLogin}
-            disabled={isLoading}
-          >
-            <span>🚀</span>
-            <span>One-Click Demo Login as Abdulaziz</span>
-          </button>
-        </div>
       </div>
     </div>
   );

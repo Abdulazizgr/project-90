@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
-import { getDemoData, getCleanUserData } from '@/utils/seedData';
+import { getCleanUserData } from '@/utils/seedData';
 
-export async function GET(request) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'guest_demo';
+    const userId = searchParams.get('userId') || 'guest_user';
     const name = searchParams.get('name') || '';
 
     const db = await getDatabase('project90');
     const collection = db.collection('user_data');
 
-    let userData = await collection.findOne({ userId });
+    let userData: any = await collection.findOne({ userId });
 
     if (!userData) {
-      // Demo user gets Day 12 sprint data; New users get 100% clean Day 1 state!
-      const isDemoUser = userId === 'abdulaziz@project90.com' || userId === 'guest_demo';
-      const initial = isDemoUser 
-        ? getDemoData() 
-        : getCleanUserData({ name: name || userId.split('@')[0], email: userId });
+      // Initialize 100% clean Day 1 state from scratch
+      const initial = getCleanUserData({ name: name || (userId.includes('@') ? userId.split('@')[0] : 'User'), email: userId });
 
       userData = {
         userId,
@@ -30,17 +27,17 @@ export async function GET(request) {
     }
 
     return NextResponse.json({ success: true, data: userData });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in GET /api/data:', error);
-    // Fallback gracefully
-    return NextResponse.json({ success: false, data: getDemoData(), error: error.message }, { status: 500 });
+    // Fallback gracefully to clean state
+    return NextResponse.json({ success: true, data: getCleanUserData(), error: error?.message || 'Database offline fallback' });
   }
 }
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId = 'guest_demo', data } = body;
+    const { userId = 'guest_user', data } = body;
 
     if (!data) {
       return NextResponse.json({ success: false, message: 'Missing data payload' }, { status: 400 });
@@ -64,8 +61,8 @@ export async function POST(request) {
     );
 
     return NextResponse.json({ success: true, message: 'Data saved successfully to MongoDB' });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in POST /api/data:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: error?.message || 'Failed to save data' }, { status: 500 });
   }
 }

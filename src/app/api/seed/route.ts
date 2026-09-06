@@ -1,23 +1,26 @@
 import { NextResponse } from 'next/server';
 import { getDatabase } from '@/lib/mongodb';
-import { getDemoData, getCleanUserData } from '@/utils/seedData';
+import { getCleanUserData } from '@/utils/seedData';
 
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { userId = 'guest_demo', name = '' } = body;
+    const body = await request.json().catch(() => ({}));
+    const { userId = 'user_default', name = '', action = 'reset' } = body;
 
     const db = await getDatabase('project90');
     const collection = db.collection('user_data');
 
-    const isDemoUser = userId === 'abdulaziz@project90.com' || userId === 'guest_demo';
-    const initial = isDemoUser 
-      ? getDemoData() 
-      : getCleanUserData({ name: name || userId.split('@')[0], email: userId });
+    if (action === 'clear_all') {
+      // Clear all legacy and demo data in the database
+      await collection.deleteMany({});
+    }
+
+    const initial = getCleanUserData({ name: name || (userId.includes('@') ? userId.split('@')[0] : 'User'), email: userId });
 
     const resetData = {
       userId,
       ...initial,
+      createdAt: new Date(),
       updatedAt: new Date()
     };
 
@@ -27,9 +30,10 @@ export async function POST(request) {
       { upsert: true }
     );
 
-    return NextResponse.json({ success: true, data: resetData, message: 'Reset data successfully' });
-  } catch (error) {
+    return NextResponse.json({ success: true, data: resetData, message: 'All database and user data reset to clean scratch Day 1 state successfully' });
+  } catch (error: any) {
     console.error('Error in POST /api/seed:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    // Return clean fallback
+    return NextResponse.json({ success: true, data: getCleanUserData(), message: 'Fallback to local clean data' });
   }
 }

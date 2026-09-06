@@ -10,7 +10,6 @@ import {
   AlertCircle, 
   ArrowRight, 
   ShieldCheck, 
-  Flame, 
   Zap, 
   Clock, 
   Scale, 
@@ -24,17 +23,15 @@ import confetti from 'canvas-confetti';
 import { authClient } from '@/lib/auth-client';
 import { useApp } from '@/context/AppContext';
 
-export const LoginPage = ({ onLoginSuccess }) => {
+export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) => {
   const { 
     data, 
-    updateProfile, 
     toggleTheme, 
     triggerSound, 
     setIsAuthenticated, 
-    loadDemoAccount, 
     loadCleanUserAccount 
   } = useApp();
-  const [mode, setMode] = useState('login'); // 'login' | 'signup'
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -53,7 +50,7 @@ export const LoginPage = ({ onLoginSuccess }) => {
     if (onLoginSuccess) onLoginSuccess();
   };
 
-  const handleStandardAuth = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
     setSuccessMsg('');
@@ -61,8 +58,8 @@ export const LoginPage = ({ onLoginSuccess }) => {
 
     try {
       if (mode === 'signup') {
-        const { data: resData, error } = await authClient.signUp.email({
-          name: name.trim() || 'New User',
+        const { error } = await (authClient as any).signUp.email({
+          name: name.trim() || 'User',
           email: email.trim(),
           password: password.trim(),
         });
@@ -75,17 +72,16 @@ export const LoginPage = ({ onLoginSuccess }) => {
 
         triggerSound('fanfare');
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        setSuccessMsg('Account created! Welcome to your clean Day 1 transformation.');
+        setSuccessMsg('Account created successfully! Welcome to Day 1.');
         
-        // Initialize 100% Clean User State
         if (loadCleanUserAccount) {
-          await loadCleanUserAccount({ name: name.trim() || 'New User', email: email.trim() });
+          await loadCleanUserAccount({ name: name.trim() || 'User', email: email.trim() });
         }
         setTimeout(() => {
           completeLogin();
-        }, 1000);
+        }, 800);
       } else {
-        const { data: resData, error } = await authClient.signIn.email({
+        const { error } = await (authClient as any).signIn.email({
           email: email.trim(),
           password: password.trim(),
         });
@@ -99,72 +95,45 @@ export const LoginPage = ({ onLoginSuccess }) => {
         triggerSound('habit-complete');
         setSuccessMsg('Signed in successfully! Loading your dashboard...');
 
-        if (email.trim() === 'abdulaziz@project90.com') {
-          if (loadDemoAccount) await loadDemoAccount();
-        }
-
         setTimeout(() => {
           completeLogin();
-        }, 800);
+        }, 600);
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Auth error:', err);
+      // Seamless local fallback if offline or DB syncing
       if (mode === 'signup' && loadCleanUserAccount) {
-        await loadCleanUserAccount({ name: name.trim() || 'New User', email: email.trim() });
-      } else if (email.trim() === 'abdulaziz@project90.com' && loadDemoAccount) {
-        await loadDemoAccount();
+        await loadCleanUserAccount({ name: name.trim() || 'User', email: email.trim() });
+      } else if (loadCleanUserAccount) {
+        await loadCleanUserAccount({ name: email.split('@')[0] || 'User', email: email.trim() });
       }
-      setSuccessMsg('Welcome!');
+      setSuccessMsg('Welcome to Day 1!');
       setTimeout(() => {
         completeLogin();
-      }, 800);
+      }, 700);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleQuickDemoLogin = async () => {
+  const handleGuestEntry = async () => {
     setIsLoading(true);
     setErrorMsg('');
     try {
-      // 1-Click Demo login credentials
-      setName('Abdulaziz');
-      setEmail('abdulaziz@project90.com');
-      setPassword('Project90DemoPass!');
-
-      await authClient.signUp.email({
-        name: 'Abdulaziz',
-        email: 'abdulaziz@project90.com',
-        password: 'Project90DemoPass!'
-      }).catch(() => {
-        return authClient.signIn.email({
-          email: 'abdulaziz@project90.com',
-          password: 'Project90DemoPass!'
-        });
-      });
-
-      if (loadDemoAccount) {
-        await loadDemoAccount();
+      if (loadCleanUserAccount) {
+        await loadCleanUserAccount({ name: 'Guest User', email: 'guest_user' });
       }
-
       triggerSound('fanfare');
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
-      setSuccessMsg('Welcome back, Abdulaziz! Loading your Day 12 sprint...');
+      confetti({ particleCount: 80, spread: 60, origin: { y: 0.5 } });
+      setSuccessMsg('Welcome! Starting clean Day 1 experience...');
       setTimeout(() => {
         completeLogin();
-      }, 900);
+      }, 600);
     } catch (e) {
-      if (loadDemoAccount) await loadDemoAccount();
       completeLogin();
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const autofillDemoFields = () => {
-    setEmail('abdulaziz@project90.com');
-    setPassword('Project90DemoPass!');
-    triggerSound('click');
   };
 
   return (
@@ -192,7 +161,7 @@ export const LoginPage = ({ onLoginSuccess }) => {
         zIndex: 0
       }} />
 
-      {/* Theme toggle in top corner */}
+      {/* Theme toggle */}
       <div style={{ position: 'absolute', top: '20px', right: '24px', zIndex: 10 }}>
         <button
           className="btn btn-ghost btn-icon"
@@ -204,7 +173,7 @@ export const LoginPage = ({ onLoginSuccess }) => {
       </div>
 
       <div style={{
-        maxWidth: '490px',
+        maxWidth: '460px',
         width: '100%',
         background: 'var(--bg-card)',
         border: '1px solid var(--border-color)',
@@ -218,94 +187,42 @@ export const LoginPage = ({ onLoginSuccess }) => {
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div style={{
-            width: '58px',
-            height: '58px',
-            borderRadius: '18px',
+            width: '56px',
+            height: '56px',
+            borderRadius: '16px',
             background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            margin: '0 auto 1.1rem',
-            boxShadow: '0 8px 28px var(--primary-glow)'
+            margin: '0 auto 1rem',
+            boxShadow: '0 8px 24px var(--primary-glow)'
           }}>
-            <Sparkles size={30} color="#ffffff" />
+            <Sparkles size={28} color="#ffffff" />
           </div>
 
-          <h1 style={{ fontSize: '1.85rem', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '0.4rem' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.1, marginBottom: '0.4rem' }}>
             PROJECT <span style={{ color: 'var(--primary-light)' }}>90</span>
           </h1>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
-            Build Your Life, One Day at a Time
+          <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', fontWeight: 500 }}>
+            Your 90-Day Life Operating System
           </p>
 
           {/* 5 Pillar Chips */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.9rem' }}>
-            <span className="badge badge-spiritual" style={{ fontSize: '0.7rem', padding: '0.25rem 0.55rem' }}>🕌 Spiritual</span>
-            <span className="badge badge-digital" style={{ fontSize: '0.7rem', padding: '0.25rem 0.55rem' }}>📱 Digital</span>
-            <span className="badge badge-personal" style={{ fontSize: '0.7rem', padding: '0.25rem 0.55rem' }}>👤 Personal</span>
-            <span className="badge badge-health" style={{ fontSize: '0.7rem', padding: '0.25rem 0.55rem' }}>💪 Health</span>
-            <span className="badge badge-career" style={{ fontSize: '0.7rem', padding: '0.25rem 0.55rem' }}>💻 Career</span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '0.35rem', flexWrap: 'wrap', marginTop: '0.85rem' }}>
+            <span className="badge badge-spiritual" style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem' }}>🕌 Spiritual</span>
+            <span className="badge badge-digital" style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem' }}>📱 Digital</span>
+            <span className="badge badge-personal" style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem' }}>👤 Personal</span>
+            <span className="badge badge-health" style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem' }}>💪 Health</span>
+            <span className="badge badge-career" style={{ fontSize: '0.68rem', padding: '0.2rem 0.5rem' }}>💻 Career</span>
           </div>
         </div>
 
-        {/* Prominent 1-Click Demo Button */}
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.16), rgba(139, 92, 246, 0.1))',
-          border: '1px solid rgba(99, 102, 241, 0.4)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '1.25rem',
-          marginBottom: '1.75rem',
-          textAlign: 'center'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.78rem', fontWeight: 700, color: 'var(--primary-light)', marginBottom: '0.45rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            <Zap size={14} />
-            <span>Instant Demo Experience</span>
-          </div>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleQuickDemoLogin}
-            disabled={isLoading}
-            style={{
-              width: '100%',
-              padding: '0.9rem',
-              fontSize: '0.98rem',
-              fontWeight: 800,
-              gap: '0.5rem',
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-              boxShadow: '0 6px 20px var(--primary-glow)'
-            }}
-          >
-            <span>⚡ Launch Demo Account (Abdulaziz)</span>
-            <ArrowRight size={18} />
-          </button>
-          <div style={{ fontSize: '0.73rem', color: 'var(--text-muted)', marginTop: '0.55rem' }}>
-            Pre-loaded with Day 12 sprint, anti-burnout metrics, and MongoDB Atlas sync
-          </div>
-        </div>
-
-        {/* Divider */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.75rem',
-          marginBottom: '1.35rem',
-          fontSize: '0.75rem',
-          color: 'var(--text-muted)',
-          textTransform: 'uppercase',
-          fontWeight: 700
-        }}>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
-          <span>Or Standard Login</span>
-          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
-        </div>
-
-        {/* Sign In / Sign Up Tabs */}
+        {/* Tab Switcher */}
         <div style={{ display: 'flex', gap: '0.35rem', background: 'var(--bg-input)', padding: '0.25rem', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem' }}>
           <button
             type="button"
             className={`btn btn-sm ${mode === 'login' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ flex: 1, fontSize: '0.85rem' }}
+            style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700 }}
             onClick={() => { setMode('login'); setErrorMsg(''); setSuccessMsg(''); }}
           >
             Sign In
@@ -313,7 +230,7 @@ export const LoginPage = ({ onLoginSuccess }) => {
           <button
             type="button"
             className={`btn btn-sm ${mode === 'signup' ? 'btn-primary' : 'btn-ghost'}`}
-            style={{ flex: 1, fontSize: '0.85rem' }}
+            style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700 }}
             onClick={() => { setMode('signup'); setErrorMsg(''); setSuccessMsg(''); }}
           >
             Create Account
@@ -357,8 +274,8 @@ export const LoginPage = ({ onLoginSuccess }) => {
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleStandardAuth}>
+        {/* Standard Auth Form */}
+        <form onSubmit={handleSubmit}>
           {mode === 'signup' && (
             <div className="form-group" style={{ marginBottom: '1rem' }}>
               <label className="form-label" style={{ fontSize: '0.82rem' }}>Full Name</label>
@@ -368,7 +285,7 @@ export const LoginPage = ({ onLoginSuccess }) => {
                   type="text"
                   className="form-input"
                   required
-                  placeholder="Abdulaziz"
+                  placeholder="Your Name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   style={{ paddingLeft: '38px' }}
@@ -378,31 +295,14 @@ export const LoginPage = ({ onLoginSuccess }) => {
           )}
 
           <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-              <label className="form-label" style={{ fontSize: '0.82rem', marginBottom: 0 }}>Email Address</label>
-              <button
-                type="button"
-                onClick={autofillDemoFields}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  color: 'var(--primary-light)',
-                  fontSize: '0.72rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              >
-                Auto-fill demo credentials
-              </button>
-            </div>
+            <label className="form-label" style={{ fontSize: '0.82rem' }}>Email Address</label>
             <div style={{ position: 'relative' }}>
               <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type="email"
                 className="form-input"
                 required
-                placeholder="abdulaziz@project90.com"
+                placeholder="name@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ paddingLeft: '38px' }}
@@ -446,8 +346,8 @@ export const LoginPage = ({ onLoginSuccess }) => {
 
           <button
             type="submit"
-            className="btn btn-secondary btn-lg"
-            style={{ width: '100%', marginTop: '0.25rem', gap: '0.5rem', fontWeight: 700 }}
+            className="btn btn-primary btn-lg"
+            style={{ width: '100%', marginTop: '0.25rem', gap: '0.5rem', fontWeight: 800 }}
             disabled={isLoading}
           >
             {isLoading ? (
@@ -460,28 +360,46 @@ export const LoginPage = ({ onLoginSuccess }) => {
             ) : (
               <>
                 <UserPlus size={18} />
-                <span>Create New Account</span>
+                <span>Create Day 1 Account</span>
               </>
             )}
           </button>
         </form>
 
-        {/* Guest access footer */}
-        <div style={{ textAlign: 'center', marginTop: '1.5rem', paddingTop: '1.1rem', borderTop: '1px solid var(--border-color)' }}>
-          <button
-            type="button"
-            className="btn btn-ghost btn-sm"
-            onClick={async () => {
-              if (loadCleanUserAccount) {
-                await loadCleanUserAccount({ name: 'Guest Explorer', email: 'guest_explorer' });
-              }
-              completeLogin();
-            }}
-            style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}
-          >
-            Continue as Guest Explorer &rarr;
-          </button>
+        {/* Divider */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          margin: '1.35rem 0',
+          fontSize: '0.75rem',
+          color: 'var(--text-muted)',
+          textTransform: 'uppercase',
+          fontWeight: 700
+        }}>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
+          <span>Or Quick Access</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
         </div>
+
+        {/* Guest Access Option */}
+        <button
+          type="button"
+          className="btn btn-secondary"
+          onClick={handleGuestEntry}
+          disabled={isLoading}
+          style={{
+            width: '100%',
+            gap: '0.5rem',
+            padding: '0.75rem',
+            fontSize: '0.88rem',
+            fontWeight: 700
+          }}
+        >
+          <Zap size={16} color="var(--primary-light)" />
+          <span>Continue as Guest (Start Fresh Day 1)</span>
+          <ArrowRight size={16} />
+        </button>
       </div>
 
       {/* Feature Pillars Highlights Bar */}
@@ -506,10 +424,9 @@ export const LoginPage = ({ onLoginSuccess }) => {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <Calendar size={15} color="#f59e0b" />
-          <span>Sunday Sprint Reviews</span>
+          <span>90-Day Sprint Roadmaps</span>
         </div>
       </div>
     </div>
   );
 };
-
