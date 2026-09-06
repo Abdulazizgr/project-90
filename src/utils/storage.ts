@@ -1,12 +1,12 @@
-// Storage manager with LocalStorage persistence, JSON export/import, CSV export and demo reset
+// Storage manager with LocalStorage persistence, JSON export/import, CSV export and clean scratch reset
 
-import { getInitialData, getDemoData, getCleanUserData } from './seedData';
+import { getCleanUserData } from './seedData';
 
-const STORAGE_KEY = 'project90_data_v1';
+const STORAGE_KEY = 'project90_data_v2';
 
-export const loadDataFromStorage = (userId = null) => {
+export const loadDataFromStorage = (profile = {}) => {
   if (typeof window === 'undefined') {
-    return getDemoData();
+    return getCleanUserData(profile);
   }
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -19,12 +19,12 @@ export const loadDataFromStorage = (userId = null) => {
   } catch (e) {
     console.error('Failed to parse stored Project 90 data', e);
   }
-  const initial = getDemoData();
+  const initial = getCleanUserData(profile);
   saveDataToStorage(initial);
   return initial;
 };
 
-export const saveDataToStorage = (data) => {
+export const saveDataToStorage = (data: any) => {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -33,7 +33,7 @@ export const saveDataToStorage = (data) => {
   }
 };
 
-export const exportDataAsJSON = (data) => {
+export const exportDataAsJSON = (data: any) => {
   if (typeof window === 'undefined') return;
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
   const downloadAnchor = document.createElement('a');
@@ -49,16 +49,16 @@ export const exportTimeEntriesAsCSV = (timeEntries = [], categories = []) => {
 
   const headers = ['ID', 'Date', 'Activity Name', 'Category', 'Project', 'Start Time', 'End Time', 'Duration (Minutes)', 'Duration (Formatted)', 'Description'];
   
-  const rows = timeEntries.map((e) => {
-    const cat = categories.find((c) => c.id === e.categoryId);
-    const proj = cat?.projects?.find((p) => p.id === e.projectId);
+  const rows = timeEntries.map((e: any) => {
+    const cat = categories.find((c: any) => c.id === e.categoryId);
+    const proj = (cat as any)?.projects?.find((p: any) => p.id === e.projectId);
     const durationHours = (e.durationMinutes / 60).toFixed(2);
     
     return [
       `"${e.id || ''}"`,
       `"${e.date || ''}"`,
       `"${(e.activityName || '').replace(/"/g, '""')}"`,
-      `"${cat?.name || e.categoryId || ''}"`,
+      `"${(cat as any)?.name || e.categoryId || ''}"`,
       `"${proj?.name || ''}"`,
       `"${e.startTime || ''}"`,
       `"${e.endTime || ''}"`,
@@ -78,7 +78,7 @@ export const exportTimeEntriesAsCSV = (timeEntries = [], categories = []) => {
   downloadAnchor.remove();
 };
 
-export const importDataFromJSON = (jsonString) => {
+export const importDataFromJSON = (jsonString: string) => {
   try {
     const parsed = JSON.parse(jsonString);
     if (parsed && parsed.challenge && parsed.categories) {
@@ -91,15 +91,12 @@ export const importDataFromJSON = (jsonString) => {
   }
 };
 
-export const resetToDemoData = () => {
-  const initial = getDemoData();
-  saveDataToStorage(initial);
-  return initial;
-};
-
 export const resetToCleanUserData = (profile = {}) => {
   const initial = getCleanUserData(profile);
   saveDataToStorage(initial);
   return initial;
 };
 
+export const resetToDemoData = () => {
+  return resetToCleanUserData();
+};

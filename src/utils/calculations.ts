@@ -257,6 +257,101 @@ export const calculateCategoryStats = (categoryId, habits = [], habitLogs = {}, 
   };
 };
 
+export const calculateCategoryDayScore = (categoryScores = {}) => {
+  if (!categoryScores || typeof categoryScores !== 'object') return 0;
+  const categories = ['spiritual', 'digital', 'personal', 'health', 'career'];
+  let sum = 0;
+  let validCount = 0;
+  
+  categories.forEach((catKey) => {
+    if (categoryScores[catKey] !== undefined && categoryScores[catKey] !== null) {
+      const val = Number(categoryScores[catKey]);
+      if (!isNaN(val)) {
+        sum += Math.max(0, Math.min(100, val));
+        validCount++;
+      }
+    }
+  });
+
+  if (validCount === 0) return 0;
+  return Math.round(sum / 5); // Average across the 5 core pillars
+};
+
+export const isRoutineScheduledForDay = (routine, dayKey) => {
+  if (!routine || routine.active === false) return false;
+  if (!routine.days || !Array.isArray(routine.days) || routine.days.length === 0) return true; // default daily
+  if (routine.days.includes('daily') || routine.days.includes('all')) return true;
+  return routine.days.includes(dayKey);
+};
+
+export const getRoutinesForDay = (routines = [], dateOrDayKey) => {
+  const dayKey = dateOrDayKey?.length === 3 ? dateOrDayKey : getDayKeyFromDateStr(dateOrDayKey);
+  return routines.filter((r) => isRoutineScheduledForDay(r, dayKey));
+};
+
+export const getSuggestedCategoryScores = (
+  routines = [],
+  routineLogs = {},
+  timeEntries = [],
+  dateStr = new Date().toISOString().split('T')[0]
+) => {
+  const dayKey = getDayKeyFromDateStr(dateStr);
+  const categories = ['spiritual', 'digital', 'personal', 'health', 'career'];
+  const result = {
+    spiritual: 0,
+    digital: 0,
+    personal: 0,
+    health: 0,
+    career: 0
+  };
+
+  categories.forEach((catKey) => {
+    // 1. Check routines for this category scheduled for this day
+    const catRoutines = routines.filter(
+      (r) => r.categoryId === catKey && isRoutineScheduledForDay(r, dayKey)
+    );
+
+    let routineScore = 0;
+    if (catRoutines.length > 0) {
+      let earned = 0;
+      catRoutines.forEach((r) => {
+        const log = routineLogs[r.id];
+        if (log) {
+          if (log.status === 'done' || log.completed) {
+            earned += 100;
+          } else if (log.status === 'late') {
+            earned += 80;
+          } else if (log.status === 'partial') {
+            earned += 50;
+          } else if (log.status === 'missed') {
+            earned += 0;
+          }
+        }
+      });
+      routineScore = Math.round(earned / catRoutines.length);
+    }
+
+    // 2. Check time tracked for career / other categories
+    const catTimeEntries = (timeEntries || []).filter(
+      (e) => e.categoryId === catKey && e.date === dateStr
+    );
+    const totalMinutes = catTimeEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
+
+    let timeScore = 0;
+    if (catKey === 'career') {
+      // 3+ hours (180 mins) = 100%, 2h = 75%, 1h = 50%
+      timeScore = Math.min(100, Math.round((totalMinutes / 180) * 100));
+      result[catKey] = catRoutines.length > 0 
+        ? Math.max(routineScore, Math.round((routineScore * 0.4) + (timeScore * 0.6)))
+        : timeScore;
+    } else {
+      result[catKey] = catRoutines.length > 0 ? routineScore : (totalMinutes > 0 ? Math.min(100, totalMinutes * 2) : 70);
+    }
+  });
+
+  return result;
+};
+
 export const getCategoryMeta = (categoryId, categories = []) => {
   const cat = categories.find(c => c.id === categoryId);
   if (cat) return cat;
@@ -271,3 +366,4 @@ export const getCategoryMeta = (categoryId, categories = []) => {
 
   return defaultMetas[categoryId] || { name: categoryId, icon: '🎯', color: 'var(--primary)', badgeClass: 'badge-primary' };
 };
+

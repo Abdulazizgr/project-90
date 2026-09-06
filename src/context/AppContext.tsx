@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import confetti from 'canvas-confetti';
 import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToDemoData, resetToCleanUserData } from '../utils/storage';
 import { playSound } from '../utils/sound';
-import { calculateDailyScore, calculateExecutionScore } from '../utils/calculations';
+import { calculateDailyScore, calculateExecutionScore, calculateCategoryDayScore, isRoutineScheduledForDay, getSuggestedCategoryScores } from '../utils/calculations';
 import { authClient } from '../lib/auth-client';
 
 const AppContext = createContext<any>(null);
@@ -343,6 +343,14 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
 
   // Helper to recompute and sync today's score dynamically
   const recomputeTodayScore = (state) => {
+    // If user has already completed evening 5-category evaluation, keep their manual average!
+    if (state.categoryScores?.[todayStr]?.overallScore !== undefined) {
+      return {
+        ...state.dayScores,
+        [todayStr]: state.categoryScores[todayStr].overallScore
+      };
+    }
+
     const execRes = calculateExecutionScore(
       state.routines || [],
       state.routineLogsHistory?.[todayStr] || {},
@@ -359,6 +367,95 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       ...state.dayScores,
       [todayStr]: numericScore
     };
+  };
+
+  // 5-Category Evening Self-Evaluation
+  const saveCategoryDayScores = (dateStr, scores, notes = '') => {
+    const overallScore = calculateCategoryDayScore(scores);
+    
+    setData((prev) => {
+      const updatedCategoryScores = {
+        ...prev.categoryScores,
+        [dateStr]: {
+          ...scores,
+          notes,
+          overallScore,
+          evaluatedAt: new Date().toISOString()
+        }
+      };
+
+      const updatedDayScores = {
+        ...prev.dayScores,
+        [dateStr]: overallScore
+      };
+
+      return {
+        ...prev,
+        categoryScores: updatedCategoryScores,
+        dayScores: updatedDayScores
+      };
+    });
+
+    triggerSound('fanfare');
+    confetti({
+      particleCount: 120,
+      spread: 80,
+      origin: { y: 0.6 }
+    });
+  };
+
+  // Detailed Routine Task Execution Logger (with Mosque/Home, On-Time/Late, and Reason prompt)
+  const logRoutineTaskExecution = (routineId, status, metadata: any = {}) => {
+    const isDone = status === 'done' || status === 'completed';
+    const isLate = status === 'late';
+    const isPartial = status === 'partial';
+    const isMissed = status === 'missed';
+
+    setData((prev) => {
+      const currentLogs = { ...(prev.routineLogsHistory?.[todayStr] || {}) };
+      const routine = (prev.routines || []).find((r) => r.id === routineId);
+      const defaultPts = routine?.points || 20;
+
+      const earned = isDone 
+        ? defaultPts 
+        : (isLate ? Math.round(defaultPts * 0.8) : (isPartial ? Math.round(defaultPts * 0.5) : 0));
+
+      currentLogs[routineId] = {
+        status: isDone ? 'done' : (isLate ? 'late' : (isPartial ? 'partial' : 'missed')),
+        completed: isDone || isLate,
+        onTime: metadata.onTime !== undefined ? metadata.onTime : isDone,
+        location: metadata.location || (metadata.inMosque ? 'mosque' : 'home'),
+        reason: metadata.reason || '',
+        notes: metadata.notes || '',
+        earnedPoints: earned,
+        updatedAt: new Date().toISOString()
+      };
+
+      const newRoutineLogsHistory = {
+        ...prev.routineLogsHistory,
+        [todayStr]: currentLogs
+      };
+
+      const nextState = {
+        ...prev,
+        routineLogsHistory: newRoutineLogsHistory
+      };
+
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+
+    if (isDone) {
+      triggerSound('habit-complete');
+    } else if (isLate || isPartial) {
+      triggerSound('click');
+    } else {
+      triggerSound('pop');
+    }
+  };
+
+  const setRoutineStatus = (routineId, status, customEarnedPoints = null) => {
+    logRoutineTaskExecution(routineId, status, {});
   };
 
   // Tasks inside projects
@@ -581,41 +678,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       return nextState;
     });
     triggerSound('success');
-  };
-
-  const setRoutineStatus = (routineId, status, customEarnedPoints = null) => {
-    setData((prev) => {
-      const currentLogs = { ...(prev.routineLogsHistory?.[todayStr] || {}) };
-      const routine = (prev.routines || []).find((r) => r.id === routineId);
-      const defaultPts = routine?.points || (routineId === 'morning' ? 15 : routineId === 'evening' ? 15 : 20);
-      
-      const isCompleted = status === 'completed';
-      const earned = customEarnedPoints !== null 
-        ? Number(customEarnedPoints) 
-        : (isCompleted ? defaultPts : (status === 'in_progress' ? Math.round(defaultPts * 0.5) : 0));
-
-      currentLogs[routineId] = {
-        status,
-        completed: isCompleted,
-        earnedPoints: earned,
-        updatedAt: new Date().toISOString()
-      };
-
-      const newRoutineLogsHistory = {
-        ...prev.routineLogsHistory,
-        [todayStr]: currentLogs
-      };
-
-      const nextState = {
-        ...prev,
-        routineLogsHistory: newRoutineLogsHistory
-      };
-
-      nextState.dayScores = recomputeTodayScore(nextState);
-
-      if (isCompleted) triggerSound('habit-complete');
-      return nextState;
-    });
   };
 
   const deleteTask = (catId, projId, taskId) => {
@@ -1053,55 +1115,50 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
 
   // Reset & Backup
   const handleExport = () => exportDataAsJSON(data);
-  const handleImport = (jsonStr) => {
+  const handleImport = (jsonStr: string) => {
     const imported = importDataFromJSON(jsonStr);
     setData(imported);
     triggerSound('fanfare');
   };
-  const handleReset = async () => {
+
+  const clearAllDataToScratch = async () => {
     try {
-      const userId = user?.id || user?.email || 'guest_demo';
-      const res = await fetch('/api/seed', {
+      const userId = user?.id || user?.email || 'guest_user';
+      await fetch('/api/seed', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId })
+        body: JSON.stringify({ userId, action: 'clear_all' })
       });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) {
-          setData(json.data);
-          triggerSound('fanfare');
-          return;
-        }
-      }
     } catch (e) {
       console.debug('Resetting locally', e);
     }
-    const reset = resetToDemoData();
-    setData(reset);
+    const clean = resetToCleanUserData({
+      name: user?.name || data.profile?.name || 'User',
+      email: user?.email || ''
+    });
+    setData(clean);
     triggerSound('fanfare');
+    confetti({
+      particleCount: 150,
+      spread: 80,
+      origin: { y: 0.6 }
+    });
+  };
+
+  const handleReset = clearAllDataToScratch;
+
+  const toggleGettingStartedGuide = () => {
+    setData((prev: any) => ({
+      ...prev,
+      showGettingStartedGuide: prev.showGettingStartedGuide === false ? true : false
+    }));
   };
 
   const loadDemoAccount = async () => {
-    const demo = resetToDemoData();
-    setData(demo);
-    setIsAuthenticated(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('p90_logged_in', 'true');
-    }
-    try {
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: 'abdulaziz@project90.com', data: demo })
-      });
-    } catch (e) {
-      console.debug('Failed to sync demo data to Mongo', e);
-    }
-    triggerSound('fanfare');
+    return loadCleanUserAccount({ name: 'Explorer', email: 'guest_explorer' });
   };
 
-  const loadCleanUserAccount = async ({ name = 'New User', email = '' } = {}) => {
+  const loadCleanUserAccount = async ({ name = 'User', email = '' } = {}) => {
     const clean = resetToCleanUserData({ name, email });
     setData(clean);
     setIsAuthenticated(true);
@@ -1175,6 +1232,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     toggleTask,
     toggleTaskToday,
     awardTaskPoints,
+    saveCategoryDayScores,
+    logRoutineTaskExecution,
     setRoutineStatus,
     deleteTask,
     addRoutine,
@@ -1200,6 +1259,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     handleExport,
     handleImport,
     handleReset,
+    clearAllDataToScratch,
+    toggleGettingStartedGuide,
     loadDemoAccount,
     loadCleanUserAccount,
     handleSignOut
