@@ -5,7 +5,7 @@ import { useApp } from '../../context/AppContext';
 import { formatDurationHMS, formatDurationHuman, getCategoryMeta } from '../../utils/calculations';
 
 export const RoutineRunnerModal = () => {
-  const { data, activeModal, setActiveModal, modalData, addManualTimeEntry, triggerSound, todayStr } = useApp();
+  const { data, activeModal, setActiveModal, modalData, logRoutineTaskExecution, triggerSound, todayStr } = useApp();
 
   if (activeModal !== 'routine_runner' || !modalData) return null;
 
@@ -16,7 +16,7 @@ export const RoutineRunnerModal = () => {
   const [currentStepIdx, setCurrentStepIdx] = useState(0);
   const [stepElapsedSeconds, setStepElapsedSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(true);
-  const [completedSteps, setCompletedSteps] = useState({});
+  const [completedSteps, setCompletedSteps] = useState<Record<string, boolean>>({});
 
   const currentActivity = activities[currentStepIdx] || activities[0];
   const totalSteps = activities.length;
@@ -24,7 +24,7 @@ export const RoutineRunnerModal = () => {
 
   // Interval timer for current step
   useEffect(() => {
-    let interval = null;
+    let interval: any = null;
     if (isTimerRunning && !isFinished) {
       interval = setInterval(() => {
         setStepElapsedSeconds((prev) => prev + 1);
@@ -58,18 +58,10 @@ export const RoutineRunnerModal = () => {
   };
 
   const handleFinishAndLog = () => {
-    const totalMinutes = activities.reduce((acc, curr) => acc + (curr.duration || 0), 0);
-    
-    // Auto log routine session into time entries
-    addManualTimeEntry({
-      activityName: `${routine.name} Completed`,
-      categoryId: activities[0]?.categoryId || 'personal',
-      projectId: '',
-      date: todayStr,
-      startTime: routine.timeSlot?.split('-')[0]?.trim() || '06:00 AM',
-      endTime: routine.timeSlot?.split('-')[1]?.trim() || '07:30 AM',
-      durationMinutes: totalMinutes,
-      description: `Completed all ${totalSteps} activities in ${routine.name}`
+    // Log routine as completed (NO fake time entries created)
+    logRoutineTaskExecution(routine.id, 'done', {
+      onTime: true,
+      location: routine.type === 'prayer' || routine.categoryId === 'spiritual' ? 'mosque' : 'home'
     });
 
     setActiveModal(null);
