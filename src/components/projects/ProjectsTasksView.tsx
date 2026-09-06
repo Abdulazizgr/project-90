@@ -63,7 +63,6 @@ export const ProjectsTasksView = () => {
   const [quickTaskTitle, setQuickTaskTitle] = useState('');
   const [quickTaskPriority, setQuickTaskPriority] = useState('medium'); // 'high' | 'medium' | 'low'
   const [quickTaskStatus, setQuickTaskStatus] = useState('todo'); // 'todo' | 'in_progress' | 'done'
-  const [quickTaskPoints, setQuickTaskPoints] = useState(20);
   const [quickTaskIsToday, setQuickTaskIsToday] = useState(true);
 
   const timeEntries = data.timeEntries || [];
@@ -221,7 +220,6 @@ export const ProjectsTasksView = () => {
       title: quickTaskTitle.trim(),
       priority: quickTaskPriority,
       status: quickTaskStatus,
-      points: Number(quickTaskPoints) || 20,
       isToday: quickTaskIsToday
     });
 
@@ -813,7 +811,7 @@ export const ProjectsTasksView = () => {
 
                 <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
                   {/* Task Title Input */}
-                  <div style={{ flex: '1 1 200px', minWidth: '180px' }}>
+                  <div style={{ flex: '1 1 240px', minWidth: '200px' }}>
                     <input
                       type="text"
                       className="input"
@@ -826,30 +824,6 @@ export const ProjectsTasksView = () => {
                         background: 'rgba(15, 23, 42, 0.85)' 
                       }}
                     />
-                  </div>
-
-                  {/* Task Points Dropdown */}
-                  <div style={{ width: '120px', flexShrink: 0 }}>
-                    <select
-                      className="input"
-                      value={quickTaskPoints}
-                      onChange={(e) => setQuickTaskPoints(Number(e.target.value))}
-                      style={{ 
-                        fontSize: '0.82rem',
-                        padding: '0.65rem 0.8rem',
-                        background: 'rgba(15, 23, 42, 0.85)',
-                        color: 'var(--primary-light)',
-                        fontWeight: 700
-                      }}
-                      title="Points weight for this task"
-                    >
-                      <option value={10}>⭐ 10 pts</option>
-                      <option value={15}>⭐ 15 pts</option>
-                      <option value={20}>⭐ 20 pts</option>
-                      <option value={25}>⭐ 25 pts</option>
-                      <option value={30}>⭐ 30 pts</option>
-                      <option value={50}>⭐ 50 pts</option>
-                    </select>
                   </div>
 
                   {/* Task Status Dropdown */}
@@ -1018,8 +992,6 @@ export const ProjectsTasksView = () => {
                       const isInProgress = task.status === 'in_progress';
                       const isTodo = task.status === 'todo' || (!isDone && !isInProgress);
                       const priorityColor = task.priority === 'high' ? '#ef4444' : task.priority === 'medium' ? '#f59e0b' : '#06b6d4';
-                      const taskPoints = Number(task.points) || (task.priority === 'high' ? 30 : task.priority === 'medium' ? 20 : 10);
-                      const earned = task.earnedPoints !== undefined ? Number(task.earnedPoints) : (isDone ? taskPoints : (isInProgress ? Math.round(taskPoints * 0.5) : 0));
 
                       return (
                         <div
@@ -1070,7 +1042,7 @@ export const ProjectsTasksView = () => {
                                 transition: 'all var(--transition-fast)',
                                 flexShrink: 0
                               }}
-                              title={isDone ? 'Mark as In Progress' : 'Mark as Done (Earn full points)'}
+                              title={isDone ? 'Mark as In Progress' : 'Mark as Done'}
                             >
                               {isDone && <Check size={15} color="#ffffff" strokeWidth={3} />}
                               {isInProgress && <div style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />}
@@ -1090,7 +1062,7 @@ export const ProjectsTasksView = () => {
                             </div>
                           </div>
 
-                          {/* Task Status Selector, Points, Badges & Action Buttons */}
+                          {/* Task Status Selector, Badges & Action Buttons */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0, flexWrap: 'wrap' }}>
                             {/* Interactive Task Status Selector */}
                             <select
@@ -1124,22 +1096,6 @@ export const ProjectsTasksView = () => {
                               <option value="in_progress">🟡 In Progress</option>
                               <option value="done">🟢 Done</option>
                             </select>
-
-                            {/* Points Badge */}
-                            <span 
-                              style={{
-                                fontSize: '0.72rem',
-                                fontWeight: 800,
-                                color: isDone ? '#10b981' : 'var(--primary-light)',
-                                background: isDone ? 'rgba(16, 185, 129, 0.12)' : 'rgba(99, 102, 241, 0.12)',
-                                border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)',
-                                padding: '0.2rem 0.55rem',
-                                borderRadius: 'var(--radius-full)'
-                              }}
-                              title="Points earned / Point weight"
-                            >
-                              ⭐ {earned}/{taskPoints} pts
-                            </span>
 
                             {/* Today Focus Toggle */}
                             <button
