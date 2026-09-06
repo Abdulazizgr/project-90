@@ -11,7 +11,7 @@ import {
   Award
 } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { formatDurationHuman, getCategoryMeta } from '../../utils/calculations';
+import { formatDurationHuman, getCategoryMeta, getRoutinesForDay } from '../../utils/calculations';
 
 export const DailyTimelineView = () => {
   const { data, todayStr, setActiveModal } = useApp();
@@ -19,10 +19,12 @@ export const DailyTimelineView = () => {
 
   const categories = data.categories || [];
   const timeEntries = (data.timeEntries || []).filter((e) => (e.date || todayStr) === selectedDate);
-  const habitLogs = data.habitLogsHistory?.[selectedDate] || {};
-  const habits = data.habits || [];
+  const routines = data.routines || [];
+  const dayRoutines = getRoutinesForDay(routines, selectedDate);
+  const routineLogs = data.routineLogsHistory?.[selectedDate] || {};
   const journalEntry = data.journalEntries?.[selectedDate];
-  const dayScore = data.dayScores?.[selectedDate] || 0;
+  const dayScore = data.dayScores?.[selectedDate] || (selectedDate === todayStr ? (data.dailyScore || 0) : 0);
+  const [isRoutinesExpanded, setIsRoutinesExpanded] = useState(false);
 
   // Build composite chronological events
   const timelineEvents = [];
@@ -43,22 +45,24 @@ export const DailyTimelineView = () => {
     });
   });
 
-  // Add completed habits
-  habits.forEach((habit) => {
-    const status = habitLogs[habit.id];
-    if (status === 'completed') {
-      timelineEvents.push({
-        type: 'habit',
-        id: `h_event_${habit.id}`,
-        title: habit.name,
-        time: habit.categoryId === 'spiritual' ? '05:30 AM' : habit.categoryId === 'health' ? '06:30 AM' : '02:00 PM',
-        duration: null,
-        categoryId: habit.categoryId,
-        description: `Target achieved: ${habit.target} (+${habit.points} pts)`,
-        icon: habit.icon || '✅'
-      });
-    }
-  });
+  // Consolidate scheduled & executed routines into ONE timeline block
+  if (dayRoutines.length > 0) {
+    const completedCount = dayRoutines.filter(r => routineLogs[r.id]?.status === 'completed').length;
+    const firstRoutineTime = dayRoutines[0]?.timeSlot ? dayRoutines[0].timeSlot.split('-')[0].trim() : '05:00 AM';
+
+    timelineEvents.push({
+      type: 'routines_group',
+      id: `routines_group_${selectedDate}`,
+      title: 'Daily Scheduled Routines',
+      time: firstRoutineTime,
+      duration: null,
+      categoryId: 'spiritual',
+      icon: '☀️',
+      routines: dayRoutines,
+      completedCount,
+      totalCount: dayRoutines.length
+    });
+  }
 
   // Add journal reflection if exists
   if (journalEntry) {
@@ -207,6 +211,159 @@ export const DailyTimelineView = () => {
             const meta = getCategoryMeta(event.categoryId, categories);
             const catObj = categories.find((c) => c.id === event.categoryId);
             const projObj = catObj?.projects?.find((p) => p.id === event.projectId);
+
+            if (event.type === 'routines_group') {
+              const previewRoutine = event.routines[0];
+              const previewLog = routineLogs[previewRoutine?.id];
+
+              return (
+                <div
+                  key={event.id || idx}
+                  style={{
+                    position: 'relative',
+                    marginBottom: '1.5rem',
+                    animation: 'fadeIn 0.3s ease'
+                  }}
+                >
+                  {/* Node Dot on vertical line */}
+                  <div style={{
+                    position: 'absolute',
+                    left: '-2rem',
+                    top: '12px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: 'var(--bg-app)',
+                    border: '3px solid #10b981',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '0.7rem',
+                    boxShadow: '0 0 10px rgba(16, 185, 129, 0.4)',
+                    zIndex: 2
+                  }}>
+                    <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981' }} />
+                  </div>
+
+                  {/* Group Card */}
+                  <div
+                    className="card"
+                    style={{
+                      padding: '1.15rem 1.35rem',
+                      borderLeft: '4px solid #10b981',
+                      boxShadow: 'var(--shadow-sm)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.5rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                        <span style={{ fontSize: '1.3rem' }}>☀️</span>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <h4 style={{ fontSize: '1.05rem', fontWeight: 800 }}>Daily Scheduled Routines</h4>
+                            <span className="badge badge-excellent" style={{ fontSize: '0.72rem' }}>
+                              {event.completedCount} / {event.totalCount} completed
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setIsRoutinesExpanded(!isRoutinesExpanded)}
+                          style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem' }}
+                        >
+                          {isRoutinesExpanded ? '▴ Show 1 routine only' : `▾ View All (${event.totalCount})`}
+                        </button>
+                      </div>
+                    </div>
+
+                    {!isRoutinesExpanded ? (
+                      /* Compact 1 Routine Preview */
+                      <div
+                        onClick={() => setIsRoutinesExpanded(true)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0.6rem 0.85rem',
+                          borderRadius: 'var(--radius-sm)',
+                          background: 'var(--bg-surface)',
+                          border: '1px solid var(--border-color)',
+                          cursor: 'pointer',
+                          marginTop: '0.4rem'
+                        }}
+                        title="Click to expand all routines"
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontSize: '1.1rem' }}>{previewRoutine?.icon || '☀️'}</span>
+                          <div>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                              {previewRoutine?.title || previewRoutine?.name}
+                            </span>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+                              {previewRoutine?.timeSlot || ''}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="badge" style={{ fontSize: '0.68rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary-light)' }}>
+                          +{event.totalCount - 1} more routines ▾
+                        </span>
+                      </div>
+                    ) : (
+                      /* Full Expanded Routines Stream */
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginTop: '0.6rem' }}>
+                        {event.routines.map((routine: any) => {
+                          const log = routineLogs[routine.id];
+                          const status = log?.status || 'pending';
+                          const isDone = status === 'completed';
+                          const isPartial = status === 'partial';
+                          const isMissed = status === 'missed';
+                          const rMeta = getCategoryMeta(routine.categoryId, categories);
+
+                          return (
+                            <div
+                              key={routine.id}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.55rem 0.8rem',
+                                borderRadius: 'var(--radius-sm)',
+                                background: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-surface)',
+                                border: isDone ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--border-color)',
+                                fontSize: '0.82rem'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', minWidth: 0 }}>
+                                <span>{routine.icon || rMeta.icon}</span>
+                                <div>
+                                  <div style={{ fontWeight: 600 }}>{routine.title || routine.name}</div>
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    {routine.timeSlot || ''} {log?.location ? `• 📍 ${log.location === 'mosque' ? 'Mosque' : 'Home'}` : ''}
+                                    {log?.reason ? ` • "${log.reason}"` : ''}
+                                  </div>
+                                </div>
+                              </div>
+
+                              <span style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                color: isDone ? '#10b981' : isPartial ? '#3b82f6' : isMissed ? '#ef4444' : 'var(--text-muted)'
+                              }}>
+                                {isDone ? (log?.timing === 'ontime' ? '✅ On-Time' : '⏰ Late') : isPartial ? '⚡ Partial' : isMissed ? '❌ Missed' : '⏳ Scheduled'}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }
 
             return (
               <div

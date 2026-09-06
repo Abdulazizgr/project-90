@@ -20,7 +20,7 @@ import {
   Award
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { getDayPointsBudget, DAY_KEYS } from '@/utils/calculations';
+import { getDayPointsBudget, DAY_KEYS, isRoutineScheduledForDay } from '@/utils/calculations';
 
 const DAYS_OF_WEEK = [
   { key: 'mon', label: 'Monday', short: 'Mon', num: 1 },
@@ -59,6 +59,14 @@ export const WeeklyScheduleView = () => {
   const [points, setPoints] = useState(20);
   const [description, setDescription] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [expandedRoutinesDays, setExpandedRoutinesDays] = useState<Record<string, boolean>>({});
+
+  const toggleDayRoutinesExpanded = (dayKey: string) => {
+    setExpandedRoutinesDays(prev => ({
+      ...prev,
+      [dayKey]: !prev[dayKey]
+    }));
+  };
 
   // Today's day key
   const todayDayNum = new Date().getDay(); // 0 is Sun, 1 is Mon...
@@ -153,19 +161,6 @@ export const WeeklyScheduleView = () => {
     } else {
       setSelectedDays([...selectedDays, dayKey]);
     }
-  };
-
-  const applyPreset = (preset) => {
-    if (preset === 'gym') {
-      setSelectedDays(['tue', 'thu', 'sat']);
-    } else if (preset === 'weekdays') {
-      setSelectedDays(['mon', 'tue', 'wed', 'thu', 'fri']);
-    } else if (preset === 'weekends') {
-      setSelectedDays(['sat', 'sun']);
-    } else if (preset === 'mon_wed_fri') {
-      setSelectedDays(['mon', 'wed', 'fri']);
-    }
-    triggerSound('click');
   };
 
   const handleSaveEvent = (e) => {
@@ -324,7 +319,7 @@ export const WeeklyScheduleView = () => {
       {/* 7-Day Visual Weekly Calendar Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
         gap: '1rem',
         alignItems: 'stretch'
       }}>
@@ -332,6 +327,7 @@ export const WeeklyScheduleView = () => {
           const isToday = day.key === todayDayObj.key;
           const dayBudget = getDayPointsBudget(day.key, routines, recurringEvents, categories);
           const dayEvents = filteredEvents.filter(e => e.days && e.days.includes(day.key));
+          const dayRoutines = (routines || []).filter(r => isRoutineScheduledForDay(r, day.key));
 
           return (
             <div 
@@ -346,7 +342,7 @@ export const WeeklyScheduleView = () => {
                   ? 'linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, var(--bg-card) 100%)' 
                   : 'var(--bg-card)',
                 boxShadow: isToday ? '0 0 20px rgba(99, 102, 241, 0.15)' : 'none',
-                minHeight: '300px'
+                minHeight: '340px'
               }}
             >
               {/* Day Header */}
@@ -376,7 +372,7 @@ export const WeeklyScheduleView = () => {
                 </button>
               </div>
 
-              {/* Day Point Budget Meter */}
+              {/* Day Routines Summary Count */}
               <div style={{
                 background: 'var(--bg-surface)',
                 borderRadius: 'var(--radius-sm)',
@@ -384,76 +380,167 @@ export const WeeklyScheduleView = () => {
                 marginBottom: '0.75rem',
                 border: '1px solid var(--border-color-subtle)'
               }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', marginBottom: '0.35rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem' }}>
                   <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>
-                    ⭐ Planned: <strong style={{ color: 'var(--text-primary)' }}>{dayBudget.currentTotal}</strong> / 100 pts
+                    ☀️ Routines: <strong style={{ color: 'var(--primary-light)' }}>{dayRoutines.length}</strong> tasks
                   </span>
-                  <span style={{
-                    fontWeight: 800,
-                    color: dayBudget.status === 'optimal' 
-                      ? '#10b981' 
-                      : dayBudget.status === 'over' 
-                        ? '#ef4444' 
-                        : 'var(--primary-light)'
-                  }}>
-                    {dayBudget.status === 'optimal' 
-                      ? '🟢 100% Target' 
-                      : dayBudget.status === 'over' 
-                        ? `🔴 +${dayBudget.currentTotal - 100} pts Over` 
-                        : `🔵 ${dayBudget.maxAvailable} pts open`}
+                  <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>
+                    📌 Events: <strong style={{ color: '#10b981' }}>{dayEvents.length}</strong>
                   </span>
-                </div>
-
-                <div className="progress-bar-container" style={{ height: '6px' }}>
-                  <div 
-                    className="progress-bar-fill" 
-                    style={{ 
-                      width: `${Math.min(100, (dayBudget.currentTotal / 100) * 100)}%`,
-                      background: dayBudget.currentTotal > 100 
-                        ? '#ef4444' 
-                        : dayBudget.currentTotal === 100 
-                          ? '#10b981' 
-                          : 'var(--primary)'
-                    }} 
-                  />
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>
-                  <span>Base: {dayBudget.routinesBase} pts</span>
-                  <span>Events: {dayBudget.scheduledEventsPoints} pts</span>
                 </div>
               </div>
 
-              {/* Day Events List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', flex: 1 }}>
-                {dayEvents.length === 0 ? (
-                  <div style={{
-                    flex: 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '1.25rem 0.5rem',
-                    textAlign: 'center',
-                    color: 'var(--text-muted)',
-                    fontSize: '0.78rem'
-                  }}>
-                    <Clock size={20} style={{ opacity: 0.3, marginBottom: '0.35rem' }} />
-                    <span>No recurring events</span>
+              {/* Scheduled Routines for this Day (Consolidated Accordion Block) */}
+              <div style={{ marginBottom: '0.85rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '0.45rem'
+                }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    ☀️ Daily Routines ({dayRoutines.length})
+                  </span>
+                  {dayRoutines.length > 0 && (
                     <button
                       type="button"
-                      onClick={() => handleOpenAddModal(day.key)}
+                      onClick={() => toggleDayRoutinesExpanded(day.key)}
                       style={{
                         background: 'none',
                         border: 'none',
                         color: 'var(--primary-light)',
-                        fontSize: '0.72rem',
-                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
                         cursor: 'pointer',
-                        marginTop: '0.35rem'
+                        padding: '0 0.2rem'
                       }}
                     >
-                      + Schedule item ({dayBudget.maxAvailable} pts max)
+                      {expandedRoutinesDays[day.key] ? '▴ Collapse' : `▾ View All (${dayRoutines.length})`}
                     </button>
+                  )}
+                </div>
+
+                {dayRoutines.length === 0 ? (
+                  <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', padding: '0.35rem 0.5rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-sm)' }}>
+                    No routines scheduled
+                  </div>
+                ) : !expandedRoutinesDays[day.key] ? (
+                  /* Compact 1-routine preview card that expands on click */
+                  <div
+                    onClick={() => toggleDayRoutinesExpanded(day.key)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.45rem 0.65rem',
+                      borderRadius: 'var(--radius-sm)',
+                      background: 'var(--bg-surface)',
+                      border: '1px solid var(--border-color)',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                    title="Click to view all scheduled routines"
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
+                      <span style={{ fontSize: '0.95rem' }}>{dayRoutines[0]?.icon || '☀️'}</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {dayRoutines[0]?.title || dayRoutines[0]?.name}
+                      </span>
+                    </div>
+                    {dayRoutines.length > 1 ? (
+                      <span className="badge" style={{ fontSize: '0.66rem', background: 'rgba(99, 102, 241, 0.15)', color: 'var(--primary-light)', flexShrink: 0 }}>
+                        +{dayRoutines.length - 1} more ▾
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                        {dayRoutines[0]?.timeSlot ? dayRoutines[0].timeSlot.split('-')[0].trim() : ''}
+                      </span>
+                    )}
+                  </div>
+                ) : (
+                  /* Full Expanded Routines List */
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                    {dayRoutines.map((r: any) => {
+                      const cat = categories.find((c: any) => c.id === r.categoryId) || { color: '#10b981', icon: '☀️' };
+                      return (
+                        <div
+                          key={r.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '0.4rem 0.6rem',
+                            borderRadius: 'var(--radius-sm)',
+                            background: 'var(--bg-surface)',
+                            borderLeft: `2px solid ${cat.color}`,
+                            fontSize: '0.75rem'
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', minWidth: 0 }}>
+                            <span>{r.icon || cat.icon}</span>
+                            <span style={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {r.title || r.name}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', flexShrink: 0 }}>
+                            {r.timeSlot ? r.timeSlot.split('-')[0].trim() : ''}
+                          </span>
+                        </div>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => toggleDayRoutinesExpanded(day.key)}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        fontSize: '0.68rem',
+                        cursor: 'pointer',
+                        padding: '0.2rem',
+                        textAlign: 'center'
+                      }}
+                    >
+                      ▴ Show 1 routine only
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Day Recurring Events & Extra Tasks */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                <div style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '0.15rem', letterSpacing: '0.04em' }}>
+                  📌 Specific Day Events ({dayEvents.length})
+                </div>
+
+                {dayEvents.length === 0 ? (
+                  <div style={{
+                    padding: '0.85rem 0.5rem',
+                    textAlign: 'center',
+                    color: 'var(--text-muted)',
+                    fontSize: '0.75rem',
+                    background: 'var(--bg-surface)',
+                    borderRadius: 'var(--radius-sm)',
+                    border: '1px dashed var(--border-color)'
+                  }}>
+                    <span>No extra tasks for {day.label}</span>
+                    <div>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenAddModal(day.key)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: 'var(--primary-light)',
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          marginTop: '0.25rem'
+                        }}
+                      >
+                        + Add task / event
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   dayEvents.map(event => {
@@ -467,19 +554,19 @@ export const WeeklyScheduleView = () => {
                       <div
                         key={event.id}
                         style={{
-                          padding: '0.75rem',
+                          padding: '0.65rem 0.75rem',
                           borderRadius: 'var(--radius-md)',
                           background: 'var(--bg-surface)',
                           borderLeft: `3px solid ${cat.color}`,
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '0.35rem',
+                          gap: '0.3rem',
                           position: 'relative',
                           transition: 'transform 0.15s ease, box-shadow 0.15s ease'
                         }}
                       >
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.3rem' }}>
-                          <span style={{ fontWeight: 700, fontSize: '0.85rem', lineHeight: 1.25 }}>
+                          <span style={{ fontWeight: 700, fontSize: '0.82rem', lineHeight: 1.25 }}>
                             {event.title}
                           </span>
                           <div style={{ display: 'flex', gap: '0.2rem' }}>
@@ -487,9 +574,9 @@ export const WeeklyScheduleView = () => {
                               className="btn btn-ghost btn-icon btn-sm"
                               onClick={() => handleOpenEditModal(event)}
                               title="Edit"
-                              style={{ width: '22px', height: '22px', padding: 0 }}
+                              style={{ width: '20px', height: '20px', padding: 0 }}
                             >
-                              <Edit3 size={12} color="var(--text-muted)" />
+                              <Edit3 size={11} color="var(--text-muted)" />
                             </button>
                             <button
                               className="btn btn-ghost btn-icon btn-sm"
@@ -499,31 +586,31 @@ export const WeeklyScheduleView = () => {
                                 }
                               }}
                               title="Delete"
-                              style={{ width: '22px', height: '22px', padding: 0 }}
+                              style={{ width: '20px', height: '20px', padding: 0 }}
                             >
-                              <Trash2 size={12} color="var(--danger)" />
+                              <Trash2 size={11} color="var(--danger)" />
                             </button>
                           </div>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.72rem', color: 'var(--text-secondary)' }}>
-                          <Clock size={12} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.7rem', color: 'var(--text-secondary)' }}>
+                          <Clock size={11} />
                           <span>{event.timeSlot}</span>
                           <span style={{ color: 'var(--text-muted)' }}>({event.durationMinutes || 60}m)</span>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.25rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                            <span style={{ fontSize: '0.7rem' }}>{cat.icon}</span>
-                            <span style={{ fontSize: '0.7rem', color: cat.color, fontWeight: 600 }}>{cat.name}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '0.15rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                            <span style={{ fontSize: '0.68rem' }}>{cat.icon}</span>
+                            <span style={{ fontSize: '0.68rem', color: cat.color, fontWeight: 600 }}>{cat.name}</span>
                           </div>
 
                           <span style={{
-                            fontSize: '0.7rem',
+                            fontSize: '0.68rem',
                             fontWeight: 800,
                             color: 'var(--primary-light)',
                             background: 'rgba(99, 102, 241, 0.15)',
-                            padding: '0.15rem 0.45rem',
+                            padding: '0.1rem 0.4rem',
                             borderRadius: 'var(--radius-full)'
                           }}>
                             ⭐ {event.points || 20} pts
@@ -588,36 +675,7 @@ export const WeeklyScheduleView = () => {
 
                 {/* Days of Week Checkboxes */}
                 <div className="form-group">
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-                    <label className="form-label" style={{ marginBottom: 0 }}>Recurring Days of Week *</label>
-                    {/* Presets */}
-                    <div style={{ display: 'flex', gap: '0.25rem' }}>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset('gym')}
-                        className="badge badge-health"
-                        style={{ cursor: 'pointer', border: 'none', fontSize: '0.68rem' }}
-                      >
-                        Tue/Thu/Sat
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset('weekdays')}
-                        className="badge badge-career"
-                        style={{ cursor: 'pointer', border: 'none', fontSize: '0.68rem' }}
-                      >
-                        Mon–Fri
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => applyPreset('weekends')}
-                        className="badge badge-personal"
-                        style={{ cursor: 'pointer', border: 'none', fontSize: '0.68rem' }}
-                      >
-                        Sat–Sun
-                      </button>
-                    </div>
-                  </div>
+                  <label className="form-label">Recurring Days of Week *</label>
 
                   <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
                     {DAYS_OF_WEEK.map(d => {

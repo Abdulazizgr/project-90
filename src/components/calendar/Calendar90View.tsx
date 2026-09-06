@@ -8,7 +8,7 @@ export const Calendar90View = () => {
 
   const challenge = data.challenge || {};
   const startDateStr = challenge.startDate || todayStr;
-  const currentDay = challenge.currentDay || 12;
+  const currentDay = challenge.currentDay || 1;
   const totalDays = challenge.totalDurationDays || 90;
   const dayScores = data.dayScores || {};
 
@@ -27,7 +27,7 @@ export const Calendar90View = () => {
 
     let score = dayScores[dateStr];
     if (score === undefined && isToday) {
-      score = dayScores[todayStr] || 78;
+      score = dayScores[todayStr] || 0;
     }
 
     let status = 'future';
