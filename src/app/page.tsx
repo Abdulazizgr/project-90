@@ -14,7 +14,6 @@ import { AuthModal } from '@/components/auth/AuthModal';
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { ProjectsTasksView } from '@/components/projects/ProjectsTasksView';
 import { TimeTrackerView } from '@/components/timer/TimeTrackerView';
-import { HabitsView } from '@/components/habits/HabitsView';
 import { RoutinesView } from '@/components/routines/RoutinesView';
 import { WeeklyScheduleView } from '@/components/weekly/WeeklyScheduleView';
 import { DailyTimelineView } from '@/components/timeline/DailyTimelineView';
@@ -27,7 +26,6 @@ import { SettingsView } from '@/components/settings/SettingsView';
 
 // Modals & Drawers
 import { ManualEntryModal } from '@/components/timer/ManualEntryModal';
-import { HabitModal } from '@/components/habits/HabitModal';
 import { RoutineRunnerModal } from '@/components/routines/RoutineRunnerModal';
 import { RoutineModal } from '@/components/routines/RoutineModal';
 import { DayDetailModal } from '@/components/calendar/DayDetailModal';
@@ -67,15 +65,15 @@ function MainApp() {
           <DashboardView 
             onOpenCategoryManager={() => setIsCategoryManagerOpen(true)}
             onOpenSundayPlanner={() => setIsSundayPlannerOpen(true)}
+            onOpenManual={() => setIsManualOpen(true)}
           />
         );
       case 'projects':
         return <ProjectsTasksView />;
       case 'timer':
         return <TimeTrackerView />;
-      case 'habits':
-        return <HabitsView />;
       case 'routines':
+      case 'habits':
         return <RoutinesView />;
       case 'weekly':
         return <WeeklyScheduleView />;
@@ -98,6 +96,7 @@ function MainApp() {
           <DashboardView 
             onOpenCategoryManager={() => setIsCategoryManagerOpen(true)}
             onOpenSundayPlanner={() => setIsSundayPlannerOpen(true)}
+            onOpenManual={() => setIsManualOpen(true)}
           />
         );
     }
@@ -144,7 +143,6 @@ function MainApp() {
 
       {/* Modals & Drawers */}
       <ManualEntryModal />
-      <HabitModal />
       <RoutineRunnerModal />
       <RoutineModal />
       <DayDetailModal />

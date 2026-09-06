@@ -310,7 +310,7 @@ export const TimeTrackerView = () => {
             {formatDurationHuman(totalMinutesAll)}
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>
-            Day 12 / 90 average: {formatDurationHuman(Math.round(totalMinutesAll / 12))}/day
+            Day {data.challenge?.currentDay || 1} / 90 average: {formatDurationHuman(Math.round(totalMinutesAll / Math.max(1, data.challenge?.currentDay || 1)))}/day
           </p>
         </div>
 
@@ -374,8 +374,8 @@ export const TimeTrackerView = () => {
         {Object.keys(groupedEntries).length === 0 ? (
           <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)' }}>
             <Clock size={40} style={{ margin: '0 auto 0.75rem', opacity: 0.4 }} />
-            <p style={{ fontSize: '1rem', fontWeight: 600 }}>No time entries match your filters</p>
-            <p style={{ fontSize: '0.82rem' }}>Start the timer or add a manual entry to begin tracking</p>
+            <p style={{ fontSize: '1rem', fontWeight: 600 }}>No time entries recorded yet</p>
+            <p style={{ fontSize: '0.82rem' }}>Start the timer above or add a manual entry to track your first focus session!</p>
           </div>
         ) : (
           Object.entries(groupedEntries).map(([date, entries]) => {
@@ -399,7 +399,7 @@ export const TimeTrackerView = () => {
                     <span>{isDateToday ? 'Today' : date}</span>
                     {isDateToday && (
                       <span className="badge badge-excellent" style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem' }}>
-                        Active Day 12
+                        Active Day {data.challenge?.currentDay || 1}
                       </span>
                     )}
                   </div>
