@@ -1,14 +1,16 @@
 import React from 'react';
-import { Play, ChevronRight, CheckCircle2, Clock, Plus, Layers } from 'lucide-react';
+import { Play, ChevronRight, CheckCircle2, Clock, Plus, Layers, SunMedium } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { calculateCategoryStats, formatDurationHuman, getCategoryMeta } from '@/utils/calculations';
+import { getRoutinesForDay, formatDurationHuman, getCategoryMeta } from '@/utils/calculations';
 
 export const CategoryCards = ({ onOpenCategoryManager }) => {
   const { data, todayStr, setActiveTab, startTimer } = useApp();
   const categories = data.categories || [];
-  const habits = data.habits || [];
-  const todayLogs = data.habitLogsHistory?.[todayStr] || {};
-  const timeEntries = data.timeEntries || [];
+  const routines = data.routines || [];
+  const dayRoutines = getRoutinesForDay(routines, todayStr);
+  const todayRoutineLogs = data.routineLogsHistory?.[todayStr] || {};
+  const todayCategoryScores = data.dailyLogsHistory?.[todayStr]?.categoryScores || {};
+  const timeEntries = (data.timeEntries || []).filter((e) => (e.date || todayStr) === todayStr);
 
   return (
     <div style={{ marginBottom: '1.75rem' }}>
@@ -21,7 +23,7 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
             </span>
           </div>
           <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Dynamic life dimensions and daily balance tracking
+            Dynamic life dimensions, recurring routines, and 5-pillar evening self-evaluation
           </p>
         </div>
 
@@ -37,10 +39,11 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
 
           <button
             className="btn btn-ghost btn-sm"
-            onClick={() => setActiveTab('analytics')}
+            onClick={() => setActiveTab('routines')}
             style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem' }}
           >
-            <span>Analytics</span>
+            <SunMedium size={14} />
+            <span>Actionable Routines</span>
             <ChevronRight size={14} />
           </button>
         </div>
@@ -53,8 +56,14 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
         gap: '1rem'
       }}>
         {categories.map((cat) => {
-          const stats = calculateCategoryStats(cat.id, habits, todayLogs, timeEntries);
-          const meta = getCategoryMeta(cat.id, categories);
+          const catRoutines = dayRoutines.filter((r) => r.categoryId === cat.id);
+          const completedRoutines = catRoutines.filter((r) => todayRoutineLogs[r.id]?.status === 'completed').length;
+          const catEntries = timeEntries.filter((e) => e.categoryId === cat.id);
+          const timeSpentMinutes = catEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
+          const catScore = todayCategoryScores[cat.id];
+          const completionPercentage = catRoutines.length > 0 
+            ? Math.round((completedRoutines / catRoutines.length) * 100) 
+            : 100;
 
           return (
             <div
@@ -73,9 +82,15 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
                   <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
-                  <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, border: `1px solid ${cat.color}40`, fontSize: '0.7rem' }}>
-                    {stats.completionPercentage}%
-                  </span>
+                  {typeof catScore === 'number' ? (
+                    <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, border: `1px solid ${cat.color}40`, fontSize: '0.75rem', fontWeight: 800 }}>
+                      {catScore}%
+                    </span>
+                  ) : (
+                    <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, border: `1px solid ${cat.color}40`, fontSize: '0.7rem' }}>
+                      {catRoutines.length > 0 ? `${completedRoutines}/${catRoutines.length} done` : 'Active'}
+                    </span>
+                  )}
                 </div>
 
                 <h4 style={{ fontSize: '0.98rem', fontWeight: 700, marginBottom: '0.2rem' }}>{cat.name}</h4>
@@ -91,7 +106,7 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
                   <div
                     className="progress-bar-fill"
                     style={{
-                      width: `${stats.completionPercentage}%`,
+                      width: `${typeof catScore === 'number' ? catScore : completionPercentage}%`,
                       backgroundColor: cat.color || 'var(--primary)'
                     }}
                   />
@@ -100,11 +115,11 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                     <CheckCircle2 size={12} color={cat.color} />
-                    {stats.completedHabits} / {stats.totalHabits} habits
+                    {completedRoutines} / {catRoutines.length} routines today
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
                     <Clock size={12} />
-                    {formatDurationHuman(stats.timeSpentMinutesToday)}
+                    {formatDurationHuman(timeSpentMinutes)}
                   </span>
                 </div>
               </div>
@@ -114,9 +129,9 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
                 <button
                   className="btn btn-secondary btn-sm"
                   style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
-                  onClick={() => setActiveTab('habits')}
+                  onClick={() => setActiveTab('routines')}
                 >
-                  Habits
+                  Routines
                 </button>
                 <button
                   className="btn btn-primary btn-sm btn-icon"
@@ -134,3 +149,4 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
     </div>
   );
 };
+

@@ -1,30 +1,47 @@
-import React from 'react';
-import { Star, Flame, Clock, CheckCircle2, Trophy, ArrowUpRight } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Star, Flame, Clock, CheckCircle2, Trophy, ArrowUpRight, SunMedium, SlidersHorizontal } from 'lucide-react';
 import { useApp } from '../../context/AppContext';
-import { getScoreLevel, formatDurationHuman } from '../../utils/calculations';
+import { 
+  getScoreLevel, 
+  formatDurationHuman, 
+  getDayKeyFromDateStr, 
+  isRoutineScheduledForDay, 
+  calculateCategoryDayScore 
+} from '../../utils/calculations';
 
 export const MetricsOverview = () => {
   const { data, todayStr, setActiveTab } = useApp();
 
-  const todayScore = data.dayScores?.[todayStr] || 0;
+  const existingCategoryScores = data.categoryScores?.[todayStr];
+  const hasEvaluatedToday = existingCategoryScores !== undefined;
+  const todayScore = hasEvaluatedToday 
+    ? calculateCategoryDayScore(existingCategoryScores) 
+    : (data.dayScores?.[todayStr] || 0);
   const scoreMeta = getScoreLevel(todayScore);
 
-  const habits = data.habits || [];
-  const activeHabits = habits.filter((h) => h.active !== false);
-  const todayLogs = data.habitLogsHistory?.[todayStr] || {};
-  const completedHabits = activeHabits.filter((h) => todayLogs[h.id] === 'completed').length;
-  const inProgressHabits = activeHabits.filter((h) => todayLogs[h.id] === 'in_progress').length;
+  const routines = data.routines || [];
+  const todayDayKey = getDayKeyFromDateStr(todayStr);
+  const todayRoutines = routines.filter((r: any) => isRoutineScheduledForDay(r, todayDayKey));
+  const todayLogs = data.routineLogsHistory?.[todayStr] || {};
+  const completedRoutines = todayRoutines.filter((r: any) => {
+    const log = todayLogs[r.id] || {};
+    return log.status === 'done' || log.completed;
+  }).length;
 
-  const todayEntries = (data.timeEntries || []).filter((e) => e.date === todayStr);
-  const totalMinutesToday = todayEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
+  const todayEntries = (data.timeEntries || []).filter((e: any) => e.date === todayStr);
+  const totalMinutesToday = todayEntries.reduce((acc: number, curr: any) => acc + (curr.durationMinutes || 0), 0);
+
+  const currentDay = data.challenge?.currentDay || 1;
+  const scoreKeys = Object.keys(data.dayScores || {});
+  const streakDays = scoreKeys.filter(k => (data.dayScores[k] || 0) >= 70).length || (hasEvaluatedToday && todayScore >= 70 ? 1 : 0);
 
   return (
     <div className="grid-4" style={{ marginBottom: '1.5rem' }}>
       {/* 1. Today's Score */}
       <div 
         className="card" 
-        onClick={() => setActiveTab('habits')}
-        style={{ cursor: 'pointer', borderLeft: `4px solid ${scoreMeta.color}` }}
+        onClick={() => setActiveTab('journal')}
+        style={{ cursor: 'pointer', borderLeft: `4px solid ${hasEvaluatedToday ? scoreMeta.color : 'var(--primary-light)'}` }}
       >
         <div className="card-header" style={{ marginBottom: '0.75rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
@@ -45,16 +62,26 @@ export const MetricsOverview = () => {
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.35rem' }}>
           <span className="mono" style={{ fontSize: '1.9rem', fontWeight: 800 }}>
-            {todayScore}
+            {hasEvaluatedToday ? `${todayScore}%` : 'Pending'}
           </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>/ 100</span>
+          {hasEvaluatedToday && (
+            <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
+              ({scoreMeta.label})
+            </span>
+          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem' }}>
-          <span className={`badge ${scoreMeta.badgeClass}`}>
-            {scoreMeta.icon} {scoreMeta.label}
-          </span>
-          <span style={{ color: 'var(--text-muted)' }}>Target: 90+ pts</span>
+          {hasEvaluatedToday ? (
+            <span className={`badge ${scoreMeta.badgeClass}`}>
+              {scoreMeta.icon} Evaluated
+            </span>
+          ) : (
+            <span className="badge badge-warning">
+              📝 Evening Review
+            </span>
+          )}
+          <span style={{ color: 'var(--text-muted)' }}>Target: 90%+</span>
         </div>
       </div>
 
@@ -83,18 +110,18 @@ export const MetricsOverview = () => {
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.35rem' }}>
           <span className="mono" style={{ fontSize: '1.9rem', fontWeight: 800, color: '#f97316' }}>
-            12
+            {streakDays}
           </span>
           <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 700 }}>DAYS</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>🏆 Best Streak: 24 Days</span>
-          <span style={{ color: 'var(--cat-spiritual)', fontWeight: 600 }}>100% On Track</span>
+          <span style={{ color: 'var(--text-muted)' }}>Day {currentDay} of 90</span>
+          <span style={{ color: 'var(--cat-spiritual)', fontWeight: 600 }}>🟢 Active</span>
         </div>
       </div>
 
-      {/* 3. Productive Time Today */}
+      {/* 3. Productive Focus Time Today */}
       <div 
         className="card"
         onClick={() => setActiveTab('timer')}
@@ -129,15 +156,15 @@ export const MetricsOverview = () => {
         </div>
       </div>
 
-      {/* 4. Habits Done */}
+      {/* 4. Daily Routines Done */}
       <div 
         className="card"
-        onClick={() => setActiveTab('habits')}
+        onClick={() => setActiveTab('routines')}
         style={{ cursor: 'pointer', borderLeft: '4px solid #10b981' }}
       >
         <div className="card-header" style={{ marginBottom: '0.75rem' }}>
           <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Habits Progress
+            Routines Completed
           </span>
           <div style={{
             width: '32px',
@@ -154,15 +181,15 @@ export const MetricsOverview = () => {
 
         <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem', marginBottom: '0.35rem' }}>
           <span className="mono" style={{ fontSize: '1.9rem', fontWeight: 800 }}>
-            {completedHabits}
+            {completedRoutines}
           </span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>/ {activeHabits.length}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 600 }}>/ {todayRoutines.length}</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.78rem' }}>
-          <span style={{ color: 'var(--text-muted)' }}>{inProgressHabits > 0 ? `${inProgressHabits} in progress` : 'Daily Target'}</span>
+          <span style={{ color: 'var(--text-muted)' }}>Scheduled Today</span>
           <span style={{ color: '#10b981', fontWeight: 600 }}>
-            {Math.round((completedHabits / Math.max(1, activeHabits.length)) * 100)}%
+            {todayRoutines.length > 0 ? Math.round((completedRoutines / todayRoutines.length) * 100) : 100}%
           </span>
         </div>
       </div>
