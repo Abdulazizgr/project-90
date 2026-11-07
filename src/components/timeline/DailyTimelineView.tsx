@@ -47,7 +47,10 @@ export const DailyTimelineView = () => {
 
   // Consolidate scheduled & executed routines into ONE timeline block
   if (dayRoutines.length > 0) {
-    const completedCount = dayRoutines.filter(r => routineLogs[r.id]?.status === 'completed').length;
+    const completedCount = dayRoutines.filter(r => {
+      const log = routineLogs[r.id];
+      return log && (log.completed || log.status === 'done' || log.status === 'completed');
+    }).length;
     const firstRoutineTime = dayRoutines[0]?.timeSlot ? dayRoutines[0].timeSlot.split('-')[0].trim() : '05:00 AM';
 
     timelineEvents.push({
@@ -56,7 +59,7 @@ export const DailyTimelineView = () => {
       title: 'Daily Scheduled Routines',
       time: firstRoutineTime,
       duration: null,
-      categoryId: 'spiritual',
+      categoryId: dayRoutines[0]?.categoryId || 'pillar_spiritual',
       icon: '☀️',
       routines: dayRoutines,
       completedCount,

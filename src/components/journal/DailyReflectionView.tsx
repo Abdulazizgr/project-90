@@ -66,20 +66,20 @@ export const DailyReflectionView = () => {
   const [q3, setQ3] = useState(existingJournal.q3 || '');
   const [q4, setQ4] = useState(existingJournal.q4 || '');
 
-  // 5-Category Scores (0 - 100)
-  const [catScores, setCatScores] = useState({
-    spiritual: existingCategoryScores.spiritual !== undefined ? existingCategoryScores.spiritual : 85,
-    digital: existingCategoryScores.digital !== undefined ? existingCategoryScores.digital : 80,
-    personal: existingCategoryScores.personal !== undefined ? existingCategoryScores.personal : 85,
-    health: existingCategoryScores.health !== undefined ? existingCategoryScores.health : 80,
-    career: existingCategoryScores.career !== undefined ? existingCategoryScores.career : 90
+  // Dynamic Focus Pillar Scores (0 - 100)
+  const [catScores, setCatScores] = useState<Record<string, number>>(() => {
+    const initial: Record<string, number> = {};
+    (data.categories || []).forEach((c: any) => {
+      initial[c.id] = existingCategoryScores[c.id] !== undefined ? existingCategoryScores[c.id] : 85;
+    });
+    return initial;
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     const journal = data.journalEntries?.[selectedDate] || {};
-    const catScoreObj = data.categoryScores?.[selectedDate];
+    const catScoreObj = data.categoryScores?.[selectedDate] || {};
 
     setMood(journal.mood || 'great');
     setQ1(journal.q1 || '');
@@ -87,25 +87,12 @@ export const DailyReflectionView = () => {
     setQ3(journal.q3 || '');
     setQ4(journal.q4 || '');
 
-    if (catScoreObj) {
-      setCatScores({
-        spiritual: catScoreObj.spiritual !== undefined ? catScoreObj.spiritual : 80,
-        digital: catScoreObj.digital !== undefined ? catScoreObj.digital : 80,
-        personal: catScoreObj.personal !== undefined ? catScoreObj.personal : 80,
-        health: catScoreObj.health !== undefined ? catScoreObj.health : 80,
-        career: catScoreObj.career !== undefined ? catScoreObj.career : 80
-      });
-    } else {
-      // Auto-suggest initial baseline from tasks/time
-      const suggested = getSuggestedCategoryScores(
-        data.routines || [],
-        data.routineLogsHistory?.[selectedDate] || {},
-        data.timeEntries || [],
-        selectedDate
-      );
-      setCatScores(suggested);
-    }
-  }, [selectedDate, data.journalEntries, data.categoryScores]);
+    const nextScores: Record<string, number> = {};
+    (data.categories || []).forEach((c: any) => {
+      nextScores[c.id] = catScoreObj[c.id] !== undefined ? catScoreObj[c.id] : 80;
+    });
+    setCatScores(nextScores);
+  }, [selectedDate, data.journalEntries, data.categoryScores, data.categories]);
 
   // Compute live day average
   const computedAverage = calculateCategoryDayScore(catScores);
@@ -118,13 +105,13 @@ export const DailyReflectionView = () => {
     { id: 'bad', label: 'Tough', emoji: '😞', color: '#ef4444' }
   ];
 
-  const categoryPillars = [
-    { id: 'spiritual', name: 'Spiritual', icon: '🕌', color: 'var(--cat-spiritual)', desc: '5 Prayers on time, in mosque/home, Quran recitation, khushu' },
-    { id: 'digital', name: 'Digital Discipline', icon: '📱', color: 'var(--cat-digital)', desc: 'Screen time limits, zero mindless scrolling, phone bedtime boundary' },
-    { id: 'personal', name: 'Personal Discipline', icon: '👤', color: 'var(--cat-personal)', desc: 'Early rising, morning priorities, reading 20 pages, journaling' },
-    { id: 'health', name: 'Health & Vitality', icon: '💪', color: 'var(--cat-health)', desc: 'Gym & workout sessions, 3L water hydration, optimal sleep' },
-    { id: 'career', name: 'Career & Deliverables', icon: '💻', color: 'var(--cat-career)', desc: 'Deep work focus blocks, client deliverables, high-leverage outcomes' }
-  ];
+  const categoryPillars = (data.categories || []).map((cat: any) => ({
+    id: cat.id,
+    name: cat.name,
+    icon: cat.icon || '🎯',
+    color: cat.color || '#6366f1',
+    desc: cat.description || 'Focus pillar routine and discipline tracking'
+  }));
 
   const selectedDayKey = getDayKeyFromDateStr(selectedDate);
   const dayRoutineLogs = data.routineLogsHistory?.[selectedDate] || {};

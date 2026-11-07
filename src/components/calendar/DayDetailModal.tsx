@@ -108,7 +108,10 @@ export const DayDetailModal = () => {
               Routines Executed
             </span>
             <div className="mono" style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10b981', marginTop: '0.2rem' }}>
-              {dayScheduledRoutines.filter((r) => (data.routineLogsHistory?.[dateStr]?.[r.id]?.status || dayHabitLogs[r.id]) === 'completed').length} / {dayScheduledRoutines.length}
+              {dayScheduledRoutines.filter((r) => {
+                const log = data.routineLogsHistory?.[dateStr]?.[r.id];
+                return log && (log.completed || log.status === 'done' || log.status === 'completed');
+              }).length} / {dayScheduledRoutines.length}
             </div>
             <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
               scheduled routines
@@ -150,7 +153,7 @@ export const DayDetailModal = () => {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
             {dayScheduledRoutines.map((routine) => {
               const execLog = data.routineLogsHistory?.[dateStr]?.[routine.id];
-              const isDone = execLog?.status === 'completed' || dayHabitLogs[routine.id] === 'completed';
+              const isDone = execLog?.completed || execLog?.status === 'done' || execLog?.status === 'completed';
               const isPartial = execLog?.status === 'partial';
               const isMissed = execLog?.status === 'missed';
               const meta = getCategoryMeta(routine.categoryId, categories);

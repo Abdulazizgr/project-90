@@ -1,40 +1,55 @@
-import React from 'react';
-import { Play, ChevronRight, CheckCircle2, Clock, Plus, Layers, SunMedium } from 'lucide-react';
-import { useApp } from '@/context/AppContext';
-import { getRoutinesForDay, formatDurationHuman, getCategoryMeta } from '@/utils/calculations';
+'use client';
 
-export const CategoryCards = ({ onOpenCategoryManager }) => {
-  const { data, todayStr, setActiveTab, startTimer } = useApp();
+import React from 'react';
+import { Layers, Plus, ChevronRight, SunMedium } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { getDayKeyFromDateStr, isRoutineScheduledForDay } from '@/utils/calculations';
+
+interface CategoryCardsProps {
+  onOpenCategoryManager?: () => void;
+  onOpenRoutineModal?: () => void;
+}
+
+export const CategoryCards: React.FC<CategoryCardsProps> = ({ 
+  onOpenCategoryManager,
+  onOpenRoutineModal
+}) => {
+  const { data, todayStr, setActiveTab, setActiveModal, setModalData } = useApp();
   const categories = data.categories || [];
   const routines = data.routines || [];
-  const dayRoutines = getRoutinesForDay(routines, todayStr);
-  const todayRoutineLogs = data.routineLogsHistory?.[todayStr] || {};
-  const todayCategoryScores = data.dailyLogsHistory?.[todayStr]?.categoryScores || {};
-  const timeEntries = (data.timeEntries || []).filter((e) => (e.date || todayStr) === todayStr);
+  const todayDayKey = getDayKeyFromDateStr(todayStr);
+  const todayLogs = data.routineLogsHistory?.[todayStr] || {};
 
   return (
-    <div style={{ marginBottom: '1.75rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+    <div style={{ marginBottom: '2rem' }}>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        marginBottom: '1rem'
+      }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 800 }}>Life Pillars & Focus Areas</h3>
-            <span className="badge" style={{ background: 'var(--bg-surface)', color: 'var(--text-secondary)', fontSize: '0.7rem' }}>
-              {categories.length} Active Pillars
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>My Focus Pillars</h3>
+            <span className="badge" style={{ background: 'var(--bg-surface)', color: 'var(--primary-light)', fontSize: '0.7rem', fontWeight: 700 }}>
+              {categories.length} Registered Pillars
             </span>
           </div>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-            Dynamic life dimensions, recurring routines, and 5-pillar evening self-evaluation
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            Your custom life pillars and areas of focus. Create and customize whatever you want to build.
           </p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             className="btn btn-secondary btn-sm"
-            onClick={onOpenCategoryManager}
+            onClick={onOpenCategoryManager || (() => setActiveModal('pillar_modal'))}
             style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem' }}
           >
             <Layers size={14} />
-            <span>Manage Pillars & Projects</span>
+            <span>Manage Pillars</span>
           </button>
 
           <button
@@ -43,110 +58,154 @@ export const CategoryCards = ({ onOpenCategoryManager }) => {
             style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.78rem' }}
           >
             <SunMedium size={14} />
-            <span>Actionable Routines</span>
+            <span>All Routines</span>
             <ChevronRight size={14} />
           </button>
         </div>
       </div>
 
-      {/* Grid dynamically adapts to number of categories */}
+      {/* Grid of Dynamic Pillars */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
         gap: '1rem'
       }}>
-        {categories.map((cat) => {
-          const catRoutines = dayRoutines.filter((r) => r.categoryId === cat.id);
-          const completedRoutines = catRoutines.filter((r) => todayRoutineLogs[r.id]?.status === 'completed').length;
-          const catEntries = timeEntries.filter((e) => e.categoryId === cat.id);
-          const timeSpentMinutes = catEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
-          const catScore = todayCategoryScores[cat.id];
-          const completionPercentage = catRoutines.length > 0 
-            ? Math.round((completedRoutines / catRoutines.length) * 100) 
-            : 100;
+        {categories.map((pillar: any) => {
+          const pillarRoutines = routines.filter((r: any) => r.categoryId === pillar.id);
+          const scheduledToday = pillarRoutines.filter((r: any) => isRoutineScheduledForDay(r, todayDayKey));
+          const completedToday = scheduledToday.filter((r: any) => {
+            const log = todayLogs[r.id];
+            return log && (log.completed || log.status === 'done' || log.status === 'completed');
+          }).length;
+
+          const pillarColor = pillar.color || '#6366f1';
 
           return (
             <div
-              key={cat.id}
+              key={pillar.id}
               className="card"
               style={{
-                padding: '1.25rem',
-                borderTop: `3px solid ${cat.color || 'var(--primary)'}`,
+                padding: '1.2rem',
+                borderTop: `4px solid ${pillarColor}`,
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                gap: '0.9rem'
+                transition: 'transform var(--transition-fast), box-shadow var(--transition-fast)'
               }}
             >
               <div>
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-                  <span style={{ fontSize: '1.5rem' }}>{cat.icon}</span>
-                  {typeof catScore === 'number' ? (
-                    <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, border: `1px solid ${cat.color}40`, fontSize: '0.75rem', fontWeight: 800 }}>
-                      {catScore}%
-                    </span>
-                  ) : (
-                    <span className="badge" style={{ background: `${cat.color}20`, color: cat.color, border: `1px solid ${cat.color}40`, fontSize: '0.7rem' }}>
-                      {catRoutines.length > 0 ? `${completedRoutines}/${catRoutines.length} done` : 'Active'}
-                    </span>
-                  )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: `${pillarColor}20`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1.3rem'
+                  }}>
+                    {pillar.icon || '🎯'}
+                  </div>
+
+                  <span style={{
+                    fontSize: '0.68rem',
+                    fontWeight: 700,
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: 'var(--radius-full)',
+                    background: scheduledToday.length > 0 && completedToday === scheduledToday.length ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-input)',
+                    color: scheduledToday.length > 0 && completedToday === scheduledToday.length ? '#10b981' : 'var(--text-muted)'
+                  }}>
+                    {completedToday} / {scheduledToday.length} Done Today
+                  </span>
                 </div>
 
-                <h4 style={{ fontSize: '0.98rem', fontWeight: 700, marginBottom: '0.2rem' }}>{cat.name}</h4>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.3, minHeight: '32px' }}>
-                  {cat.description || `${(cat.projects || []).length} projects configured`}
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.25rem' }}>
+                  {pillar.name}
+                </h4>
+
+                <p style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '1rem',
+                  lineHeight: 1.4,
+                  minHeight: '2.5rem'
+                }}>
+                  {pillar.description || 'Focus area for building daily discipline.'}
                 </p>
               </div>
 
-              {/* Progress & Stats */}
-              <div>
-                {/* Progress bar */}
-                <div className="progress-bar-container" style={{ height: '6px', marginBottom: '0.6rem' }}>
-                  <div
-                    className="progress-bar-fill"
-                    style={{
-                      width: `${typeof catScore === 'number' ? catScore : completionPercentage}%`,
-                      backgroundColor: cat.color || 'var(--primary)'
-                    }}
-                  />
-                </div>
+              {/* Card Footer */}
+              <div style={{
+                paddingTop: '0.75rem',
+                borderTop: '1px solid var(--border-color)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                  {pillarRoutines.length} {pillarRoutines.length === 1 ? 'Routine' : 'Routines'}
+                </span>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                    <CheckCircle2 size={12} color={cat.color} />
-                    {completedRoutines} / {catRoutines.length} routines today
-                  </span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontWeight: 600 }}>
-                    <Clock size={12} />
-                    {formatDurationHuman(timeSpentMinutes)}
-                  </span>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div style={{ display: 'flex', gap: '0.4rem', borderTop: '1px solid var(--border-color)', paddingTop: '0.6rem' }}>
                 <button
-                  className="btn btn-secondary btn-sm"
-                  style={{ flex: 1, padding: '0.35rem 0.5rem', fontSize: '0.75rem' }}
-                  onClick={() => setActiveTab('routines')}
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setModalData({ categoryId: pillar.id });
+                    if (onOpenRoutineModal) onOpenRoutineModal();
+                    else setActiveModal('routine_modal');
+                  }}
+                  style={{
+                    padding: '0.2rem 0.5rem',
+                    fontSize: '0.72rem',
+                    gap: '0.25rem',
+                    color: pillarColor
+                  }}
                 >
-                  Routines
-                </button>
-                <button
-                  className="btn btn-primary btn-sm btn-icon"
-                  style={{ padding: '0.35rem 0.55rem' }}
-                  title={`Start timer for ${cat.name}`}
-                  onClick={() => startTimer({ activityName: `${cat.name} Session`, categoryId: cat.id })}
-                >
-                  <Play size={12} fill="currentColor" />
+                  <Plus size={12} />
+                  <span>Add Routine</span>
                 </button>
               </div>
             </div>
           );
         })}
+
+        {/* Create New Pillar Action Card */}
+        <div
+          className="card"
+          onClick={onOpenCategoryManager || (() => setActiveModal('pillar_modal'))}
+          style={{
+            padding: '1.2rem',
+            border: '2px dashed var(--border-color)',
+            background: 'transparent',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            cursor: 'pointer',
+            minHeight: '170px'
+          }}
+        >
+          <div style={{
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            background: 'var(--bg-input)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '0.75rem'
+          }}>
+            <Plus size={20} color="var(--primary-light)" />
+          </div>
+          <p style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '0.2rem' }}>
+            Register New Focus Pillar
+          </p>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            Add whatever custom life area you want to track
+          </p>
+        </div>
       </div>
     </div>
   );
 };
-

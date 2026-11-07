@@ -1,23 +1,21 @@
-import React, { useState } from 'react';
+'use client';
+
+import React, { useState, useMemo } from 'react';
 import { 
   Plus, 
   Edit3, 
   Trash2, 
   Clock, 
   CheckCircle2, 
-  Sparkles, 
-  Calendar, 
-  Check, 
-  AlertCircle, 
-  Filter, 
-  MapPin, 
-  Moon, 
-  Flame, 
-  SlidersHorizontal 
+  Circle,
+  Play, 
+  Layers, 
+  SunMedium, 
+  Filter,
+  Check
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { getCategoryMeta, isRoutineScheduledForDay, getDayKeyFromDateStr } from '@/utils/calculations';
-import { RoutineExecutionModal } from './RoutineExecutionModal';
+import { isRoutineScheduledForDay, getDayKeyFromDateStr } from '@/utils/calculations';
 
 export const RoutinesView = () => {
   const { 
@@ -26,8 +24,8 @@ export const RoutinesView = () => {
     deleteRoutine, 
     setActiveModal, 
     setModalData, 
-    setActiveTab, 
-    logRoutineTaskExecution 
+    logRoutineTaskExecution,
+    triggerSound 
   } = useApp();
 
   const routines = data.routines || [];
@@ -35,384 +33,342 @@ export const RoutinesView = () => {
   const todayLogs = data.routineLogsHistory?.[todayStr] || {};
   const todayDayKey = getDayKeyFromDateStr(todayStr);
 
-  const [filterCategory, setFilterCategory] = useState<string>('all');
-  const [filterDay, setFilterDay] = useState<string>('today'); // 'today' | 'all' | 'daily' | 'selected'
-  const [activeRoutineForModal, setActiveRoutineForModal] = useState<any>(null);
+  const [activeTabSub, setActiveTabSub] = useState<'routines' | 'pillars'>('routines');
+  const [selectedPillarFilter, setSelectedPillarFilter] = useState('all');
+  const [dayFilter, setDayFilter] = useState<'today' | 'all'>('today');
 
-  const handleEdit = (routine: any) => {
+  const filteredRoutines = useMemo(() => {
+    return routines.filter((r: any) => {
+      // Pillar filter
+      if (selectedPillarFilter !== 'all' && r.categoryId !== selectedPillarFilter) {
+        return false;
+      }
+      // Day filter
+      if (dayFilter === 'today' && !isRoutineScheduledForDay(r, todayDayKey)) {
+        return false;
+      }
+      return true;
+    });
+  }, [routines, selectedPillarFilter, dayFilter, todayDayKey]);
+
+  const handleEditRoutine = (routine: any) => {
     setModalData(routine);
-    setActiveModal('edit_routine');
+    setActiveModal('routine_modal');
   };
 
-  const handleAdd = () => {
-    setModalData(null);
-    setActiveModal('add_routine');
-  };
-
-  const handleOpenExecution = (routine: any) => {
-    setActiveRoutineForModal(routine);
-  };
-
-  const handleQuickDone = (routine: any, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const currentLog = todayLogs[routine.id];
-    const isDone = currentLog?.status === 'done' || currentLog?.completed;
-    
-    if (isDone) {
-      logRoutineTaskExecution(routine.id, 'missed', { reason: 'Reset status' });
-    } else {
-      logRoutineTaskExecution(routine.id, 'done', {
-        onTime: true,
-        location: routine.type === 'prayer' ? 'mosque' : 'home'
-      });
+  const handleDeleteRoutine = (routineId: string, title: string) => {
+    if (confirm(`Delete routine "${title}"?`)) {
+      deleteRoutine(routineId);
+      triggerSound('pop');
     }
   };
 
-  // Filter routines
-  const filteredRoutines = routines.filter((r: any) => {
-    // 1. Category Filter
-    if (filterCategory !== 'all' && r.categoryId !== filterCategory) return false;
+  const handleLaunchRunner = (routine: any) => {
+    setModalData(routine);
+    setActiveModal('routine_runner');
+  };
 
-    // 2. Day Filter
-    if (filterDay === 'today') {
-      return isRoutineScheduledForDay(r, todayDayKey);
-    }
-    if (filterDay === 'daily') {
-      return !r.days || r.days.includes('daily');
-    }
-    if (filterDay === 'selected') {
-      return r.days && !r.days.includes('daily');
-    }
-    return true;
-  });
-
-  // Calculate today's completion stats
-  const todayScheduledRoutines = routines.filter((r: any) => isRoutineScheduledForDay(r, todayDayKey));
-  const todayCompletedCount = todayScheduledRoutines.filter((r: any) => {
-    const log = todayLogs[r.id];
-    return log?.status === 'done' || log?.status === 'late' || log?.completed;
-  }).length;
-  const todayPct = todayScheduledRoutines.length > 0 
-    ? Math.round((todayCompletedCount / todayScheduledRoutines.length) * 100) 
-    : 0;
+  const handleToggleRoutineToday = (routineId: string) => {
+    const isDone = todayLogs[routineId]?.completed || todayLogs[routineId]?.status === 'done';
+    logRoutineTaskExecution(routineId, isDone ? 'missed' : 'done');
+  };
 
   return (
     <div className="page-container">
-      {/* Header Deck */}
-      <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.9), rgba(15, 23, 42, 0.9))',
-        border: '1px solid var(--border-color)',
-        marginBottom: '1.5rem'
+      {/* Top Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        marginBottom: '1.25rem'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-              <span style={{ fontSize: '1.4rem' }}>☀️</span>
-              <h2 style={{ fontSize: '1.4rem', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                Daily Routines & Actionable Tasks
-              </h2>
-            </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '620px' }}>
-              Your recurring non-negotiable tasks (daily or 3x/5x per week). Log execution with on-time / mosque precision and honest reason tracking.
-            </p>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <SunMedium size={24} color="var(--primary-light)" />
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Pillars & Routines</h1>
           </div>
-
-          <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
-            <button
-              className="btn btn-secondary btn-sm"
-              onClick={() => setActiveTab('weekly')}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Calendar size={15} />
-              <span>Weekly Schedule</span>
-            </button>
-            <button
-              className="btn btn-primary btn-sm"
-              onClick={handleAdd}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Plus size={16} />
-              <span>Add Routine Task</span>
-            </button>
-          </div>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+            Design and execute your daily workflows attached to your dynamic focus pillars
+          </p>
         </div>
 
-        {/* Today's Execution Progress Bar */}
-        <div style={{
-          marginTop: '1.25rem',
-          paddingTop: '1rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1rem'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              color: 'var(--text-primary)'
-            }}>
-              Today's Scheduled Execution: <strong style={{ color: 'var(--primary-light)' }}>{todayCompletedCount} / {todayScheduledRoutines.length}</strong> ({todayPct}%)
-            </div>
-            <span className="badge badge-primary" style={{ fontSize: '0.65rem' }}>
-              {todayDayKey.toUpperCase()}
-            </span>
-          </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button
+            className="btn btn-secondary btn-sm"
+            onClick={() => setActiveModal('pillar_modal')}
+            style={{ gap: '0.35rem', fontWeight: 700 }}
+          >
+            <Layers size={14} />
+            <span>Manage Pillars</span>
+          </button>
 
-          <div style={{ width: '220px' }}>
-            <div className="progress-bar-container" style={{ height: '8px' }}>
-              <div 
-                className="progress-bar-fill" 
-                style={{ 
-                  width: `${todayPct}%`, 
-                  background: 'linear-gradient(90deg, #10b981, #06b6d4)' 
-                }} 
-              />
-            </div>
-          </div>
+          <button
+            className="btn btn-primary btn-sm"
+            onClick={() => {
+              setModalData(null);
+              setActiveModal('routine_modal');
+            }}
+            style={{ gap: '0.35rem', fontWeight: 800 }}
+          >
+            <Plus size={15} />
+            <span>Create Routine</span>
+          </button>
         </div>
       </div>
 
-      {/* Filter Toolbar */}
-      <div className="card" style={{ padding: '0.85rem 1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
-          {/* Day View Filter */}
-          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
-            <button
-              className={`btn btn-sm ${filterDay === 'today' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setFilterDay('today')}
-              style={{ fontSize: '0.78rem' }}
-            >
-              ☀️ Scheduled for Today ({todayScheduledRoutines.length})
-            </button>
-            <button
-              className={`btn btn-sm ${filterDay === 'all' ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setFilterDay('all')}
-              style={{ fontSize: '0.78rem' }}
-            >
-              All Routines ({routines.length})
-            </button>
-            <button
-              className={`btn btn-sm ${filterDay === 'daily' ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setFilterDay('daily')}
-              style={{ fontSize: '0.78rem' }}
-            >
-              Daily (7/7)
-            </button>
-            <button
-              className={`btn btn-sm ${filterDay === 'selected' ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setFilterDay('selected')}
-              style={{ fontSize: '0.78rem' }}
-            >
-              Selected Days (3x/5x)
-            </button>
-          </div>
+      {/* Filter Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '0.75rem',
+        marginBottom: '1.25rem',
+        padding: '0.75rem 1rem',
+        background: 'var(--bg-card)',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-color)'
+      }}>
+        {/* Day Filter */}
+        <div style={{ display: 'flex', gap: '0.35rem' }}>
+          <button
+            className={`btn btn-sm ${dayFilter === 'today' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setDayFilter('today')}
+            style={{ fontSize: '0.78rem', padding: '0.3rem 0.75rem' }}
+          >
+            Today's Schedule
+          </button>
+          <button
+            className={`btn btn-sm ${dayFilter === 'all' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setDayFilter('all')}
+            style={{ fontSize: '0.78rem', padding: '0.3rem 0.75rem' }}
+          >
+            All Routines ({routines.length})
+          </button>
+        </div>
 
-          {/* Category Filter */}
-          <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+        {/* Pillar Filter */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflowX: 'auto', maxWidth: '100%' }}>
+          <button
+            className={`btn btn-sm ${selectedPillarFilter === 'all' ? 'btn-secondary' : 'btn-ghost'}`}
+            onClick={() => setSelectedPillarFilter('all')}
+            style={{ fontSize: '0.75rem', padding: '0.25rem 0.65rem' }}
+          >
+            All Pillars
+          </button>
+
+          {categories.map((p: any) => (
             <button
-              className={`btn btn-sm ${filterCategory === 'all' ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setFilterCategory('all')}
-              style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem' }}
+              key={p.id}
+              className={`btn btn-sm ${selectedPillarFilter === p.id ? 'btn-secondary' : 'btn-ghost'}`}
+              onClick={() => setSelectedPillarFilter(p.id)}
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.25rem 0.65rem',
+                whiteSpace: 'nowrap',
+                borderColor: selectedPillarFilter === p.id ? p.color : 'transparent'
+              }}
             >
-              All Categories
+              <span>{p.icon}</span>
+              <span>{p.name}</span>
             </button>
-            {categories.map((cat: any) => (
-              <button
-                key={cat.id}
-                className={`btn btn-sm ${filterCategory === cat.id ? 'btn-secondary' : 'btn-ghost'}`}
-                onClick={() => setFilterCategory(cat.id)}
-                style={{ fontSize: '0.75rem', padding: '0.2rem 0.55rem' }}
+          ))}
+        </div>
+      </div>
+
+      {/* Routine Cards Grid */}
+      {filteredRoutines.length === 0 ? (
+        <div className="card" style={{ textAlign: 'center', padding: '3rem 1.5rem' }}>
+          <SunMedium size={48} color="var(--text-muted)" style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+            No routines found
+          </h3>
+          <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
+            {dayFilter === 'today' 
+              ? 'No routines are scheduled for today under this filter. Try selecting "All Routines".'
+              : 'Create your first daily routine and assign it to one of your focus pillars.'}
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={() => {
+              setModalData(null);
+              setActiveModal('routine_modal');
+            }}
+            style={{ fontWeight: 700, gap: '0.4rem' }}
+          >
+            <Plus size={16} />
+            <span>Create Routine</span>
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+          {filteredRoutines.map((routine: any) => {
+            const pillar = categories.find((c: any) => c.id === routine.categoryId);
+            const pillarColor = routine.color || pillar?.color || '#6366f1';
+            const pillarIcon = routine.icon || pillar?.icon || '⚡';
+            const log = todayLogs[routine.id] || {};
+            const isDoneToday = log.completed || log.status === 'done' || log.status === 'completed';
+            const stepsCount = routine.steps?.length || 0;
+            const daysScheduled = routine.days || ['daily'];
+
+            return (
+              <div
+                key={routine.id}
+                className="card"
+                style={{
+                  padding: '1.25rem',
+                  borderTop: `4px solid ${pillarColor}`,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  background: isDoneToday ? 'rgba(16, 185, 129, 0.04)' : 'var(--bg-card)'
+                }}
               >
-                <span>{cat.icon}</span>
-                <span>{cat.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Routine Cards Grid Grouped by Category */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-        {categories.map((cat: any) => {
-          const catRoutines = filteredRoutines.filter((r: any) => r.categoryId === cat.id);
-          if (catRoutines.length === 0) return null;
-
-          return (
-            <div key={cat.id} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {/* Category Section Header */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', paddingLeft: '0.25rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>{cat.icon}</span>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: cat.color }}>
-                  {cat.name}
-                </h3>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                  ({catRoutines.length} tasks)
-                </span>
-              </div>
-
-              {/* Tasks in Category Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '0.85rem' }}>
-                {catRoutines.map((routine: any) => {
-                  const log = todayLogs[routine.id];
-                  const isDone = log?.status === 'done' || log?.completed;
-                  const isLate = log?.status === 'late';
-                  const isPartial = log?.status === 'partial';
-                  const isMissed = log?.status === 'missed';
-                  const isScheduledToday = isRoutineScheduledForDay(routine, todayDayKey);
-
-                  const isDaily = !routine.days || routine.days.includes('daily');
-                  const daysFormatted = isDaily 
-                    ? 'Daily' 
-                    : routine.days.map((d: string) => d.toUpperCase()).join(', ');
-
-                  return (
-                    <div
-                      key={routine.id}
-                      className="card"
-                      onClick={() => handleOpenExecution(routine)}
+                <div>
+                  {/* Top Bar: Pillar & Actions */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                    <span
                       style={{
-                        padding: '1.15rem',
-                        cursor: 'pointer',
-                        borderLeft: `4px solid ${cat.color}`,
-                        border: isDone 
-                          ? '1px solid rgba(16, 185, 129, 0.4)' 
-                          : isLate 
-                            ? '1px solid rgba(245, 158, 11, 0.4)' 
-                            : '1px solid var(--border-color)',
-                        background: isDone 
-                          ? 'linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, var(--bg-card) 100%)' 
-                          : 'var(--bg-card)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '0.85rem',
-                        transition: 'transform 0.15s ease, border-color 0.15s ease'
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        padding: '0.15rem 0.55rem',
+                        borderRadius: 'var(--radius-full)',
+                        background: `${pillarColor}20`,
+                        color: pillarColor,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.25rem'
                       }}
                     >
-                      {/* Top Row: Icon, Title & Action */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
-                          <span style={{ fontSize: '1.4rem', marginTop: '0.1rem' }}>
-                            {routine.icon || cat.icon}
-                          </span>
-                          <div>
-                            <div style={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.25 }}>
-                              {routine.title || routine.name}
-                            </div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginTop: '0.25rem', flexWrap: 'wrap' }}>
-                              <span className="badge" style={{ background: 'var(--bg-surface)', fontSize: '0.68rem', padding: '0.1rem 0.4rem' }}>
-                                <Clock size={11} /> {routine.timeSlot || 'All Day'}
-                              </span>
-                              <span className="badge" style={{ background: isDaily ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)', color: isDaily ? 'var(--primary-light)' : '#f59e0b', fontSize: '0.68rem' }}>
-                                {daysFormatted}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
+                      <span>{pillarIcon}</span>
+                      <span>{pillar?.name || 'Custom Pillar'}</span>
+                    </span>
 
-                        {/* Quick Action Checkbox */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <button
-                            type="button"
-                            onClick={(e) => handleQuickDone(routine, e)}
-                            className={`btn btn-icon btn-sm ${isDone ? 'btn-success' : 'btn-ghost'}`}
-                            title={isDone ? 'Marked as Done (Click to reset)' : 'Click to complete'}
-                            style={{ width: '32px', height: '32px', borderRadius: '50%' }}
-                          >
-                            <Check size={16} />
-                          </button>
-                        </div>
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                      <button
+                        className="btn btn-ghost btn-icon"
+                        onClick={() => handleEditRoutine(routine)}
+                        title="Edit Routine"
+                        style={{ padding: '0.3rem' }}
+                      >
+                        <Edit3 size={14} />
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-icon"
+                        onClick={() => handleDeleteRoutine(routine.id, routine.title || routine.name)}
+                        title="Delete Routine"
+                        style={{ padding: '0.3rem', color: '#ef4444' }}
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  </div>
 
-                      {/* Middle: Target Standard & Description */}
-                      {routine.description && (
-                        <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4 }}>
-                          {routine.description}
-                        </p>
-                      )}
+                  {/* Title & Time */}
+                  <h3 style={{ fontSize: '1.08rem', fontWeight: 800, marginBottom: '0.35rem' }}>
+                    {routine.title || routine.name}
+                  </h3>
 
-                      {/* Bottom Status & Actions Pill */}
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        paddingTop: '0.65rem',
-                        borderTop: '1px solid var(--border-color-subtle)',
-                        fontSize: '0.75rem'
-                      }}>
-                        {/* Status badge */}
-                        <div>
-                          {isDone ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#10b981', fontWeight: 700 }}>
-                              <CheckCircle2 size={13} />
-                              <span>Done {log?.location === 'mosque' ? '(In Mosque 🕌)' : ''}</span>
-                            </div>
-                          ) : isLate ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontWeight: 700 }}>
-                              <Clock size={13} />
-                              <span>Late: {log?.reason || 'Specified reason'}</span>
-                            </div>
-                          ) : isPartial ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#06b6d4', fontWeight: 700 }}>
-                              <span>⏳ Partial: {log?.reason || 'In progress'}</span>
-                            </div>
-                          ) : isMissed ? (
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', fontWeight: 700 }}>
-                              <AlertCircle size={13} />
-                              <span>Missed: {log?.reason || 'Reason logged'}</span>
-                            </div>
-                          ) : (
-                            <span style={{ color: isScheduledToday ? 'var(--text-muted)' : 'rgba(255,255,255,0.3)' }}>
-                              {isScheduledToday ? '⏳ Pending Today' : '⚪ Not Scheduled Today'}
-                            </span>
-                          )}
-                        </div>
+                  {routine.description && (
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '0.85rem', lineHeight: 1.35 }}>
+                      {routine.description}
+                    </p>
+                  )}
 
-                        {/* Controls */}
-                        <div style={{ display: 'flex', gap: '0.2rem' }} onClick={(e) => e.stopPropagation()}>
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => handleEdit(routine)}
-                            title="Edit Routine"
-                            style={{ width: '26px', height: '26px' }}
-                          >
-                            <Edit3 size={13} color="var(--text-muted)" />
-                          </button>
-                          <button
-                            type="button"
-                            className="btn btn-ghost btn-icon btn-sm"
-                            onClick={() => {
-                              if (window.confirm(`Delete routine task "${routine.title || routine.name}"?`)) {
-                                deleteRoutine(routine.id);
-                              }
+                  {/* Metadata Chips */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1rem' }}>
+                    <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
+                      🕒 {routine.timeOfDay ? routine.timeOfDay.toUpperCase() : 'ANYTIME'}
+                    </span>
+
+                    {(routine.durationMinutes || routine.duration) ? (
+                      <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
+                        ⏳ {routine.durationMinutes || routine.duration} mins
+                      </span>
+                    ) : null}
+
+                    {stepsCount > 0 && (
+                      <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
+                        📋 {stepsCount} steps
+                      </span>
+                    )}
+
+                    <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-input)', color: 'var(--text-muted)' }}>
+                      📅 {daysScheduled.includes('daily') ? 'Daily' : daysScheduled.join(', ').toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Steps preview */}
+                  {stepsCount > 0 && (
+                    <div style={{ marginBottom: '1.1rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        {routine.steps.slice(0, 3).map((st: any, idx: number) => (
+                          <div
+                            key={st.id || idx}
+                            style={{
+                              fontSize: '0.74rem',
+                              color: 'var(--text-muted)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.4rem'
                             }}
-                            title="Delete Routine"
-                            style={{ width: '26px', height: '26px' }}
                           >
-                            <Trash2 size={13} color="var(--danger)" />
-                          </button>
-                        </div>
+                            <span style={{ fontSize: '0.65rem' }}>•</span>
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {st.title}
+                            </span>
+                          </div>
+                        ))}
+                        {stepsCount > 3 && (
+                          <span style={{ fontSize: '0.7rem', color: 'var(--primary-light)', fontWeight: 600 }}>
+                            +{stepsCount - 3} more steps
+                          </span>
+                        )}
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                  )}
+                </div>
 
-      {/* Routine Detailed Execution Modal */}
-      {activeRoutineForModal && (
-        <RoutineExecutionModal
-          routine={activeRoutineForModal}
-          isOpen={!!activeRoutineForModal}
-          onClose={() => setActiveRoutineForModal(null)}
-        />
+                {/* Footer Actions */}
+                <div style={{
+                  paddingTop: '0.85rem',
+                  borderTop: '1px solid var(--border-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}>
+                  {/* Guided Runner */}
+                  <button
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => handleLaunchRunner(routine)}
+                    style={{ flex: 1, gap: '0.35rem', fontWeight: 700, fontSize: '0.78rem' }}
+                  >
+                    <Play size={13} fill="currentColor" />
+                    <span>Run Guided</span>
+                  </button>
+
+                  {/* Quick Toggle Checkbox */}
+                  <button
+                    className={`btn btn-sm ${isDoneToday ? 'btn-success' : 'btn-ghost'}`}
+                    onClick={() => handleToggleRoutineToday(routine.id)}
+                    style={{
+                      gap: '0.35rem',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      background: isDoneToday ? '#10b981' : 'var(--bg-input)',
+                      color: isDoneToday ? '#ffffff' : 'var(--text-secondary)'
+                    }}
+                  >
+                    {isDoneToday ? <CheckCircle2 size={15} /> : <Circle size={15} />}
+                    <span>{isDoneToday ? 'Done Today' : 'Mark Done'}</span>
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
     </div>
   );

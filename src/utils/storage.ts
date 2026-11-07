@@ -1,8 +1,7 @@
-// Storage manager with LocalStorage persistence, JSON export/import, CSV export and clean scratch reset
-
+// Storage manager with LocalStorage persistence, JSON export/import and clean scratch reset
 import { getCleanUserData } from './seedData';
 
-const STORAGE_KEY = 'project90_data_v2';
+const STORAGE_KEY = 'project90_data_v3';
 
 export const loadDataFromStorage = (profile = {}) => {
   if (typeof window === 'undefined') {
@@ -12,7 +11,7 @@ export const loadDataFromStorage = (profile = {}) => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.challenge && parsed.categories) {
+      if (parsed && parsed.challenge && parsed.categories && parsed.routines) {
         return parsed;
       }
     }
@@ -38,50 +37,18 @@ export const exportDataAsJSON = (data: any) => {
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `project90_backup_${new Date().toISOString().split('T')[0]}.json`);
+  downloadAnchor.setAttribute('download', `project90_routines_backup_${new Date().toISOString().split('T')[0]}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
 };
 
-export const exportTimeEntriesAsCSV = (timeEntries = [], categories = []) => {
-  if (typeof window === 'undefined') return;
-
-  const headers = ['ID', 'Date', 'Activity Name', 'Category', 'Project', 'Start Time', 'End Time', 'Duration (Minutes)', 'Duration (Formatted)', 'Description'];
-  
-  const rows = timeEntries.map((e: any) => {
-    const cat = categories.find((c: any) => c.id === e.categoryId);
-    const proj = (cat as any)?.projects?.find((p: any) => p.id === e.projectId);
-    const durationHours = (e.durationMinutes / 60).toFixed(2);
-    
-    return [
-      `"${e.id || ''}"`,
-      `"${e.date || ''}"`,
-      `"${(e.activityName || '').replace(/"/g, '""')}"`,
-      `"${(cat as any)?.name || e.categoryId || ''}"`,
-      `"${proj?.name || ''}"`,
-      `"${e.startTime || ''}"`,
-      `"${e.endTime || ''}"`,
-      e.durationMinutes || 0,
-      `"${durationHours}h"`,
-      `"${(e.description || '').replace(/"/g, '""')}"`
-    ];
-  });
-
-  const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-  const encodedUri = encodeURI(csvContent);
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute('href', encodedUri);
-  downloadAnchor.setAttribute('download', `project90_time_entries_${new Date().toISOString().split('T')[0]}.csv`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-};
+export const exportTimeEntriesAsCSV = (...args: any[]) => {};
 
 export const importDataFromJSON = (jsonString: string) => {
   try {
     const parsed = JSON.parse(jsonString);
-    if (parsed && parsed.challenge && parsed.categories) {
+    if (parsed && parsed.challenge && parsed.categories && parsed.routines) {
       saveDataToStorage(parsed);
       return parsed;
     }

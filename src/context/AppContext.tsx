@@ -1,16 +1,19 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToDemoData, resetToCleanUserData } from '../utils/storage';
+import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToCleanUserData } from '../utils/storage';
 import { playSound } from '../utils/sound';
-import { calculateDailyScore, calculateExecutionScore, calculateCategoryDayScore, isRoutineScheduledForDay, getSuggestedCategoryScores } from '../utils/calculations';
+import { calculateExecutionScore, calculateRoutineProgressToday, isRoutineScheduledForDay, getScoreLevel } from '../utils/calculations';
 import { authClient } from '../lib/auth-client';
+import { DEFAULT_ACHIEVEMENTS } from '../utils/seedData';
 
 const AppContext = createContext<any>(null);
 
 export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   const [data, setData] = useState<any>(() => loadDataFromStorage());
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeModal, setActiveModal] = useState<string | null>(null); // 'manual_time' | 'add_habit' | 'edit_habit' | 'routine_runner' | 'day_detail' | 'add_routine' | 'edit_routine' | 'add_goal' | 'category_manager' | 'sunday_planner'
+  const [activeModal, setActiveModal] = useState<string | null>(null); // 'routine_runner' | 'routine_modal' | 'pillar_modal' | 'day_detail'
   const [modalData, setModalData] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isSetupWizardOpen, setIsSetupWizardOpen] = useState(false);
@@ -25,7 +28,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   // Better Auth session hook
   const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
   const sessionData: any = sessionResult?.data;
-  const isSessionPending = sessionResult?.isPending;
   const user = sessionData?.user;
 
   // Sync user login status
@@ -48,10 +50,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }
   }, [data.profile?.theme]);
 
-  // Sync with MongoDB Atlas on user login or startup
+  // Sync with MongoDB Atlas or use LocalStorage fallback
   useEffect(() => {
     let isMounted = true;
-    const userId = user?.id || user?.email || 'guest_demo';
+    const userId = user?.id || user?.email || 'guest_user';
 
     const fetchMongoData = async () => {
       try {
@@ -75,8 +77,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     };
   }, [user?.id, user?.email]);
 
-  // Debounced auto-sync to MongoDB Atlas and LocalStorage
-  const syncTimeoutRef = useRef(null);
+  // Debounced auto-sync to LocalStorage and MongoDB
+  const syncTimeoutRef = useRef<any>(null);
 
   useEffect(() => {
     saveDataToStorage(data);
@@ -87,7 +89,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
 
     syncTimeoutRef.current = setTimeout(async () => {
       try {
-        const userId = user?.id || user?.email || 'guest_demo';
+        const userId = user?.id || user?.email || 'guest_user';
         await fetch('/api/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -104,1092 +106,460 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     };
   }, [data, user?.id, user?.email]);
 
-  // Active Timer Interval Tick
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    if (data.activeTimer?.isRunning) {
-      timerRef.current = setInterval(() => {
-        setData((prev) => ({
-          ...prev,
-          activeTimer: {
-            ...prev.activeTimer,
-            elapsedSeconds: (prev.activeTimer.elapsedSeconds || 0) + 1
-          }
-        }));
-      }, 1000);
-    } else {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    }
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
-      }
-    };
-  }, [data.activeTimer?.isRunning]);
-
-  // Sound helper that respects user setting
-  const triggerSound = (type) => {
+  // Sound trigger helper
+  const triggerSound = (type: string) => {
     if (data.profile?.soundEnabled !== false) {
       playSound(type);
     }
   };
 
-  // Toggle Dark/Light Theme
-  const toggleTheme = () => {
-    setData((prev) => {
-      const nextTheme = prev.profile?.theme === 'light' ? 'dark' : 'light';
-      return {
-        ...prev,
-        profile: {
-          ...prev.profile,
-          theme: nextTheme
-        }
-      };
-    });
-  };
-
-  // Toggle Sound Effects
-  const toggleSound = () => {
-    setData((prev) => ({
-      ...prev,
-      profile: {
-        ...prev.profile,
-        soundEnabled: !prev.profile?.soundEnabled
-      }
-    }));
-  };
-
-  // Update Profile
-  const updateProfile = (fields) => {
-    setData((prev) => ({
-      ...prev,
-      profile: { ...prev.profile, ...fields }
-    }));
-  };
-
-  // Update Challenge
-  const updateChallenge = (fields) => {
-    setData((prev) => ({
-      ...prev,
-      challenge: { ...prev.challenge, ...fields }
-    }));
-  };
-
-  // Habit Management & Daily Scoring
-  const setHabitStatus = (habitId, status) => {
-    setData((prev) => {
-      const currentLogs = { ...(prev.habitLogsHistory?.[todayStr] || {}) };
-      currentLogs[habitId] = status;
-
-      const newHabitLogsHistory = {
-        ...prev.habitLogsHistory,
-        [todayStr]: currentLogs
-      };
-
-      const newScore = calculateDailyScore(prev.habits, currentLogs);
-      const newDayScores = {
-        ...prev.dayScores,
-        [todayStr]: newScore
-      };
-
-      if (status === 'completed') {
-        triggerSound('habit-complete');
-        if (newScore >= 90) {
-          confetti({
-            particleCount: 80,
-            spread: 60,
-            origin: { y: 0.7 }
-          });
-        }
-      }
-
-      return {
-        ...prev,
-        habitLogsHistory: newHabitLogsHistory,
-        dayScores: newDayScores
-      };
-    });
-  };
-
-  const addHabit = (newHabit) => {
-    setData((prev) => ({
-      ...prev,
-      habits: [...(prev.habits || []), { ...newHabit, id: `h_${Date.now()}`, active: true }]
-    }));
-  };
-
-  const updateHabit = (habitId, fields) => {
-    setData((prev) => ({
-      ...prev,
-      habits: prev.habits.map((h) => (h.id === habitId ? { ...h, ...fields } : h))
-    }));
-  };
-
-  const deleteHabit = (habitId) => {
-    setData((prev) => ({
-      ...prev,
-      habits: prev.habits.filter((h) => h.id !== habitId)
-    }));
-  };
-
-  // Dynamic Category & Project & Task Hierarchy
-  const addCategory = (newCat) => {
-    setData((prev) => ({
-      ...prev,
-      categories: [
-        ...(prev.categories || []),
-        {
-          id: `cat_${Date.now()}`,
-          name: newCat.name,
-          icon: newCat.icon || '🎯',
-          color: newCat.color || '#6366f1',
-          description: newCat.description || '',
-          targetPercent: Number(newCat.targetPercent) || 20,
-          projects: []
-        }
-      ]
-    }));
-    triggerSound('habit-complete');
-  };
-
-  const updateCategory = (catId, fields) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((c) => (c.id === catId ? { ...c, ...fields } : c))
-    }));
-  };
-
-  const deleteCategory = (catId) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.filter((c) => c.id !== catId),
-      // Also remove habits associated with this category
-      habits: (prev.habits || []).filter((h) => h.categoryId !== catId)
-    }));
-  };
-
-  const addProject = (catId, newProj) => {
-    const projId = `p_${Date.now()}`;
-    const initialTasks = (newProj.initialTasks || []).map((t, idx) => ({
-      id: `t_${Date.now()}_${idx}`,
-      title: typeof t === 'string' ? t : t.title,
-      priority: t.priority || 'medium',
-      status: 'todo',
-      completed: false,
-      createdAt: new Date().toISOString()
-    }));
-
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: [
-              ...(c.projects || []),
-              {
-                id: projId,
-                name: newProj.name,
-                description: newProj.description || '',
-                status: newProj.status || 'in_progress', // 'in_progress' | 'done'
-                color: newProj.color || c.color,
-                icon: newProj.icon || c.icon,
-                createdAt: new Date().toISOString(),
-                tasks: initialTasks
-              }
-            ]
-          };
-        }
-        return c;
-      })
-    }));
-    triggerSound('habit-complete');
-  };
-
-  const updateProject = (catId, projId, fields) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => (p.id === projId ? { ...p, ...fields } : p))
-          };
-        }
-        return c;
-      })
-    }));
-    triggerSound('click');
-  };
-
-  const deleteProject = (catId, projId) => {
-    setData((prev) => ({
-      ...prev,
-      categories: prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).filter((p) => p.id !== projId)
-          };
-        }
-        return c;
-      })
-    }));
-    triggerSound('pop');
-  };
-
-  // Helper to recompute and sync today's score dynamically
-  const recomputeTodayScore = (state) => {
-    // If user has already completed evening 5-category evaluation, keep their manual average!
-    if (state.categoryScores?.[todayStr]?.overallScore !== undefined) {
-      return {
-        ...state.dayScores,
-        [todayStr]: state.categoryScores[todayStr].overallScore
-      };
-    }
-
-    const execRes = calculateExecutionScore(
-      state.routines || [],
-      state.routineLogsHistory?.[todayStr] || {},
-      state.categories || [],
-      todayStr,
-      state.habits || [],
-      state.habitLogsHistory?.[todayStr] || {},
-      state.recurringWeeklySchedule || [],
-      state.weeklyEventLogsHistory?.[todayStr] || {}
-    );
-
-    const numericScore = typeof execRes === 'object' ? execRes.score : Number(execRes) || 0;
-    return {
-      ...state.dayScores,
-      [todayStr]: numericScore
-    };
-  };
-
-  // 5-Category Evening Self-Evaluation
-  const saveCategoryDayScores = (dateStr, scores, notes = '') => {
-    const overallScore = calculateCategoryDayScore(scores);
-    
-    setData((prev) => {
-      const updatedCategoryScores = {
-        ...prev.categoryScores,
-        [dateStr]: {
-          ...scores,
-          notes,
-          overallScore,
-          evaluatedAt: new Date().toISOString()
-        }
-      };
-
-      const updatedDayScores = {
-        ...prev.dayScores,
-        [dateStr]: overallScore
-      };
-
-      return {
-        ...prev,
-        categoryScores: updatedCategoryScores,
-        dayScores: updatedDayScores
-      };
-    });
-
-    triggerSound('fanfare');
+  // Confetti fanfare helper
+  const triggerCelebration = () => {
+    triggerSound('level-up');
     confetti({
-      particleCount: 120,
-      spread: 80,
+      particleCount: 80,
+      spread: 70,
       origin: { y: 0.6 }
     });
   };
 
-  // Detailed Routine Task Execution Logger (with Mosque/Home, On-Time/Late, and Reason prompt)
-  const logRoutineTaskExecution = (routineId, status, metadata: any = {}) => {
+  // Recompute daily score and check achievements
+  const recomputeTodayScore = (state: any, targetDate: string = todayStr) => {
+    const calculatedScore = calculateExecutionScore(
+      state.routines || [],
+      state.routineLogsHistory?.[targetDate] || {},
+      state.categories || [],
+      targetDate,
+      [],
+      {},
+      [],
+      {},
+      state.journalEntries || {}
+    );
+
+    const updatedDayScores = {
+      ...(state.dayScores || {}),
+      [targetDate]: calculatedScore
+    };
+
+    // Evaluate Achievements
+    const updatedAchievements = (state.achievements || DEFAULT_ACHIEVEMENTS).map((ach: any) => {
+      let unlocked = ach.unlocked;
+      let progress = ach.progress;
+
+      // 1. First routine completed
+      if (ach.id === 'ach_first_routine') {
+        const anyLog = Object.values(state.routineLogsHistory || {}).some((dayLog: any) =>
+          Object.values(dayLog || {}).some((l: any) => l.completed || l.status === 'done' || l.status === 'completed')
+        );
+        if (anyLog) {
+          unlocked = true;
+          progress = '1 / 1 Routine';
+        }
+      }
+
+      // 2. Pillar Architect (at least 3 custom pillars registered)
+      if (ach.id === 'ach_pillar_architect') {
+        const count = state.categories?.length || 0;
+        unlocked = count >= 3;
+        progress = `${count} Pillars Active`;
+      }
+
+      // 3. Flawless execution today
+      if (ach.id === 'ach_flawless_day') {
+        const progressRes = calculateRoutineProgressToday(state.routines || [], state.routineLogsHistory?.[targetDate] || {}, targetDate);
+        if (progressRes.isAllDone && progressRes.scheduledCount > 0) {
+          unlocked = true;
+          progress = '100% Completed Today';
+        }
+      }
+
+      // 4. Holistic Harmony (at least one routine completed in each pillar today)
+      if (ach.id === 'ach_holistic_harmony') {
+        const dayLogs = state.routineLogsHistory?.[targetDate] || {};
+        const completedRoutineIds = Object.keys(dayLogs).filter(id => dayLogs[id]?.completed || dayLogs[id]?.status === 'done');
+        const completedPillars = new Set();
+        (state.routines || []).forEach((r: any) => {
+          if (completedRoutineIds.includes(r.id)) {
+            completedPillars.add(r.categoryId);
+          }
+        });
+        const totalPillars = (state.categories || []).length;
+        const matched = completedPillars.size;
+        progress = `${matched} / ${totalPillars} Pillars`;
+        if (matched >= totalPillars && totalPillars > 0) {
+          unlocked = true;
+        }
+      }
+
+      return { ...ach, unlocked, progress };
+    });
+
+    state.achievements = updatedAchievements;
+    return updatedDayScores;
+  };
+
+  // --- Dynamic Pillars (Focus Areas) API ---
+  const addPillar = (newPillar: { name: string; icon?: string; color?: string; description?: string }) => {
+    setData((prev: any) => {
+      const pillarId = `pillar_${Date.now()}`;
+      const nextCategories = [
+        ...(prev.categories || []),
+        {
+          id: pillarId,
+          name: newPillar.name,
+          icon: newPillar.icon || '🎯',
+          color: newPillar.color || '#6366f1',
+          description: newPillar.description || '',
+          order: (prev.categories?.length || 0) + 1
+        }
+      ];
+      const nextState = { ...prev, categories: nextCategories };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+    triggerSound('habit-complete');
+  };
+
+  const updatePillar = (pillarId: string, fields: any) => {
+    setData((prev: any) => {
+      const nextCategories = (prev.categories || []).map((c: any) =>
+        c.id === pillarId ? { ...c, ...fields } : c
+      );
+      const nextState = { ...prev, categories: nextCategories };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+  };
+
+  const deletePillar = (pillarId: string) => {
+    setData((prev: any) => {
+      const nextCategories = (prev.categories || []).filter((c: any) => c.id !== pillarId);
+      // Remove routines under this deleted pillar
+      const nextRoutines = (prev.routines || []).filter((r: any) => r.categoryId !== pillarId);
+      const nextState = { ...prev, categories: nextCategories, routines: nextRoutines };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+  };
+
+  // Aliases for compatibility
+  const addCategory = addPillar;
+  const updateCategory = updatePillar;
+  const deleteCategory = deletePillar;
+
+  // --- Routines API ---
+  const addRoutine = (newRoutine: any) => {
+    const routineId = `rt_${Date.now()}`;
+    const formattedSteps = (newRoutine.steps || []).map((s: any, idx: number) => ({
+      id: s.id || `st_${Date.now()}_${idx}`,
+      title: typeof s === 'string' ? s : s.title,
+      durationMinutes: s.durationMinutes || 10
+    }));
+
+    setData((prev: any) => {
+      const pillar = (prev.categories || []).find((c: any) => c.id === newRoutine.categoryId);
+      const routineObj = {
+        id: routineId,
+        title: newRoutine.title || newRoutine.name || 'New Routine',
+        name: newRoutine.title || newRoutine.name || 'New Routine',
+        categoryId: newRoutine.categoryId || prev.categories?.[0]?.id || 'pillar_general',
+        timeOfDay: newRoutine.timeOfDay || 'morning',
+        days: newRoutine.days && newRoutine.days.length > 0 ? newRoutine.days : ['daily'],
+        target: newRoutine.target || `${newRoutine.durationMinutes || 30} mins`,
+        durationMinutes: Number(newRoutine.durationMinutes) || 30,
+        duration: Number(newRoutine.durationMinutes) || 30,
+        description: newRoutine.description || '',
+        color: newRoutine.color || pillar?.color || '#6366f1',
+        icon: newRoutine.icon || pillar?.icon || '⚡',
+        active: newRoutine.active !== false,
+        steps: formattedSteps
+      };
+
+      const nextRoutines = [...(prev.routines || []), routineObj];
+      const nextState = { ...prev, routines: nextRoutines };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+
+    triggerSound('pop');
+  };
+
+  const updateRoutine = (routineId: string, fields: any) => {
+    setData((prev: any) => {
+      const nextRoutines = (prev.routines || []).map((r: any) => {
+        if (r.id === routineId) {
+          const updated = { ...r, ...fields };
+          if (fields.title) updated.name = fields.title;
+          if (fields.steps) {
+            updated.steps = fields.steps.map((s: any, idx: number) => ({
+              id: s.id || `st_${Date.now()}_${idx}`,
+              title: typeof s === 'string' ? s : s.title,
+              durationMinutes: s.durationMinutes || 10
+            }));
+          }
+          return updated;
+        }
+        return r;
+      });
+      const nextState = { ...prev, routines: nextRoutines };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+  };
+
+  const deleteRoutine = (routineId: string) => {
+    setData((prev: any) => {
+      const nextRoutines = (prev.routines || []).filter((r: any) => r.id !== routineId);
+      const nextState = { ...prev, routines: nextRoutines };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+  };
+
+  const toggleRoutineActive = (routineId: string) => {
+    setData((prev: any) => {
+      const nextRoutines = (prev.routines || []).map((r: any) =>
+        r.id === routineId ? { ...r, active: !r.active } : r
+      );
+      const nextState = { ...prev, routines: nextRoutines };
+      nextState.dayScores = recomputeTodayScore(nextState);
+      return nextState;
+    });
+  };
+
+  // Routine Execution Logging
+  const logRoutineTaskExecution = (routineId: string, status: string, metadata: any = {}) => {
     const isDone = status === 'done' || status === 'completed';
     const isLate = status === 'late';
     const isPartial = status === 'partial';
-    const isMissed = status === 'missed';
 
-    setData((prev) => {
+    setData((prev: any) => {
       const currentLogs = { ...(prev.routineLogsHistory?.[todayStr] || {}) };
-      const routine = (prev.routines || []).find((r) => r.id === routineId);
-      const defaultPts = routine?.points || 20;
+      const currentLog = currentLogs[routineId] || {};
 
-      const earned = isDone 
-        ? defaultPts 
-        : (isLate ? Math.round(defaultPts * 0.8) : (isPartial ? Math.round(defaultPts * 0.5) : 0));
-
-      currentLogs[routineId] = {
-        status: isDone ? 'done' : (isLate ? 'late' : (isPartial ? 'partial' : 'missed')),
-        completed: isDone || isLate,
-        onTime: metadata.onTime !== undefined ? metadata.onTime : isDone,
-        location: metadata.location || (metadata.inMosque ? 'mosque' : 'home'),
-        reason: metadata.reason || '',
-        notes: metadata.notes || '',
-        earnedPoints: earned,
-        updatedAt: new Date().toISOString()
-      };
-
-      const newRoutineLogsHistory = {
-        ...prev.routineLogsHistory,
-        [todayStr]: currentLogs
-      };
+      // Toggle off if already completed and user clicks done again
+      if (isDone && currentLog.completed && !metadata.forceDone) {
+        delete currentLogs[routineId];
+      } else {
+        currentLogs[routineId] = {
+          status: isDone ? 'done' : isLate ? 'late' : isPartial ? 'partial' : 'missed',
+          completed: isDone || isLate,
+          completedAt: new Date().toISOString(),
+          completedSteps: metadata.completedSteps || [],
+          completedStepsCount: metadata.completedSteps?.length || (isDone ? 99 : 0),
+          notes: metadata.notes || '',
+          updatedAt: new Date().toISOString()
+        };
+      }
 
       const nextState = {
         ...prev,
-        routineLogsHistory: newRoutineLogsHistory
+        routineLogsHistory: {
+          ...(prev.routineLogsHistory || {}),
+          [todayStr]: currentLogs
+        }
       };
 
       nextState.dayScores = recomputeTodayScore(nextState);
+
+      // Check if all routines completed today to trigger celebration!
+      const progress = calculateRoutineProgressToday(nextState.routines, currentLogs, todayStr);
+      if (progress.isAllDone && isDone) {
+        setTimeout(triggerCelebration, 150);
+      }
+
       return nextState;
     });
 
     if (isDone) {
       triggerSound('habit-complete');
-    } else if (isLate || isPartial) {
-      triggerSound('click');
-    } else {
-      triggerSound('pop');
-    }
-  };
-
-  const setRoutineStatus = (routineId, status, customEarnedPoints = null) => {
-    logRoutineTaskExecution(routineId, status, {});
-  };
-
-  // Tasks inside projects
-  const addTask = (catId, projId, taskData) => {
-    const isDone = typeof taskData === 'object' && taskData.status === 'done';
-    const initialPoints = typeof taskData === 'object' && taskData.points !== undefined 
-      ? Number(taskData.points) 
-      : (taskData.priority === 'high' ? 30 : taskData.priority === 'medium' ? 20 : 10);
-
-    setData((prev) => {
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: [
-                    ...(p.tasks || []),
-                    {
-                      id: `t_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
-                      title: typeof taskData === 'string' ? taskData : taskData.title,
-                      priority: taskData.priority || 'medium',
-                      status: taskData.status || 'todo', // 'todo' | 'in_progress' | 'done'
-                      points: initialPoints,
-                      earnedPoints: isDone ? initialPoints : 0,
-                      isToday: taskData.isToday !== undefined ? !!taskData.isToday : true,
-                      completed: isDone,
-                      notes: taskData.notes || '',
-                      createdAt: new Date().toISOString()
-                    }
-                  ]
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-
-    triggerSound('pop');
-  };
-
-  const updateTask = (catId, projId, taskId, fields) => {
-    let completedNow = false;
-    setData((prev) => {
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: (p.tasks || []).map((t) => {
-                    if (t.id === taskId) {
-                      const updated = { ...t, ...fields };
-                      const totalPts = Number(updated.points) || (updated.priority === 'high' ? 30 : updated.priority === 'medium' ? 20 : 10);
-                      
-                      if (fields.status) {
-                        updated.completed = fields.status === 'done';
-                        if (fields.status === 'done') {
-                          completedNow = true;
-                          updated.earnedPoints = totalPts; // award full points
-                        } else if (fields.status === 'in_progress' && updated.earnedPoints === undefined) {
-                          updated.earnedPoints = Math.round(totalPts * 0.5); // 50% partial
-                        }
-                      } else if (fields.completed !== undefined) {
-                        updated.status = fields.completed ? 'done' : (t.status === 'done' ? 'todo' : t.status);
-                        if (fields.completed) {
-                          completedNow = true;
-                          updated.earnedPoints = totalPts;
-                        }
-                      }
-
-                      if (fields.earnedPoints !== undefined) {
-                        updated.earnedPoints = Number(fields.earnedPoints);
-                      }
-
-                      return updated;
-                    }
-                    return t;
-                  })
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-
-    if (completedNow) {
-      triggerSound('habit-complete');
     } else {
       triggerSound('click');
     }
   };
 
-  const toggleTask = (catId, projId, taskId) => {
-    setData((prev) => {
-      let isCompletedNow = false;
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: (p.tasks || []).map((t) => {
-                    if (t.id === taskId) {
-                      isCompletedNow = !(t.completed || t.status === 'done');
-                      const totalPts = Number(t.points) || (t.priority === 'high' ? 30 : t.priority === 'medium' ? 20 : 10);
-                      return { 
-                        ...t, 
-                        completed: isCompletedNow,
-                        status: isCompletedNow ? 'done' : 'in_progress',
-                        earnedPoints: isCompletedNow ? totalPts : 0
-                      };
-                    }
-                    return t;
-                  })
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-
-      if (isCompletedNow) triggerSound('habit-complete');
-      return nextState;
-    });
+  const setRoutineStatus = (routineId: string, status: string) => {
+    logRoutineTaskExecution(routineId, status, { forceDone: true });
   };
 
-  const toggleTaskToday = (catId, projId, taskId) => {
-    setData((prev) => {
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: (p.tasks || []).map((t) => {
-                    if (t.id === taskId) {
-                      return { ...t, isToday: !t.isToday };
-                    }
-                    return t;
-                  })
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-    triggerSound('click');
-  };
-
-  const awardTaskPoints = (catId, projId, taskId, pointsEarned) => {
-    setData((prev) => {
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: (p.tasks || []).map((t) => {
-                    if (t.id === taskId) {
-                      const maxPts = Number(t.points) || 20;
-                      const awarded = Math.max(0, Math.min(maxPts, Number(pointsEarned) || 0));
-                      const isDone = awarded >= maxPts;
-                      return {
-                        ...t,
-                        earnedPoints: awarded,
-                        status: isDone ? 'done' : (awarded > 0 ? 'in_progress' : 'todo'),
-                        completed: isDone
-                      };
-                    }
-                    return t;
-                  })
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-    triggerSound('success');
-  };
-
-  const deleteTask = (catId, projId, taskId) => {
-    setData((prev) => {
-      const updatedCategories = prev.categories.map((c) => {
-        if (c.id === catId) {
-          return {
-            ...c,
-            projects: (c.projects || []).map((p) => {
-              if (p.id === projId) {
-                return {
-                  ...p,
-                  tasks: (p.tasks || []).filter((t) => t.id !== taskId)
-                };
-              }
-              return p;
-            })
-          };
-        }
-        return c;
-      });
-
-      const nextState = { ...prev, categories: updatedCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-    triggerSound('pop');
-  };
-
-  // Routine Management
-  const addRoutine = (newRoutine) => {
-    setData((prev) => ({
-      ...prev,
-      routines: [...prev.routines, { ...newRoutine, id: `r_${Date.now()}` }]
-    }));
-  };
-
-  const updateRoutine = (routineId, fields) => {
-    setData((prev) => ({
-      ...prev,
-      routines: prev.routines.map((r) => (r.id === routineId ? { ...r, ...fields } : r))
-    }));
-  };
-
-  const deleteRoutine = (routineId) => {
-    setData((prev) => ({
-      ...prev,
-      routines: prev.routines.filter((r) => r.id !== routineId)
-    }));
-  };
-
-  // Clockify-style Timer Actions
-  const startTimer = (details: any = {}) => {
-    triggerSound('timer-start');
-    setData((prev) => ({
-      ...prev,
-      activeTimer: {
-        isRunning: true,
-        activityName: details.activityName || prev.activeTimer?.activityName || 'Focus Session',
-        categoryId: details.categoryId || prev.activeTimer?.categoryId || prev.categories?.[0]?.id || 'career',
-        projectId: details.projectId !== undefined ? details.projectId : (prev.activeTimer?.projectId || ''),
-        taskId: details.taskId !== undefined ? details.taskId : (prev.activeTimer?.taskId || ''),
-        taskTitle: details.taskTitle !== undefined ? details.taskTitle : (prev.activeTimer?.taskTitle || ''),
-        description: details.description || prev.activeTimer?.description || '',
-        startTime: new Date().toISOString(),
-        elapsedSeconds: details.reset ? 0 : (prev.activeTimer?.elapsedSeconds || 0)
-      }
-    }));
-  };
-
-  const pauseTimer = () => {
-    triggerSound('click');
-    setData((prev) => ({
-      ...prev,
-      activeTimer: {
-        ...prev.activeTimer,
-        isRunning: false
-      }
-    }));
-  };
-
-  const resumeTimer = () => {
-    triggerSound('timer-start');
-    setData((prev) => ({
-      ...prev,
-      activeTimer: {
-        ...prev.activeTimer,
-        isRunning: true
-      }
-    }));
-  };
-
-  const stopTimer = () => {
-    const timer = data.activeTimer;
-    if (!timer) return;
-
-    const durationSeconds = timer.elapsedSeconds || 0;
-    const durationMinutes = Math.max(1, Math.round(durationSeconds / 60));
-
-    triggerSound('timer-stop');
-
-    const formatTimeNow = (d) => {
-      let hours = d.getHours();
-      const minutes = d.getMinutes();
-      const ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      const padM = String(minutes).padStart(2, '0');
-      return `${hours}:${padM} ${ampm}`;
-    };
-
-    const now = new Date();
-    const startTimeObj = timer.startTime ? new Date(timer.startTime) : new Date(now.getTime() - durationSeconds * 1000);
-
-    const newEntry = {
-      id: `te_${Date.now()}`,
-      activityName: timer.activityName || (timer.taskTitle ? timer.taskTitle : 'Tracked Session'),
-      categoryId: timer.categoryId || data.categories?.[0]?.id || 'career',
-      projectId: timer.projectId || '',
-      taskId: timer.taskId || '',
-      taskTitle: timer.taskTitle || '',
-      date: todayStr,
-      startTime: formatTimeNow(startTimeObj),
-      endTime: formatTimeNow(now),
-      durationMinutes,
-      description: timer.description || 'Clockify timer tracked entry'
-    };
-
-    setData((prev) => ({
-      ...prev,
-      timeEntries: [newEntry, ...(prev.timeEntries || [])],
-      activeTimer: {
-        isRunning: false,
-        activityName: '',
-        categoryId: prev.categories?.[0]?.id || 'career',
-        projectId: '',
-        taskId: '',
-        taskTitle: '',
-        description: '',
-        startTime: null,
-        elapsedSeconds: 0
-      }
-    }));
-  };
-
-  const updateActiveTimerFields = (fields) => {
-    setData((prev) => ({
-      ...prev,
-      activeTimer: {
-        ...prev.activeTimer,
-        ...fields
-      }
-    }));
-  };
-
-  // Time Entries Management
-  const addManualTimeEntry = (entry) => {
-    setData((prev) => ({
-      ...prev,
-      timeEntries: [
-        {
-          ...entry,
-          id: `te_man_${Date.now()}`,
-          date: entry.date || todayStr
-        },
-        ...(prev.timeEntries || [])
-      ]
-    }));
-    triggerSound('habit-complete');
-  };
-
-  const deleteTimeEntry = (id) => {
-    setData((prev) => ({
-      ...prev,
-      timeEntries: prev.timeEntries.filter((e) => e.id !== id)
-    }));
-  };
-
-  // Journal / Daily Reflection
-  const saveJournalEntry = (dateStr, entryData) => {
-    setData((prev) => {
-      const updatedEntries = {
-        ...prev.journalEntries,
-        [dateStr]: {
-          ...entryData,
-          date: dateStr,
-          timestamp: new Date().toISOString()
+  // Evening Reflection
+  const saveJournalEntry = (dateStr: string, entry: any) => {
+    setData((prev: any) => {
+      const nextState = {
+        ...prev,
+        journalEntries: {
+          ...(prev.journalEntries || {}),
+          [dateStr]: {
+            ...entry,
+            updatedAt: new Date().toISOString()
+          }
         }
       };
+      nextState.dayScores = recomputeTodayScore(nextState, dateStr);
+      return nextState;
+    });
+    triggerCelebration();
+  };
 
-      // Also mark reflection habit as completed for today
-      const currentTodayLogs = { ...(prev.habitLogsHistory?.[todayStr] || {}) };
-      currentTodayLogs['h_reflection'] = 'completed';
-      const newScore = calculateDailyScore(prev.habits, currentTodayLogs);
+  const saveCategoryDayScores = (dateStr: string, scores: any, notes: string = '') => {
+    saveJournalEntry(dateStr, { scores, notes, mood: 'good' });
+  };
 
-      triggerSound('fanfare');
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-
+  // Profile & Theme controls
+  const toggleTheme = () => {
+    setData((prev: any) => {
+      const nextTheme = prev.profile?.theme === 'light' ? 'dark' : 'light';
       return {
         ...prev,
-        journalEntries: updatedEntries,
-        habitLogsHistory: {
-          ...prev.habitLogsHistory,
-          [todayStr]: currentTodayLogs
-        },
-        dayScores: {
-          ...prev.dayScores,
-          [todayStr]: newScore
+        profile: { ...prev.profile, theme: nextTheme }
+      };
+    });
+    triggerSound('click');
+  };
+
+  const toggleSound = () => {
+    setData((prev: any) => ({
+      ...prev,
+      profile: { ...prev.profile, soundEnabled: !prev.profile?.soundEnabled }
+    }));
+  };
+
+  const updateProfile = (fields: any) => {
+    setData((prev: any) => ({
+      ...prev,
+      profile: { ...prev.profile, ...fields }
+    }));
+  };
+
+  const updateChallenge = (fields: any) => {
+    setData((prev: any) => ({
+      ...prev,
+      challenge: { ...prev.challenge, ...fields }
+    }));
+  };
+
+  const launchSprint = (startDate: string) => {
+    setData((prev: any) => {
+      const start = new Date(startDate);
+      const end = new Date(start);
+      end.setDate(start.getDate() + 89);
+      return {
+        ...prev,
+        challenge: {
+          ...prev.challenge,
+          startDate,
+          endDate: end.toISOString().split('T')[0],
+          currentDay: 1,
+          status: 'active'
         }
       };
     });
+    triggerCelebration();
   };
 
-  // Sunday Weekly Plan
-  const saveWeeklyPlan = (planData) => {
-    setData((prev) => ({
-      ...prev,
-      weeklyPlans: [
-        {
-          id: `wp_${Date.now()}`,
-          createdAt: new Date().toISOString(),
-          ...planData
-        },
-        ...(prev.weeklyPlans || [])
-      ]
-    }));
-    triggerSound('fanfare');
-    confetti({
-      particleCount: 120,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
-  };
-
-  // Goal Management
-  const updateGoalProgress = (goalId, newCurrent) => {
-    setData((prev) => ({
-      ...prev,
-      goals: prev.goals.map((g) => (g.id === goalId ? { ...g, current: newCurrent } : g))
-    }));
-  };
-
-  const addGoal = (newGoal) => {
-    setData((prev) => ({
-      ...prev,
-      goals: [...prev.goals, { ...newGoal, id: `g_${Date.now()}`, status: 'active' }]
-    }));
-  };
-
-  const deleteGoal = (goalId) => {
-    setData((prev) => ({
-      ...prev,
-      goals: prev.goals.filter((g) => g.id !== goalId)
-    }));
-  };
-
-  // Recurring Weekly Schedule
-  const addRecurringWeeklyEvent = (newEvent) => {
-    setData((prev) => {
-      const nextState = {
-        ...prev,
-        recurringWeeklySchedule: [
-          ...(prev.recurringWeeklySchedule || []),
-          {
-            id: `rwe_${Date.now()}`,
-            title: newEvent.title,
-            categoryId: newEvent.categoryId || prev.categories?.[0]?.id || 'health',
-            days: newEvent.days || ['mon'],
-            timeSlot: newEvent.timeSlot || '06:00 PM - 07:30 PM',
-            durationMinutes: Number(newEvent.durationMinutes) || 60,
-            points: Number(newEvent.points) || 20,
-            description: newEvent.description || ''
-          }
-        ]
-      };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-    triggerSound('habit-complete');
-  };
-
-  const updateRecurringWeeklyEvent = (eventId, fields) => {
-    setData((prev) => {
-      const nextState = {
-        ...prev,
-        recurringWeeklySchedule: (prev.recurringWeeklySchedule || []).map((e) =>
-          e.id === eventId ? { ...e, ...fields } : e
-        )
-      };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-    triggerSound('habit-complete');
-  };
-
-  const deleteRecurringWeeklyEvent = (eventId) => {
-    setData((prev) => {
-      const nextState = {
-        ...prev,
-        recurringWeeklySchedule: (prev.recurringWeeklySchedule || []).filter((e) => e.id !== eventId)
-      };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-  };
-
-  const setWeeklyEventStatus = (eventId: string, status: string, earnedPoints?: number) => {
-    const isCompleted = status === 'done' || status === 'completed';
-    const isProgress = status === 'in_progress';
-    const event = (data.recurringWeeklySchedule || []).find((e) => e.id === eventId);
-    const eventPts = Number(event?.points) || 20;
-
-    const finalEarned = earnedPoints !== undefined 
-      ? Number(earnedPoints) 
-      : (isCompleted ? eventPts : (isProgress ? Math.round(eventPts * 0.5) : 0));
-
-    setData((prev) => {
-      const currentDayLogs = prev.weeklyEventLogsHistory?.[todayStr] || {};
-      const nextDayLogs = {
-        ...currentDayLogs,
-        [eventId]: {
-          status: isCompleted ? 'done' : (isProgress ? 'in_progress' : 'todo'),
-          completed: isCompleted,
-          earnedPoints: finalEarned,
-          updatedAt: new Date().toISOString()
-        }
-      };
-
-      const nextState = {
-        ...prev,
-        weeklyEventLogsHistory: {
-          ...prev.weeklyEventLogsHistory,
-          [todayStr]: nextDayLogs
-        }
-      };
-
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
-
-    if (isCompleted) {
-      triggerSound('routine-complete');
-    } else {
-      triggerSound('click');
-    }
-  };
-
-  const toggleWeeklyEventToday = (eventId) => {
-    const currentLog = data.weeklyEventLogsHistory?.[todayStr]?.[eventId];
-    const isCompleted = currentLog?.completed || currentLog?.status === 'done';
-    setWeeklyEventStatus(eventId, isCompleted ? 'todo' : 'done');
-  };
-
-  // Onboarding Helpers
-  const setOnboardingStep = (step) => {
-    setData((prev) => ({
+  const setOnboardingStep = (step: string) => {
+    setData((prev: any) => ({
       ...prev,
       onboardingStep: step
     }));
   };
 
-  const completeOnboarding = ({ startDate = todayStr, challengeName = '', goal = '' } = {}) => {
-    const start = new Date(startDate || todayStr);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 89);
-    const formatDateStr = (d) => d.toISOString().split('T')[0];
-    const isFuture = formatDateStr(start) > todayStr;
-
-    setData((prev) => ({
-      ...prev,
-      onboardingStep: 'completed',
-      profile: {
-        ...prev.profile,
-        ...(goal ? { challengeGoal: goal } : {})
-      },
-      challenge: {
-        ...prev.challenge,
-        name: challengeName || prev.challenge?.name || 'PROJECT 90: Master Life Sprint',
-        startDate: formatDateStr(start),
-        endDate: formatDateStr(end),
-        totalDurationDays: 90,
-        currentDay: isFuture ? 0 : 1,
-        status: isFuture ? 'planning' : 'active'
-      }
-    }));
-
-    triggerSound('fanfare');
-    confetti({
-      particleCount: 180,
-      spread: 100,
-      origin: { y: 0.5 }
-    });
-    setIsSetupWizardOpen(false);
+  const completeOnboarding = () => {
+    setOnboardingStep('completed');
   };
-
-  // Launch 90-Day Sprint (Transitions from planning to active)
-  const launchSprint = ({ startDate = todayStr, challengeName = '', goal = '' } = {}) => {
-    const start = new Date(startDate || todayStr);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 89);
-
-    const formatDateStr = (d) => d.toISOString().split('T')[0];
-    const isFuture = formatDateStr(start) > todayStr;
-
-    setData((prev) => ({
-      ...prev,
-      onboardingStep: 'completed',
-      profile: {
-        ...prev.profile,
-        ...(goal ? { challengeGoal: goal } : {})
-      },
-      challenge: {
-        ...prev.challenge,
-        name: challengeName || prev.challenge?.name || 'PROJECT 90: Master Life Sprint',
-        startDate: formatDateStr(start),
-        endDate: formatDateStr(end),
-        totalDurationDays: 90,
-        currentDay: isFuture ? 0 : 1,
-        status: isFuture ? 'planning' : 'active'
-      }
-    }));
-
-    triggerSound('fanfare');
-    confetti({
-      particleCount: 160,
-      spread: 90,
-      origin: { y: 0.5 }
-    });
-    setIsSetupWizardOpen(false);
-  };
-
-  // Reset & Backup
-  const handleExport = () => exportDataAsJSON(data);
-  const handleImport = (jsonStr: string) => {
-    const imported = importDataFromJSON(jsonStr);
-    setData(imported);
-    triggerSound('fanfare');
-  };
-
-  const clearAllDataToScratch = async () => {
-    try {
-      const userId = user?.id || user?.email || 'guest_user';
-      await fetch('/api/seed', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, action: 'clear_all' })
-      });
-    } catch (e) {
-      console.debug('Resetting locally', e);
-    }
-    const clean = resetToCleanUserData({
-      name: user?.name || data.profile?.name || 'User',
-      email: user?.email || ''
-    });
-    setData(clean);
-    triggerSound('fanfare');
-    confetti({
-      particleCount: 150,
-      spread: 80,
-      origin: { y: 0.6 }
-    });
-  };
-
-  const handleReset = clearAllDataToScratch;
 
   const toggleGettingStartedGuide = () => {
     setData((prev: any) => ({
       ...prev,
-      showGettingStartedGuide: prev.showGettingStartedGuide === false ? true : false
+      showGettingStartedGuide: !prev.showGettingStartedGuide
     }));
   };
 
-  const loadDemoAccount = async () => {
-    return loadCleanUserAccount({ name: 'Explorer', email: 'guest_explorer' });
+  // Backups and Clean Reset
+  const handleExport = () => {
+    exportDataAsJSON(data);
+    triggerSound('pop');
   };
 
-  const loadCleanUserAccount = async ({ name = 'User', email = '' } = {}) => {
-    const clean = resetToCleanUserData({ name, email });
-    setData(clean);
-    setIsAuthenticated(true);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('p90_logged_in', 'true');
-    }
+  const handleImport = (jsonStr: string) => {
     try {
-      const userId = email || user?.id || `user_${Date.now()}`;
-      await fetch('/api/data', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, data: clean })
-      });
+      const imported = importDataFromJSON(jsonStr);
+      setData(imported);
+      triggerCelebration();
+      return true;
     } catch (e) {
-      console.debug('Failed to sync clean data to Mongo', e);
+      alert('Failed to import backup file. Please check file format.');
+      return false;
     }
-    triggerSound('fanfare');
+  };
+
+  const handleReset = () => {
+    if (confirm('Are you sure you want to reset all data back to the clean Day 1 state?')) {
+      const clean = resetToCleanUserData(data.profile);
+      setData(clean);
+      triggerSound('pop');
+    }
+  };
+
+  const clearAllDataToScratch = async () => {
+    const clean = resetToCleanUserData(data.profile);
+    setData(clean);
+    triggerSound('pop');
+  };
+
+  const loadDemoAccount = () => {
+    const clean = resetToCleanUserData();
+    setData(clean);
+    triggerCelebration();
+  };
+
+  const loadCleanUserAccount = async (profile: any) => {
+    const clean = resetToCleanUserData(profile);
+    setData(clean);
+    return clean;
   };
 
   const handleSignOut = async () => {
-    try {
-      await (authClient as any)?.signOut?.();
-    } catch (e) {
-      console.debug('Sign out error', e);
-    }
-    setIsAuthenticated(false);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('p90_logged_in');
     }
-    triggerSound('click');
+    setIsAuthenticated(false);
+    if ((authClient as any)?.signOut) {
+      await (authClient as any).signOut();
+    }
   };
+
+  // Safe stubs for legacy functions
+  const setHabitStatus = () => {};
+  const addHabit = () => {};
+  const updateHabit = () => {};
+  const deleteHabit = () => {};
+  const addProject = () => {};
+  const updateProject = () => {};
+  const deleteProject = () => {};
+  const addTask = () => {};
+  const updateTask = () => {};
+  const toggleTask = () => {};
+  const toggleTaskToday = () => {};
+  const awardTaskPoints = () => {};
+  const deleteTask = () => {};
+  const addRecurringWeeklyEvent = () => {};
+  const updateRecurringWeeklyEvent = () => {};
+  const deleteRecurringWeeklyEvent = () => {};
+  const setWeeklyEventStatus = () => {};
+  const toggleWeeklyEventToday = () => {};
+  const startTimer = () => {};
+  const pauseTimer = () => {};
+  const resumeTimer = () => {};
+  const stopTimer = () => {};
+  const updateActiveTimerFields = () => {};
+  const addManualTimeEntry = () => {};
+  const deleteTimeEntry = () => {};
+  const saveWeeklyPlan = () => {};
+  const updateGoalProgress = () => {};
+  const addGoal = () => {};
+  const deleteGoal = () => {};
 
   const value = {
     data,
@@ -1212,18 +582,43 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     toggleTheme,
     toggleSound,
     triggerSound,
+    triggerCelebration,
     updateProfile,
     updateChallenge,
     launchSprint,
     setOnboardingStep,
     completeOnboarding,
+    // Dynamic Pillars
+    addPillar,
+    updatePillar,
+    deletePillar,
+    addCategory,
+    updateCategory,
+    deleteCategory,
+    // Routines
+    addRoutine,
+    updateRoutine,
+    deleteRoutine,
+    toggleRoutineActive,
+    logRoutineTaskExecution,
+    setRoutineStatus,
+    // Journal & Scores
+    saveJournalEntry,
+    saveCategoryDayScores,
+    // Data & Backups
+    handleExport,
+    handleImport,
+    handleReset,
+    clearAllDataToScratch,
+    toggleGettingStartedGuide,
+    loadDemoAccount,
+    loadCleanUserAccount,
+    handleSignOut,
+    // Legacy stubs
     setHabitStatus,
     addHabit,
     updateHabit,
     deleteHabit,
-    addCategory,
-    updateCategory,
-    deleteCategory,
     addProject,
     updateProject,
     deleteProject,
@@ -1232,13 +627,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     toggleTask,
     toggleTaskToday,
     awardTaskPoints,
-    saveCategoryDayScores,
-    logRoutineTaskExecution,
-    setRoutineStatus,
     deleteTask,
-    addRoutine,
-    updateRoutine,
-    deleteRoutine,
     addRecurringWeeklyEvent,
     updateRecurringWeeklyEvent,
     deleteRecurringWeeklyEvent,
@@ -1251,19 +640,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     updateActiveTimerFields,
     addManualTimeEntry,
     deleteTimeEntry,
-    saveJournalEntry,
     saveWeeklyPlan,
     updateGoalProgress,
     addGoal,
-    deleteGoal,
-    handleExport,
-    handleImport,
-    handleReset,
-    clearAllDataToScratch,
-    toggleGettingStartedGuide,
-    loadDemoAccount,
-    loadCleanUserAccount,
-    handleSignOut
+    deleteGoal
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

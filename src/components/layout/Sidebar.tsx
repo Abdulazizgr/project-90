@@ -1,24 +1,21 @@
+'use client';
+
 import React from 'react';
 import { 
   LayoutDashboard, 
-  Timer, 
-  CheckSquare, 
   SunMedium, 
-  Calendar,
-  FolderKanban,
   Clock, 
   CalendarDays, 
-  BarChart3, 
-  BookOpen, 
-  Target, 
   Trophy, 
+  BookOpen, 
   Settings, 
   Flame,
   Sparkles,
-  Rocket
+  Layers,
+  LogOut
 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { getScoreLevel, calculateCategoryDayScore } from '../../utils/calculations';
+import { useApp } from '@/context/AppContext';
+import { getScoreLevel, calculateRoutineProgressToday, calculateCurrentStreak } from '@/utils/calculations';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -26,39 +23,33 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen }) => {
-  const { data, activeTab, setActiveTab, todayStr, setIsSetupWizardOpen } = useApp();
+  const { data, activeTab, setActiveTab, todayStr, handleSignOut, triggerSound } = useApp();
   const challenge = data.challenge || {};
-  const isPlanning = challenge.status === 'planning';
   const currentDay = challenge.currentDay || 1;
   const totalDays = challenge.totalDurationDays || 90;
-  const daysLeft = Math.max(0, totalDays - currentDay);
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
-  const hasEvaluatedToday = data.categoryScores?.[todayStr] !== undefined;
-  const todayScore = hasEvaluatedToday 
-    ? calculateCategoryDayScore(data.categoryScores[todayStr]) 
-    : (data.dayScores?.[todayStr] || 0);
+  const routines = data.routines || [];
+  const routineLogs = data.routineLogsHistory?.[todayStr] || {};
+  const routineProgress = calculateRoutineProgressToday(routines, routineLogs, todayStr);
+  const currentStreak = calculateCurrentStreak(data.dayScores || {}, todayStr);
+  const todayScore = data.dayScores?.[todayStr] || (routineProgress.percentage);
   const scoreMeta = getScoreLevel(todayScore);
 
   const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'projects', label: 'Projects & Tasks', icon: FolderKanban },
-    { id: 'routines', label: 'Daily Routines & Tasks', icon: SunMedium },
-    { id: 'weekly', label: 'Weekly Schedule', icon: Calendar },
-    { id: 'timer', label: 'Time Tracker', icon: Timer, badge: data.activeTimer?.isRunning ? 'LIVE' : null },
+    { id: 'dashboard', label: 'Today Dashboard', icon: LayoutDashboard },
+    { id: 'routines', label: 'Pillars & Routines', icon: SunMedium, count: routineProgress.scheduledCount },
     { id: 'timeline', label: 'Daily Timeline', icon: Clock },
     { id: 'calendar', label: '90-Day Calendar', icon: CalendarDays },
-    { id: 'analytics', label: 'Analytics & Balance', icon: BarChart3 },
-    { id: 'journal', label: 'Daily Reflection & Scoring', icon: BookOpen },
-    { id: 'goals', label: 'Goals & Targets', icon: Target },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
+    { id: 'journal', label: 'Evening Reflection', icon: BookOpen },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
   return (
     <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
       {/* Brand Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem', padding: '0.25rem 0.5rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.25rem 0.5rem' }}>
         <div style={{
           width: '38px',
           height: '38px',
@@ -75,139 +66,158 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
           <h1 style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
             PROJECT <span style={{ color: 'var(--primary-light)' }}>90</span>
           </h1>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>Life Operating System</p>
+          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>Routine & Pillars OS</p>
         </div>
       </div>
 
-      {/* Challenge Progress Card or Planning Mode Card */}
-      {isPlanning ? (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.14), rgba(99, 102, 241, 0.08))',
-          border: '1px solid rgba(245, 158, 11, 0.35)',
-          borderRadius: 'var(--radius-md)',
-          padding: '0.85rem',
-          marginBottom: '1.25rem'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              🛠️ SPRINT SETUP
-            </span>
-            <span className="badge badge-warning" style={{ fontSize: '0.6rem', padding: '0.1rem 0.35rem' }}>Planning</span>
-          </div>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', lineHeight: 1.3 }}>
-            Plan daily routines & weekly gym/meetings before launch.
-          </p>
-          <button
-            type="button"
-            className="btn btn-primary btn-sm"
-            onClick={() => setIsSetupWizardOpen(true)}
-            style={{ width: '100%', fontSize: '0.72rem', padding: '0.35rem 0.5rem', gap: '0.3rem' }}
-          >
-            <Rocket size={12} />
-            <span>Launch Sprint Guide</span>
-          </button>
-        </div>
-      ) : (
-        <div style={{
-          background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(139, 92, 246, 0.05))',
-          border: '1px solid rgba(99, 102, 241, 0.25)',
-          borderRadius: 'var(--radius-md)',
-          padding: '0.9rem',
-          marginBottom: '1.25rem'
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-primary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              DAY {currentDay} / {totalDays}
-            </span>
-            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary-light)' }}>
-              {pctComplete}%
+      {/* 90-Day Sprint Progress Card */}
+      <div style={{
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)',
+        borderRadius: 'var(--radius-md)',
+        padding: '0.85rem',
+        marginBottom: '1.25rem',
+        boxShadow: 'var(--shadow-sm)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--primary-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              Day {currentDay} of {totalDays}
             </span>
           </div>
-          <div className="progress-bar-container" style={{ height: '6px', marginBottom: '0.5rem' }}>
-            <div 
-              className="progress-bar-fill" 
-              style={{ 
-                width: `${pctComplete}%`, 
-                background: 'linear-gradient(90deg, var(--primary), #8b5cf6)' 
-              }} 
-            />
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-            <span>{daysLeft} Days Left</span>
-            <span style={{ color: 'var(--cat-spiritual)', fontWeight: 600 }}>🟢 Active</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>
+            <Flame size={14} color="#f59e0b" fill="#f59e0b" />
+            <span>{currentStreak}d Streak</span>
           </div>
         </div>
-      )}
 
-      {/* Navigation Sections */}
-      <nav style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-        <div className="nav-label">Core Modules</div>
+        {/* Progress Bar */}
+        <div style={{
+          width: '100%',
+          height: '6px',
+          backgroundColor: 'var(--bg-input)',
+          borderRadius: 'var(--radius-full)',
+          overflow: 'hidden',
+          marginBottom: '0.65rem'
+        }}>
+          <div style={{
+            height: '100%',
+            width: `${pctComplete}%`,
+            background: 'linear-gradient(90deg, var(--primary), var(--primary-light))',
+            borderRadius: 'var(--radius-full)',
+            transition: 'width 0.4s ease'
+          }} />
+        </div>
+
+        {/* Today's Routine Snapshot */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '0.4rem 0.6rem',
+          background: 'rgba(255, 255, 255, 0.03)',
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '0.72rem'
+        }}>
+          <span style={{ color: 'var(--text-secondary)' }}>Today's Routines:</span>
+          <span style={{ fontWeight: 700, color: routineProgress.percentage === 100 ? '#10b981' : 'var(--text-primary)' }}>
+            {routineProgress.completedCount} / {routineProgress.scheduledCount} ({routineProgress.percentage}%)
+          </span>
+        </div>
+      </div>
+
+      {/* Nav Menu */}
+      <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
           return (
-            <div
+            <button
               key={item.id}
-              className={`nav-item ${isActive ? 'active' : ''}`}
               onClick={() => {
                 setActiveTab(item.id);
+                triggerSound('click');
                 if (setIsMobileOpen) setIsMobileOpen(false);
               }}
+              className={`sidebar-nav-item ${isActive ? 'active' : ''}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                padding: '0.65rem 0.85rem',
+                borderRadius: 'var(--radius-md)',
+                background: isActive ? 'var(--primary-glow)' : 'transparent',
+                color: isActive ? 'var(--primary-light)' : 'var(--text-secondary)',
+                border: 'none',
+                fontWeight: isActive ? 600 : 500,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                textAlign: 'left',
+                width: '100%',
+                transition: 'all var(--transition-fast)'
+              }}
             >
-              <Icon size={18} />
+              <Icon size={18} color={isActive ? 'var(--primary-light)' : 'var(--text-muted)'} />
               <span style={{ flex: 1 }}>{item.label}</span>
-              {item.badge && (
+              {item.count !== undefined && item.count > 0 && (
                 <span style={{
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  padding: '0.15rem 0.4rem',
-                  borderRadius: 'var(--radius-full)',
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  color: '#ef4444',
-                  border: '1px solid rgba(239, 68, 68, 0.4)'
+                  fontSize: '0.68rem',
+                  padding: '0.1rem 0.45rem',
+                  borderRadius: '10px',
+                  background: isActive ? 'var(--primary)' : 'var(--bg-input)',
+                  color: isActive ? '#ffffff' : 'var(--text-muted)',
+                  fontWeight: 700
                 }}>
-                  {item.badge}
+                  {item.count}
                 </span>
               )}
-            </div>
+            </button>
           );
         })}
       </nav>
 
-      {/* Footer User Pill */}
+      {/* Sidebar Footer with Sign Out */}
       <div style={{
         marginTop: 'auto',
-        paddingTop: '0.75rem',
+        paddingTop: '0.85rem',
         borderTop: '1px solid var(--border-color)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', overflow: 'hidden' }}>
           <div style={{
             width: '32px',
             height: '32px',
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10b981, #06b6d4)',
-            color: '#fff',
+            background: 'var(--bg-input)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            fontSize: '0.8rem',
             fontWeight: 700,
-            fontSize: '0.85rem'
+            color: 'var(--primary-light)'
           }}>
-            {data.profile?.name?.[0]?.toUpperCase() || 'U'}
+            {(data.profile?.name || 'U').charAt(0).toUpperCase()}
           </div>
-          <div>
-            <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{data.profile?.name || 'User'}</div>
-            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-              {Object.keys(data.dayScores || {}).length} Days Logged 🔥
-            </div>
+          <div style={{ overflow: 'hidden' }}>
+            <p style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {data.profile?.name || 'User'}
+            </p>
+            <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
+              {data.categories?.length || 0} Focus Pillars
+            </p>
           </div>
         </div>
-        <div className={`badge ${hasEvaluatedToday ? scoreMeta.badgeClass : 'badge-spiritual'}`} style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem' }}>
-          {hasEvaluatedToday ? `${todayScore}%` : 'Active'}
-        </div>
+
+        <button
+          onClick={handleSignOut}
+          title="Sign Out"
+          className="btn btn-ghost btn-icon"
+          style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
+        >
+          <LogOut size={16} />
+        </button>
       </div>
     </aside>
   );
