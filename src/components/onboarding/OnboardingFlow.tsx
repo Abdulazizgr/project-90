@@ -400,10 +400,10 @@ export const OnboardingFlow = ({ onComplete }) => {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.6rem' }}>
-                  <span style={{ fontSize: '1.2rem' }}>⏱️</span>
+                  <span style={{ fontSize: '1.2rem' }}>⚡</span>
                   <div>
-                    <strong style={{ fontSize: '0.85rem', display: 'block' }}>Clockify Tracker</strong>
-                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Real-time focus stopwatch tagged to projects and pillars.</span>
+                    <strong style={{ fontSize: '0.85rem', display: 'block' }}>Guided Routine Runner</strong>
+                    <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Step-by-step checklist execution with focus stopwatch and audio chimes.</span>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.6rem' }}>

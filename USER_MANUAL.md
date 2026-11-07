@@ -1,152 +1,143 @@
-# PROJECT 90 — User Manual & Operational Blueprint
+# PROJECT 90 — Routine & Dynamic Pillars Life OS
 
-> **"Build Your Life, One Day at a Time."**
+> **"Build Your Life, One Routine at a Time."**
 
-Welcome to **PROJECT 90**, your personal life operating system designed to transform your spiritual discipline, physical health, digital habits, career execution, and personal order across a structured 90-day sprint.
+Welcome to **PROJECT 90**, your mobile-first personal life operating system designed to build unbreakable discipline through **Dynamic Focus Pillars** and **Structured Daily Routine Tracking** across a 90-day transformation sprint.
 
 ---
 
 ## 📖 Table of Contents
-1. [Core Philosophy & 5 Life Pillars](#1-core-philosophy--5-life-pillars)
-2. [A Complete Day in the Life (Practical Use Case)](#2-a-complete-day-in-the-life-practical-use-case)
-3. [Module-by-Module User Guide](#3-module-by-module-user-guide)
-   - [Clockify-Style Time Tracker & Pomodoro](#-clockify-style-time-tracker--pomodoro)
-   - [Habits & 100-Point Daily Scorecard](#-habits--100-point-daily-scorecard)
-   - [Routines & Guided Focus Runner](#-routines--guided-focus-runner)
-   - [Daily Timeline](#-daily-timeline)
-   - [90-Day Calendar Matrix & Day Inspector](#-90-day-calendar-matrix--day-inspector)
-   - [Analytics & Reports](#-analytics--reports)
-   - [Daily Reflection & Evening Journal](#-daily-reflection--evening-journal)
-   - [Goals & Weekly Sprint Reviews](#-goals--weekly-sprint-reviews)
-   - [Achievements & Gamification](#-achievements--gamification)
-   - [Settings, MongoDB Atlas & Better Auth](#-settings-mongodb-atlas--better-auth)
-4. [Keyboard Shortcuts & Command Palette (`Ctrl + K`)](#4-keyboard-shortcuts--command-palette-ctrl--k)
+1. [Core Philosophy & Dynamic Focus Pillars](#1-core-philosophy--dynamic-focus-pillars)
+2. [A Complete Day in the Life (Practical Blueprint)](#2-a-complete-day-in-the-life-practical-blueprint)
+3. [Key Features & System Guide](#3-key-features--system-guide)
+   - [Dynamic Focus Pillars Management](#-dynamic-focus-pillars-management)
+   - [Today's Execution Board & Quick Check](#-todays-execution-board--quick-check)
+   - [Guided Routine Runner Modal](#-guided-routine-runner-modal)
+   - [24-Hour Daily Timeline](#-24-hour-daily-timeline)
+   - [90-Day Sprint Calendar Matrix](#-90-day-sprint-calendar-matrix)
+   - [Evening 4-Question Reflection & 100-Point Score](#-evening-4-question-reflection--100-point-score)
+   - [Mastery Badges & Streaks](#-mastery-badges--streaks)
+4. [Mobile-First & PWA Installation Guide](#4-mobile-first--pwa-installation-guide)
+5. [Keyboard Shortcuts & Command Palette (`Ctrl + K`)](#5-keyboard-shortcuts--command-palette-ctrl--k)
 
 ---
 
-## 1. Core Philosophy & 5 Life Pillars
+## 1. Core Philosophy & Dynamic Focus Pillars
 
-PROJECT 90 integrates five core life dimensions into a unified scorecard:
+PROJECT 90 doesn't force a rigid, one-size-fits-all set of categories. **You define what matters most to your life.**
 
-| Pillar | Focus Areas | Target Habits & Metrics |
-| :--- | :--- | :--- |
-| **🕌 Spiritual** | 5 Daily Salah, Quran Tilawat & Tadabbur, Adhkar, Islamic Study | Pray on time, 5+ pages Quran daily |
-| **📱 Digital Discipline** | Screen-time control, No mindless scrolling, Phone-free deep work | &lt; 2h phone screen time, First 90 min offline |
-| **👤 Personal** | Early rising, Strategic planning, Reading 20+ pages, Clean space | 5:00 AM wake up, Evening sleep protocol |
-| **💪 Health** | Strength workout, 8,000 steps, 3L water hydration, Clean eating | 45m workout, 3 Liters pure water daily |
-| **💻 Career** | RHIZAN ERP engineering, Tech mastery (NestJS/React), Client deliverables | 4+ hours deep focused engineering |
+* **Register Any Pillar:** Define your own life dimensions (e.g. *Spiritual Discipline*, *Health & Fitness*, *Deep Focus*, *Personal Order*, *Digital Detox*, *Family & Community*).
+* **Full Customization:** Give each pillar a distinct emoji icon, theme color, title, and purpose statement.
+* **Routine Alignment:** Every routine you create belongs to one of your dynamic pillars, keeping your daily habits purposeful and balanced.
 
 ---
 
-## 2. A Complete Day in the Life (Practical Use Case)
-
-Follow this structured daily blueprint to guarantee an **🟢 Excellent (90+) Score** every single day:
+## 2. A Complete Day in the Life (Practical Blueprint)
 
 ```mermaid
 graph TD
-    A["🌅 05:00 AM - Morning Momentum<br/>Fajr + Quran + Workout (+30 pts)"] --> B["☀️ 08:30 AM - Deep Work Block 1<br/>RHIZAN ERP Backend (Clockify / Pomodoro)"]
-    B --> C["🕌 12:00 PM - Dhuhr & Break<br/>Salah + Lunch + Rejuvenation Walk"]
-    C --> D["☀️ 01:30 PM - Deep Work Block 2<br/>RHIZAN Frontend & NestJS Learning"]
-    D --> E["🌙 07:30 PM - Evening Closure<br/>Maghrib & Isha + 20 Pages Reading (+20 pts)"]
-    E --> F["📝 09:30 PM - 4-Question Reflection<br/>Mood + Evening Review (+10 pts)"]
-    F --> G["🟢 Day Complete: 90+ Score<br/>Confetti & Streak +1 Day!"]
+    A["🌅 05:00 AM - Morning Momentum<br/>Fajr + Quran + Hydration + Priorities"] --> B["☀️ 08:30 AM - Deep Focus Routine<br/>Uninterrupted execution with Guided Runner"]
+    B --> C["🕌 12:30 PM - Midday Rejuvenation<br/>Prayer + Refreshment + Walk"]
+    C --> D["💪 05:30 PM - Physical Vitality<br/>Workout + 1L Hydration"]
+    D --> E["🌙 09:00 PM - Evening Shutdown<br/>Screen detox outside bedroom + 20 pages reading"]
+    E --> F["📝 09:45 PM - Evening Reflection<br/>Mood rating + 4 Core Questions"]
+    F --> G["🟢 Day Complete: 100-Point Score<br/>Celebratory Confetti & Streak +1!"]
 ```
 
-### Phase 1: 🌅 Morning Momentum (05:00 AM – 07:00 AM)
-1. **05:00 AM Alarm**: Wake up, drink 500ml water, perform Wudu, and walk to the mosque for Fajr in congregation.
-2. **Quran Tilawat**: Recite 5 pages of the Quran with contemplation.
-3. **Physical Vitality**: Complete 35 minutes of calisthenics or gym training + cold shower and high-protein breakfast.
-4. **Log in PROJECT 90**:
-   - Open app on `http://localhost:3000/`.
-   - On the Dashboard, click **Launch Guided Routine** on the *Morning Momentum Routine*.
-   - Click through the steps as you complete them, then click **Log to Timeline & Close**.
-   - *Result: +30 Points earned before 7:00 AM!*
-
-### Phase 2: ☀️ High-Impact Deep Work (08:30 AM – 05:00 PM)
-1. **Strategic War-Room Planning**: Review your top 3 daily objectives.
-2. **Clockify Time Tracking**:
-   - In the global bottom timer bar (or *Time Tracker* tab), enter: `RHIZAN ERP Multi-tenant Backend`.
-   - Select Category: `💻 Career` and Project: `RHIZAN ERP`.
-   - Toggle **Stopwatch** or **50m Pomodoro** and click **Start**.
-3. **Phone-Free Focus**: Place your phone in another room or turn on Do Not Disturb.
-4. **Salah Checks**: Glance at the Topbar Prayer Times countdown for Dhuhr (11:58 AM) and Asr (03:26 PM).
-5. **Stop & Log**: Click **Stop** when finishing a block. The session is automatically saved to MongoDB Atlas, updating your daily productive time chart.
-   - *Result: 4+ Hours of verified deep work logged!*
-
-### Phase 3: 🌙 Evening Closure & Reflection (07:30 PM – 10:00 PM)
-1. **Prayers & Family**: Maghrib and Isha prayers; family dinner with zero phone scrolling.
-2. **Reading Habit**: Read 20 pages of non-fiction / technical architecture books -> click **Done** on the *Reading* habit.
-3. **Daily Reflection Protocol**:
-   - Go to the **Daily Reflection** tab.
-   - Select your mood: 😊 **Great**, 🙂 **Good**, 😐 **Normal**, or 😞 **Bad**.
-   - Answer the 4 core questions:
-     1. *What did I do well today?*
-     2. *What did I fail to do?*
-     3. *What distracted me?*
-     4. *What will I improve tomorrow?*
-   - Click **Save Reflection & Score (+10 pts)**.
-   - *Result: Daily Score reaches 90+ 🟢 Excellent, triggering celebratory fanfare and confetti!*
-4. **Lights Out**: Phone docked in the living room at 09:45 PM; lights out by 10:15 PM.
-
-### Phase 4: 📋 Sunday Evening Weekly Review
-1. Press <kbd>Ctrl + K</kbd> and select **Launch Weekly Sprint Review**.
-2. Review your 7-day average score, deep work hours, best category, and weakest area.
-3. Write your weekly retrospective and set targets for the upcoming sprint.
+1. **Morning (Phase 1):** Wake up early, hydrate, complete morning prayers and priorities. Check off your *Morning Momentum Protocol* directly from the mobile board or run it with the **Guided Runner**.
+2. **Daytime (Phase 2):** Execute your scheduled focus and health routines. Tap **Run Guided** to follow step-by-step checklists with a built-in stopwatch.
+3. **Evening (Phase 3):** Put your phone outside the sleeping area, read 20 pages, and open **Review** to log your 4-question evening reflection and complete your daily score.
 
 ---
 
-## 3. Module-by-Module User Guide
+## 3. Key Features & System Guide
 
-### ⏱️ Clockify-Style Time Tracker & Pomodoro
-- **Global Bottom Bar**: Always accessible across every screen with a live red pulse ticker (`01:24:36`), activity title input, category & project dropdowns, and start/pause/stop controls.
-- **Pomodoro Mode**: Switch between standard stopwatch and 25m/50m Pomodoro countdowns.
-- **Manual Time Entry**: Click `+` to add offline sessions with custom start, end, and duration times.
-- **CSV Export**: Export all historical time entries as a clean `.csv` spreadsheet anytime.
+### 🏛️ Dynamic Focus Pillars Management
+* Click **Manage Pillars** on the Dashboard or in the Routines tab.
+* Add new focus areas with custom names, icons, and theme colors.
+* Edit or reorganize pillars as your life goals evolve.
 
-### ⚡ Habits & 100-Point Daily Scorecard
-- Habits carry weighted points (e.g. Salah 20pt, RHIZAN 15pt, Workout 15pt, Quran 10pt, Reflection 10pt = 100 max daily points).
-- 3 State toggles:
-  - `✅ Done`: Full points awarded + sound chime.
-  - `⏳ In Progress`: 50% partial points.
-  - `❌ Skip`: Zero points.
-- **Score Tiers**:
-  - 🟢 **90–100 Points**: Excellent (Peak Discipline)
-  - 🔵 **70–89 Points**: Good (Solid Momentum)
-  - 🟡 **50–69 Points**: Average (Needs Push)
-  - 🔴 **Below 50 Points**: Needs Immediate Fix
+### ⚡ Today's Execution Board & Quick Check
+* All routines scheduled for today are organized by time of day:
+  * 🌅 *Morning Protocol*
+  * ☀️ *Afternoon Focus*
+  * 🌙 *Evening Shutdown*
+  * ⚡ *Anytime*
+* **One-Tap Checkbox:** Tap **Complete** on any card to mark it done instantly with haptic/audio confirmation.
+* **Filter by Pillar:** Tap any pillar pill at the top of the board to isolate routines belonging to that focus area.
 
-### 🔄 Routines & Guided Focus Runner
-- Pre-configured with **Morning Momentum** 🌅, **Work Routine** ☀️, and **Evening Wind-down** 🌙.
-- Click **Launch Guided Runner** to enter a distraction-free full-screen runner with step timers and auto-logging upon completion.
+### 🏃 Guided Routine Runner Modal
+* Tap **Run Guided** on any routine.
+* Walks you through each individual step sequentially (e.g. *Step 1: Drink 500ml water* → *Step 2: Dynamic warmup*).
+* Dedicated stopwatch timer for each step with Pause / Resume / Reset controls.
+* Complete the final step to trigger fanfare and automatically record the routine to your timeline.
 
-### 🕒 Chronological Daily Timeline
-- Visual 24-hour timeline displaying all morning habits, time entries, deep work blocks, and reflections in exact chronological sequence.
+### 🕒 24-Hour Daily Timeline
+* Displays an hour-by-hour view of your scheduled and completed routines.
+* Click any past date to inspect previous routine logs and notes.
 
-### 🗓️ 90-Day Calendar Matrix & Day Inspector
-- 90 color-coded day cells representing your entire transformation sprint.
-- Click any day (e.g. Day 5 or Day 12) to open the **Day Inspector Modal** displaying habits status, time logs, and journal reflections.
+### 🗓️ 90-Day Sprint Calendar Matrix
+* A bird's-eye view of all 90 days in your sprint.
+* Color-coded status dots:
+  * 🟢 **Excellent (90–100 pts):** All scheduled routines + evening reflection completed.
+  * 🔵 **Good (70–89 pts):** Strong consistency.
+  * 🟡 **Average (50–69 pts):** Partial completion.
+  * 🔴 **Needs Work (< 50 pts):** Off-track day.
+* Click any day card to open the **Day Detail Inspector**.
 
-### 📊 Analytics & Reports
-- Category time allocation bars (Spiritual, Digital, Personal, Health, Career).
-- Project distribution logs (RHIZAN, NestJS learning, workout, etc.).
-- 12-Day Score Progression chart.
+### 📝 Evening 4-Question Reflection & 100-Point Score
+* Rate your overall mood (😊 Great, 🙂 Good, 😐 Normal, 😞 Tough).
+* Answer the 4 reflective questions:
+  1. *What did I do well today?*
+  2. *What did I fail to do?*
+  3. *What distracted me or broke my focus?*
+  4. *What will I improve tomorrow?*
+* Submitting your reflection awards the final 10 points toward your 100-point total.
 
-### 🎯 Goals & 🏆 Achievements
-- Set weekly targets (e.g. *RHIZAN Deep Work 40h/week*, *Exercise 5 days/week*).
-- Unlock gamified achievement badges (7-Day Streak, 30 Days Strong, 100 Hours Deep Work, Career Machine).
-
-### 💾 Settings, MongoDB Atlas & Better Auth
-- Seamless account registration and login powered by **Better Auth**.
-- Live synchronization to **MongoDB Atlas** cluster (`cluster0.7mbwqf2.mongodb.net/project90`).
-- Export JSON backups or reset to Day 12 demonstration seed data.
+### 🏆 Mastery Badges & Streaks
+Unlock badges as you achieve consistency milestones:
+* ⚡ **First Step:** Complete your first guided routine execution.
+* 🏛️ **Pillar Architect:** Register and customize your personal focus pillars.
+* 🌅 **Dawn Master:** Complete your morning routine 7 days in a row.
+* 🌙 **Night Guardian:** Complete your evening shutdown routine 7 days in a row.
+* 🎯 **Flawless Execution:** Complete 100% of all scheduled routines today.
+* 🔥 **7-Day Routine Streak:** 7 straight days of full routine execution.
+* 🛡️ **30-Day Routine Warrior:** 30 consecutive days of discipline.
+* 🌈 **Holistic Harmony:** Complete routines in every active pillar in one day.
+* 👑 **90-Day Master Finisher:** Conquer all 90 days of the sprint.
 
 ---
 
-## 4. Keyboard Shortcuts & Command Palette (`Ctrl + K`)
+## 4. Mobile-First & PWA Installation Guide
+
+PROJECT 90 is an offline-capable **Progressive Web App (PWA)** that installs directly to your phone's home screen like a native app:
+
+### 📱 Installing on iPhone / iPad (Safari)
+1. Open `http://<your-host>:3000/` in **Safari**.
+2. Tap the **Share** button (box with an arrow pointing up).
+3. Scroll down and tap **"Add to Home Screen"**.
+4. Tap **Add**. The PROJECT 90 app icon will appear on your home screen and open in full-screen standalone mode.
+
+### 🤖 Installing on Android (Chrome / Brave)
+1. Open `http://<your-host>:3000/` in **Chrome**.
+2. Tap the three-dot menu in the upper-right corner.
+3. Tap **"Install app"** or **"Add to Home screen"**.
+4. The app installs with standalone launch support and bottom navigation.
+
+### 💻 Installing on Desktop (Chrome / Edge)
+1. Look for the **Install App icon** in the browser URL address bar.
+2. Click **Install** to run PROJECT 90 in its own standalone window.
+
+---
+
+## 5. Keyboard Shortcuts & Command Palette (`Ctrl + K`)
 
 | Shortcut | Action |
 | :--- | :--- |
-| <kbd>Ctrl + K</kbd> or <kbd>Cmd + K</kbd> | Open Spotlight Command Palette |
-| <kbd>Alt + T</kbd> | Quick Start / Stop Active Timer |
-| <kbd>Alt + M</kbd> | Toggle Dark / Light Color Theme |
-| <kbd>ESC</kbd> | Close Any Open Modal or Drawer |
+| <kbd>Ctrl</kbd> + <kbd>K</kbd> / <kbd>Cmd</kbd> + <kbd>K</kbd> | Open the Command Palette from anywhere |
+| <kbd>Alt</kbd> + <kbd>M</kbd> | Toggle between Dark Focus Mode and Light Mode |
+| <kbd>ESC</kbd> | Close any open modal or runner |
+
+---
+
+> *"We are what we repeatedly do. Excellence, then, is not an act, but a habit."*

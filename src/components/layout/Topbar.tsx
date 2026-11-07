@@ -143,7 +143,7 @@ export const Topbar: React.FC<TopbarProps> = ({
           }}
         >
           <Clock size={13} />
-          <span>Next: <strong>{prayerInfo.nextPrayer}</strong> in {prayerInfo.countdownFormatted}</span>
+          <span>Next: <strong>{prayerInfo.nextPrayer?.name}</strong> in {prayerInfo.countdownFormatted}</span>
         </div>
       )}
 

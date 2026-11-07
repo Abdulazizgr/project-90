@@ -80,11 +80,11 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({
     },
     {
       id: 'step3',
-      title: '3. Track Your First Deep Work Block',
-      desc: 'Use the bottom Clockify timer or manual logger to record uninterrupted flow sessions.',
-      completed: hasTimeTracked,
-      actionLabel: 'Open Timer',
-      onClick: () => setActiveTab('timer')
+      title: '3. Run Your First Guided Routine',
+      desc: 'Launch the step-by-step runner on any routine to focus and check off steps sequentially.',
+      completed: Object.values(data.routineLogsHistory?.[todayStr] || {}).some((l: any) => l.completed || l.status === 'done'),
+      actionLabel: 'Launch Routine',
+      onClick: () => setActiveTab('routines')
     },
     {
       id: 'step4',

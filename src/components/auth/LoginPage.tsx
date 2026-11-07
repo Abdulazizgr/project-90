@@ -420,7 +420,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <Clock size={15} color="#10b981" />
-          <span>Clockify Time Tracker</span>
+          <span>Guided Routine Runner & PWA</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
           <Calendar size={15} color="#f59e0b" />
