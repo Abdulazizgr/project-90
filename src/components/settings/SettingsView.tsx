@@ -248,7 +248,7 @@ export const SettingsView = () => {
                 <div>
                   <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>Web Audio Sound Effects</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Uplifting chimes on completing habits and stopping timer
+                    Uplifting chimes on completing routine steps and milestones
                   </div>
                 </div>
                 <button className="btn btn-secondary btn-sm" onClick={toggleSound} style={{ gap: '0.4rem' }}>

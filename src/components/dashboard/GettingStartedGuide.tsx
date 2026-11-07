@@ -24,12 +24,11 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({
   onOpenManual, 
   onOpenCategoryManager 
 }) => {
-  const { data, setActiveTab, toggleGettingStartedGuide } = useApp();
+  const { data, todayStr, setActiveTab, toggleGettingStartedGuide } = useApp();
 
   const isVisible = data.showGettingStartedGuide !== false;
   const currentDay = data.challenge?.currentDay || 1;
-  const hasHabitsChecked = Object.keys(data.habitLogsHistory?.[data.challenge?.startDate || ''] || {}).length > 0;
-  const hasTimeTracked = (data.timeEntries || []).length > 0;
+  const hasRoutinesChecked = Object.values(data.routineLogsHistory?.[todayStr] || {}).some((l: any) => l.completed || l.status === 'done');
   const hasReflection = Object.keys(data.journalEntries || {}).length > 0;
 
   if (!isVisible) {
@@ -74,7 +73,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({
       id: 'step2',
       title: '2. Check Off Today\'s Routines & Tasks',
       desc: 'Execute daily routines (prayers, workout, focus blocks) and log on-time or reasons.',
-      completed: hasHabitsChecked,
+      completed: hasRoutinesChecked,
       actionLabel: 'Go to Routines',
       onClick: () => setActiveTab('routines')
     },

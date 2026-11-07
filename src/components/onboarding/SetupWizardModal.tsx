@@ -215,19 +215,19 @@ export const SetupWizardModal: React.FC<SetupWizardModalProps> = ({ isOpen, onCl
                 ))}
               </div>
 
-              {/* Habits Preview */}
+              {/* Routines Preview */}
               <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-md)', padding: '1rem' }}>
                 <div style={{ fontSize: '0.82rem', fontWeight: 700, marginBottom: '0.6rem', color: 'var(--primary-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Active Scorecard Habits ({habits.length})
+                  Configured Daily Routines ({routines.length})
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
-                  {habits.map(h => (
+                  {routines.map(r => (
                     <span 
-                      key={h.id} 
+                      key={r.id} 
                       className="badge badge-spiritual"
                       style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
                     >
-                      {h.icon} {h.name} ({h.points} pts)
+                      {r.icon} {r.title || r.name} ({r.target || `${r.durationMinutes || 30}m`})
                     </span>
                   ))}
                 </div>
