@@ -4,19 +4,37 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import confetti from 'canvas-confetti';
 import { loadDataFromStorage, saveDataToStorage, exportDataAsJSON, importDataFromJSON, resetToCleanUserData } from '../utils/storage';
 import { playSound } from '../utils/sound';
-import { calculateExecutionScore, calculateRoutineProgressToday, isRoutineScheduledForDay, getScoreLevel } from '../utils/calculations';
+import { 
+  getLocalDateString, 
+  TIMEZONE,
+  DEFAULT_CATEGORIES,
+  DEFAULT_ROUTINES,
+  DEFAULT_ACHIEVEMENTS,
+  DEFAULT_TASKS,
+  Category,
+  Routine,
+  Task,
+  TimeEntry,
+  DailyReflection,
+  Achievement,
+  Challenge
+} from '../utils/seedData';
+import {
+  calculateDailyProgress,
+  calculate24HourAllocation,
+  checkTimeOverlap,
+  parseTimeToMinutes
+} from '../utils/calculations';
 import { authClient } from '../lib/auth-client';
-import { DEFAULT_ACHIEVEMENTS } from '../utils/seedData';
 
 const AppContext = createContext<any>(null);
 
 export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   const [data, setData] = useState<any>(() => loadDataFromStorage());
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [activeModal, setActiveModal] = useState<string | null>(null); // 'routine_runner' | 'routine_modal' | 'pillar_modal' | 'day_detail'
+  const [activeModal, setActiveModal] = useState<string | null>(null);
   const [modalData, setModalData] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [isSetupWizardOpen, setIsSetupWizardOpen] = useState(false);
   const [isDbSynced, setIsDbSynced] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -25,12 +43,9 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     return false;
   });
 
-  // Better Auth session hook
   const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
-  const sessionData: any = sessionResult?.data;
-  const user = sessionData?.user;
+  const user = sessionResult?.data?.user;
 
-  // Sync user login status
   useEffect(() => {
     if (user) {
       setIsAuthenticated(true);
@@ -40,7 +55,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }
   }, [user]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   // Apply theme to document element
   useEffect(() => {
@@ -106,14 +121,12 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     };
   }, [data, user?.id, user?.email]);
 
-  // Sound trigger helper
   const triggerSound = (type: string) => {
     if (data.profile?.soundEnabled !== false) {
       playSound(type);
     }
   };
 
-  // Confetti fanfare helper
   const triggerCelebration = () => {
     triggerSound('level-up');
     confetti({
@@ -123,212 +136,228 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     });
   };
 
-  // Recompute daily score and check achievements
-  const recomputeTodayScore = (state: any, targetDate: string = todayStr) => {
-    const calculatedScore = calculateExecutionScore(
+  // Recompute scores, day status, and evaluate achievements
+  const recomputeState = (state: any, targetDate: string = todayStr) => {
+    const progress = calculateDailyProgress(
       state.routines || [],
       state.routineLogsHistory?.[targetDate] || {},
-      state.categories || [],
-      targetDate,
-      [],
-      {},
-      [],
-      {},
-      state.journalEntries || {}
+      state.tasks || [],
+      targetDate
     );
+
+    const hasReflection = !!state.journalEntries?.[targetDate];
+    const earnedScore = Math.min(100, Math.round((progress.percentage * 0.9) + (hasReflection ? 10 : 0)));
 
     const updatedDayScores = {
       ...(state.dayScores || {}),
-      [targetDate]: calculatedScore
+      [targetDate]: earnedScore
     };
 
+    // Calculate Challenge Day Number
+    if (state.challenge?.startDate) {
+      const start = new Date(state.challenge.startDate);
+      const curr = new Date(todayStr);
+      const diffTime = curr.getTime() - start.getTime();
+      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      state.challenge.currentDay = Math.max(1, Math.min(state.challenge.totalDurationDays || 19, diffDays));
+    }
+
     // Evaluate Achievements
-    const updatedAchievements = (state.achievements || DEFAULT_ACHIEVEMENTS).map((ach: any) => {
+    const updatedAchievements = (state.achievements || DEFAULT_ACHIEVEMENTS).map((ach: Achievement) => {
       let unlocked = ach.unlocked;
-      let progress = ach.progress;
+      let progressStr = ach.progress;
 
-      // 1. First routine completed
-      if (ach.id === 'ach_first_routine') {
-        const anyLog = Object.values(state.routineLogsHistory || {}).some((dayLog: any) =>
-          Object.values(dayLog || {}).some((l: any) => l.completed || l.status === 'done' || l.status === 'completed')
-        );
-        if (anyLog) {
-          unlocked = true;
-          progress = '1 / 1 Routine';
-        }
+      // 3-Day Consistency
+      if (ach.id === 'ach_3day_consistency') {
+        const successfulDays = Object.values(updatedDayScores).filter((s: any) => typeof s === 'number' && s >= 65).length;
+        progressStr = `${Math.min(3, successfulDays)} / 3 Days`;
+        if (successfulDays >= 3) unlocked = true;
       }
 
-      // 2. Pillar Architect (at least 3 custom pillars registered)
-      if (ach.id === 'ach_pillar_architect') {
-        const count = state.categories?.length || 0;
-        unlocked = count >= 3;
-        progress = `${count} Pillars Active`;
+      // 7-Day Streak
+      if (ach.id === 'ach_7day_streak') {
+        const successfulDays = Object.values(updatedDayScores).filter((s: any) => typeof s === 'number' && s >= 70).length;
+        progressStr = `${Math.min(7, successfulDays)} / 7 Days`;
+        if (successfulDays >= 7) unlocked = true;
       }
 
-      // 3. Flawless execution today
-      if (ach.id === 'ach_flawless_day') {
-        const progressRes = calculateRoutineProgressToday(state.routines || [], state.routineLogsHistory?.[targetDate] || {}, targetDate);
-        if (progressRes.isAllDone && progressRes.scheduledCount > 0) {
-          unlocked = true;
-          progress = '100% Completed Today';
-        }
+      // Task Finisher (25 tasks completed)
+      if (ach.id === 'ach_task_finisher') {
+        const completedTasksCount = (state.tasks || []).filter((t: Task) => t.status === 'completed').length;
+        progressStr = `${Math.min(25, completedTasksCount)} / 25 Tasks`;
+        if (completedTasksCount >= 25) unlocked = true;
       }
 
-      // 4. Holistic Harmony (at least one routine completed in each pillar today)
-      if (ach.id === 'ach_holistic_harmony') {
-        const dayLogs = state.routineLogsHistory?.[targetDate] || {};
-        const completedRoutineIds = Object.keys(dayLogs).filter(id => dayLogs[id]?.completed || dayLogs[id]?.status === 'done');
-        const completedPillars = new Set();
-        (state.routines || []).forEach((r: any) => {
-          if (completedRoutineIds.includes(r.id)) {
-            completedPillars.add(r.categoryId);
-          }
-        });
-        const totalPillars = (state.categories || []).length;
-        const matched = completedPillars.size;
-        progress = `${matched} / ${totalPillars} Pillars`;
-        if (matched >= totalPillars && totalPillars > 0) {
-          unlocked = true;
-        }
-      }
-
-      return { ...ach, unlocked, progress };
+      return { ...ach, unlocked, progress: progressStr };
     });
 
     state.achievements = updatedAchievements;
-    return updatedDayScores;
+    state.dayScores = updatedDayScores;
+    return state;
   };
 
-  // --- Dynamic Pillars (Focus Areas) API ---
-  const addPillar = (newPillar: { name: string; icon?: string; color?: string; description?: string }) => {
+  // --- Challenge Configuration API ---
+  const updateChallenge = (fields: Partial<Challenge>) => {
     setData((prev: any) => {
-      const pillarId = `pillar_${Date.now()}`;
+      const nextChallenge = { ...prev.challenge, ...fields };
+      // Recalculate end date if duration or start date changed
+      if (fields.startDate || fields.totalDurationDays) {
+        const s = new Date(nextChallenge.startDate);
+        const e = new Date(s);
+        e.setDate(s.getDate() + (nextChallenge.totalDurationDays - 1));
+        nextChallenge.endDate = getLocalDateString(e);
+      }
+      const nextState = { ...prev, challenge: nextChallenge };
+      return recomputeState(nextState);
+    });
+    triggerSound('pop');
+  };
+
+  const createNewChallenge = (name: string, startDate: string, durationDays: number) => {
+    const s = new Date(startDate);
+    const e = new Date(s);
+    e.setDate(s.getDate() + (durationDays - 1));
+    const endDate = getLocalDateString(e);
+
+    setData((prev: any) => {
+      const nextState = {
+        ...prev,
+        challenge: {
+          id: `ch_${Date.now()}`,
+          name: name.trim() || 'Project 19',
+          startDate,
+          endDate,
+          totalDurationDays: Number(durationDays) || 19,
+          currentDay: 1,
+          status: 'active'
+        }
+      };
+      return recomputeState(nextState);
+    });
+    triggerCelebration();
+  };
+
+  // --- Category / Dynamic Focus Pillars API ---
+  const addCategory = (newCat: Partial<Category>) => {
+    setData((prev: any) => {
+      const catId = `cat_${Date.now()}`;
       const nextCategories = [
         ...(prev.categories || []),
         {
-          id: pillarId,
-          name: newPillar.name,
-          icon: newPillar.icon || '🎯',
-          color: newPillar.color || '#6366f1',
-          description: newPillar.description || '',
+          id: catId,
+          name: newCat.name || 'New Category',
+          icon: newCat.icon || '🎯',
+          color: newCat.color || '#6366f1',
+          description: newCat.description || '',
           order: (prev.categories?.length || 0) + 1
         }
       ];
-      const nextState = { ...prev, categories: nextCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
+      return { ...prev, categories: nextCategories };
     });
     triggerSound('habit-complete');
   };
 
-  const updatePillar = (pillarId: string, fields: any) => {
-    setData((prev: any) => {
-      const nextCategories = (prev.categories || []).map((c: any) =>
-        c.id === pillarId ? { ...c, ...fields } : c
-      );
-      const nextState = { ...prev, categories: nextCategories };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
+  const updateCategory = (catId: string, fields: Partial<Category>) => {
+    setData((prev: any) => ({
+      ...prev,
+      categories: (prev.categories || []).map((c: Category) => (c.id === catId ? { ...c, ...fields } : c))
+    }));
   };
 
-  const deletePillar = (pillarId: string) => {
-    setData((prev: any) => {
-      const nextCategories = (prev.categories || []).filter((c: any) => c.id !== pillarId);
-      // Remove routines under this deleted pillar
-      const nextRoutines = (prev.routines || []).filter((r: any) => r.categoryId !== pillarId);
-      const nextState = { ...prev, categories: nextCategories, routines: nextRoutines };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
-    });
+  const deleteCategory = (catId: string) => {
+    setData((prev: any) => ({
+      ...prev,
+      categories: (prev.categories || []).filter((c: Category) => c.id !== catId),
+      routines: (prev.routines || []).filter((r: Routine) => r.categoryId !== catId),
+      tasks: (prev.tasks || []).filter((t: Task) => t.categoryId !== catId)
+    }));
   };
 
   // Aliases for compatibility
-  const addCategory = addPillar;
-  const updateCategory = updatePillar;
-  const deleteCategory = deletePillar;
+  const addPillar = addCategory;
+  const updatePillar = updateCategory;
+  const deletePillar = deleteCategory;
 
-  // --- Routines API ---
-  const addRoutine = (newRoutine: any) => {
+  // --- Daily Routines API ---
+  const addRoutine = (newRoutine: Partial<Routine>) => {
     const routineId = `rt_${Date.now()}`;
-    const formattedSteps = (newRoutine.steps || []).map((s: any, idx: number) => ({
-      id: s.id || `st_${Date.now()}_${idx}`,
-      title: typeof s === 'string' ? s : s.title,
-      durationMinutes: s.durationMinutes || 10
-    }));
+    const startTime = newRoutine.startTime || '08:00';
+    const endTime = newRoutine.endTime || '09:00';
+    const [sh, sm] = startTime.split(':').map(Number);
+    const [eh, em] = endTime.split(':').map(Number);
+    let dur = (eh * 60 + em) - (sh * 60 + sm);
+    if (dur < 0) dur += 24 * 60;
 
     setData((prev: any) => {
-      const pillar = (prev.categories || []).find((c: any) => c.id === newRoutine.categoryId);
-      const routineObj = {
+      const routineObj: Routine = {
         id: routineId,
-        title: newRoutine.title || newRoutine.name || 'New Routine',
-        name: newRoutine.title || newRoutine.name || 'New Routine',
-        categoryId: newRoutine.categoryId || prev.categories?.[0]?.id || 'pillar_general',
-        timeOfDay: newRoutine.timeOfDay || 'morning',
-        days: newRoutine.days && newRoutine.days.length > 0 ? newRoutine.days : ['daily'],
-        target: newRoutine.target || `${newRoutine.durationMinutes || 30} mins`,
-        durationMinutes: Number(newRoutine.durationMinutes) || 30,
-        duration: Number(newRoutine.durationMinutes) || 30,
+        name: newRoutine.name || newRoutine.title || 'New Routine',
+        title: newRoutine.name || newRoutine.title || 'New Routine',
+        categoryId: newRoutine.categoryId || prev.categories?.[0]?.id || 'spiritual',
+        startTime,
+        endTime,
+        durationMinutes: dur > 0 ? dur : (newRoutine.durationMinutes || 30),
+        assignedDays: newRoutine.assignedDays && newRoutine.assignedDays.length > 0 ? newRoutine.assignedDays : ['daily'],
+        days: newRoutine.assignedDays || ['daily'],
+        template: newRoutine.template || 'custom',
         description: newRoutine.description || '',
-        color: newRoutine.color || pillar?.color || '#6366f1',
-        icon: newRoutine.icon || pillar?.icon || '⚡',
         active: newRoutine.active !== false,
-        steps: formattedSteps
+        icon: newRoutine.icon || '⚡',
+        color: newRoutine.color || '#6366f1',
+        steps: newRoutine.steps || []
       };
 
-      const nextRoutines = [...(prev.routines || []), routineObj];
-      const nextState = { ...prev, routines: nextRoutines };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
+      const nextState = { ...prev, routines: [...(prev.routines || []), routineObj] };
+      return recomputeState(nextState);
     });
-
     triggerSound('pop');
   };
 
-  const updateRoutine = (routineId: string, fields: any) => {
+  const updateRoutine = (routineId: string, fields: Partial<Routine>) => {
     setData((prev: any) => {
-      const nextRoutines = (prev.routines || []).map((r: any) => {
+      const nextRoutines = (prev.routines || []).map((r: Routine) => {
         if (r.id === routineId) {
           const updated = { ...r, ...fields };
+          if (fields.name) updated.title = fields.name;
           if (fields.title) updated.name = fields.title;
-          if (fields.steps) {
-            updated.steps = fields.steps.map((s: any, idx: number) => ({
-              id: s.id || `st_${Date.now()}_${idx}`,
-              title: typeof s === 'string' ? s : s.title,
-              durationMinutes: s.durationMinutes || 10
-            }));
+          if (fields.startTime || fields.endTime) {
+            const st = fields.startTime || r.startTime;
+            const et = fields.endTime || r.endTime;
+            const [sh, sm] = st.split(':').map(Number);
+            const [eh, em] = et.split(':').map(Number);
+            let dur = (eh * 60 + em) - (sh * 60 + sm);
+            if (dur < 0) dur += 24 * 60;
+            updated.durationMinutes = dur;
           }
           return updated;
         }
         return r;
       });
       const nextState = { ...prev, routines: nextRoutines };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
+      return recomputeState(nextState);
     });
   };
 
   const deleteRoutine = (routineId: string) => {
     setData((prev: any) => {
-      const nextRoutines = (prev.routines || []).filter((r: any) => r.id !== routineId);
-      const nextState = { ...prev, routines: nextRoutines };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
+      const nextState = {
+        ...prev,
+        routines: (prev.routines || []).filter((r: Routine) => r.id !== routineId)
+      };
+      return recomputeState(nextState);
     });
   };
 
   const toggleRoutineActive = (routineId: string) => {
     setData((prev: any) => {
-      const nextRoutines = (prev.routines || []).map((r: any) =>
+      const nextRoutines = (prev.routines || []).map((r: Routine) =>
         r.id === routineId ? { ...r, active: !r.active } : r
       );
       const nextState = { ...prev, routines: nextRoutines };
-      nextState.dayScores = recomputeTodayScore(nextState);
-      return nextState;
+      return recomputeState(nextState);
     });
   };
 
-  // Routine Execution Logging
   const logRoutineTaskExecution = (routineId: string, status: string, metadata: any = {}) => {
     const isDone = status === 'done' || status === 'completed';
     const isLate = status === 'late';
@@ -338,7 +367,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       const currentLogs = { ...(prev.routineLogsHistory?.[todayStr] || {}) };
       const currentLog = currentLogs[routineId] || {};
 
-      // Toggle off if already completed and user clicks done again
       if (isDone && currentLog.completed && !metadata.forceDone) {
         delete currentLogs[routineId];
       } else {
@@ -347,7 +375,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
           completed: isDone || isLate,
           completedAt: new Date().toISOString(),
           completedSteps: metadata.completedSteps || [],
-          completedStepsCount: metadata.completedSteps?.length || (isDone ? 99 : 0),
           notes: metadata.notes || '',
           updatedAt: new Date().toISOString()
         };
@@ -361,52 +388,275 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
         }
       };
 
-      nextState.dayScores = recomputeTodayScore(nextState);
-
-      // Check if all routines completed today to trigger celebration!
-      const progress = calculateRoutineProgressToday(nextState.routines, currentLogs, todayStr);
-      if (progress.isAllDone && isDone) {
+      const recomputed = recomputeState(nextState);
+      const prog = calculateDailyProgress(recomputed.routines, currentLogs, recomputed.tasks, todayStr);
+      if (prog.isAllDone && isDone) {
         setTimeout(triggerCelebration, 150);
       }
-
-      return nextState;
+      return recomputed;
     });
 
-    if (isDone) {
-      triggerSound('habit-complete');
-    } else {
-      triggerSound('click');
-    }
+    if (isDone) triggerSound('habit-complete');
+    else triggerSound('click');
   };
 
   const setRoutineStatus = (routineId: string, status: string) => {
     logRoutineTaskExecution(routineId, status, { forceDone: true });
   };
 
-  // Evening Reflection
-  const saveJournalEntry = (dateStr: string, entry: any) => {
+  // --- Daily Tasks API ---
+  const addTask = (taskData: Partial<Task>) => {
+    const taskId = `t_${Date.now()}`;
+    const newTask: Task = {
+      id: taskId,
+      title: taskData.title?.trim() || 'New Task',
+      description: taskData.description || '',
+      categoryId: taskData.categoryId || 'career',
+      priority: taskData.priority || 'medium',
+      plannedDate: taskData.plannedDate || todayStr,
+      startTime: taskData.startTime || '',
+      deadline: taskData.deadline || '',
+      status: taskData.status || 'not_started',
+      notes: taskData.notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    setData((prev: any) => {
+      const nextState = { ...prev, tasks: [...(prev.tasks || []), newTask] };
+      return recomputeState(nextState, newTask.plannedDate);
+    });
+    triggerSound('pop');
+  };
+
+  const updateTask = (taskId: string, fields: Partial<Task>) => {
+    setData((prev: any) => {
+      let targetDate = todayStr;
+      const nextTasks = (prev.tasks || []).map((t: Task) => {
+        if (t.id === taskId) {
+          const updated = { ...t, ...fields };
+          targetDate = updated.plannedDate;
+          if (fields.status === 'completed' && t.status !== 'completed') {
+            updated.completedAt = new Date().toISOString();
+          }
+          return updated;
+        }
+        return t;
+      });
+      const nextState = { ...prev, tasks: nextTasks };
+      return recomputeState(nextState, targetDate);
+    });
+  };
+
+  const deleteTask = (taskId: string) => {
+    setData((prev: any) => {
+      const nextState = {
+        ...prev,
+        tasks: (prev.tasks || []).filter((t: Task) => t.id !== taskId)
+      };
+      return recomputeState(nextState);
+    });
+  };
+
+  const toggleTaskStatus = (taskId: string) => {
+    setData((prev: any) => {
+      let isNowDone = false;
+      let targetDate = todayStr;
+      const nextTasks = (prev.tasks || []).map((t: Task) => {
+        if (t.id === taskId) {
+          const nextStatus = t.status === 'completed' ? 'not_started' : 'completed';
+          isNowDone = nextStatus === 'completed';
+          targetDate = t.plannedDate;
+          return {
+            ...t,
+            status: nextStatus as any,
+            completedAt: isNowDone ? new Date().toISOString() : undefined
+          };
+        }
+        return t;
+      });
+      const nextState = { ...prev, tasks: nextTasks };
+      const recomputed = recomputeState(nextState, targetDate);
+      if (isNowDone) {
+        triggerSound('habit-complete');
+        const prog = calculateDailyProgress(recomputed.routines, recomputed.routineLogsHistory?.[targetDate] || {}, recomputed.tasks, targetDate);
+        if (prog.isAllDone) setTimeout(triggerCelebration, 150);
+      }
+      return recomputed;
+    });
+  };
+
+  // --- 24-Hour Time Entries API (Non-overlapping) ---
+  const addTimeEntry = (entry: Omit<TimeEntry, 'id' | 'durationMinutes'> & { id?: string }): { success: boolean; error?: string } => {
+    const targetDate = entry.date || todayStr;
+    const startMin = parseTimeToMinutes(entry.startTime);
+    const endMin = parseTimeToMinutes(entry.endTime);
+    let dur = endMin - startMin;
+    let crossesMidnight = false;
+    if (dur < 0) {
+      dur += 24 * 60;
+      crossesMidnight = true;
+    }
+
+    const currentEntries: TimeEntry[] = data.timeEntriesHistory?.[targetDate] || [];
+    const overlapCheck = checkTimeOverlap(currentEntries, startMin, endMin);
+    if (overlapCheck.hasOverlap && !entry.isPlanned) {
+      return {
+        success: false,
+        error: `Overlaps with "${overlapCheck.conflictingEntry?.activityName}" (${overlapCheck.conflictingEntry?.startTime} - ${overlapCheck.conflictingEntry?.endTime}). Every minute must belong to only one activity.`
+      };
+    }
+
+    const newEntry: TimeEntry = {
+      id: entry.id || `te_${Date.now()}`,
+      activityName: entry.activityName.trim() || 'Recorded Activity',
+      categoryId: entry.categoryId || 'personal',
+      startTime: entry.startTime,
+      endTime: entry.endTime,
+      durationMinutes: dur,
+      date: targetDate,
+      isPlanned: !!entry.isPlanned,
+      notes: entry.notes || '',
+      crossesMidnight
+    };
+
+    setData((prev: any) => {
+      const prevDateEntries = prev.timeEntriesHistory?.[targetDate] || [];
+      const updatedDateEntries = [...prevDateEntries, newEntry].sort(
+        (a, b) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime)
+      );
+
+      const nextHistory = {
+        ...(prev.timeEntriesHistory || {}),
+        [targetDate]: updatedDateEntries
+      };
+
+      const nextState = {
+        ...prev,
+        timeEntriesHistory: nextHistory,
+        timeEntries: Object.values(nextHistory).flat()
+      };
+      return recomputeState(nextState, targetDate);
+    });
+
+    triggerSound('pop');
+    return { success: true };
+  };
+
+  const updateTimeEntry = (targetDate: string, entryId: string, fields: Partial<TimeEntry>): { success: boolean; error?: string } => {
+    const currentEntries: TimeEntry[] = data.timeEntriesHistory?.[targetDate] || [];
+    const existing = currentEntries.find(e => e.id === entryId);
+    if (!existing) return { success: false, error: 'Entry not found' };
+
+    const st = fields.startTime || existing.startTime;
+    const et = fields.endTime || existing.endTime;
+    const startMin = parseTimeToMinutes(st);
+    const endMin = parseTimeToMinutes(et);
+    let dur = endMin - startMin;
+    let crossesMidnight = false;
+    if (dur < 0) {
+      dur += 24 * 60;
+      crossesMidnight = true;
+    }
+
+    const overlapCheck = checkTimeOverlap(currentEntries, startMin, endMin, entryId);
+    if (overlapCheck.hasOverlap && !fields.isPlanned && !existing.isPlanned) {
+      return {
+        success: false,
+        error: `Overlaps with "${overlapCheck.conflictingEntry?.activityName}" (${overlapCheck.conflictingEntry?.startTime} - ${overlapCheck.conflictingEntry?.endTime}).`
+      };
+    }
+
+    setData((prev: any) => {
+      const prevDateEntries = prev.timeEntriesHistory?.[targetDate] || [];
+      const updatedDateEntries = prevDateEntries.map((e: TimeEntry) => {
+        if (e.id === entryId) {
+          return {
+            ...e,
+            ...fields,
+            startTime: st,
+            endTime: et,
+            durationMinutes: dur,
+            crossesMidnight
+          };
+        }
+        return e;
+      }).sort((a: any, b: any) => parseTimeToMinutes(a.startTime) - parseTimeToMinutes(b.startTime));
+
+      const nextHistory = {
+        ...(prev.timeEntriesHistory || {}),
+        [targetDate]: updatedDateEntries
+      };
+
+      const nextState = {
+        ...prev,
+        timeEntriesHistory: nextHistory,
+        timeEntries: Object.values(nextHistory).flat()
+      };
+      return recomputeState(nextState, targetDate);
+    });
+
+    return { success: true };
+  };
+
+  const deleteTimeEntry = (targetDate: string, entryId: string) => {
+    setData((prev: any) => {
+      const prevDateEntries = prev.timeEntriesHistory?.[targetDate] || [];
+      const updatedDateEntries = prevDateEntries.filter((e: TimeEntry) => e.id !== entryId);
+
+      const nextHistory = {
+        ...(prev.timeEntriesHistory || {}),
+        [targetDate]: updatedDateEntries
+      };
+
+      const nextState = {
+        ...prev,
+        timeEntriesHistory: nextHistory,
+        timeEntries: Object.values(nextHistory).flat()
+      };
+      return recomputeState(nextState, targetDate);
+    });
+    triggerSound('pop');
+  };
+
+  // --- Daily 5-Question Reflection API ---
+  const saveDailyReflection = (dateStr: string, reflectionData: Partial<DailyReflection>) => {
+    const fullReflection: DailyReflection = {
+      date: dateStr,
+      mood: reflectionData.mood || 'good',
+      q1_well: reflectionData.q1_well || '',
+      q2_failed: reflectionData.q2_failed || '',
+      q3_learned: reflectionData.q3_learned || '',
+      q4_improve: reflectionData.q4_improve || '',
+      q5_priority: reflectionData.q5_priority || '',
+      savedAt: new Date().toISOString()
+    };
+
     setData((prev: any) => {
       const nextState = {
         ...prev,
         journalEntries: {
           ...(prev.journalEntries || {}),
-          [dateStr]: {
-            ...entry,
-            updatedAt: new Date().toISOString()
-          }
+          [dateStr]: fullReflection
         }
       };
-      nextState.dayScores = recomputeTodayScore(nextState, dateStr);
-      return nextState;
+      return recomputeState(nextState, dateStr);
     });
     triggerCelebration();
   };
 
-  const saveCategoryDayScores = (dateStr: string, scores: any, notes: string = '') => {
-    saveJournalEntry(dateStr, { scores, notes, mood: 'good' });
+  // Compatibility alias
+  const saveJournalEntry = (dateStr: string, entry: any) => {
+    saveDailyReflection(dateStr, {
+      mood: entry.mood,
+      q1_well: entry.q1 || entry.q1_well,
+      q2_failed: entry.q2 || entry.q2_failed,
+      q3_learned: entry.q3 || entry.q3_learned,
+      q4_improve: entry.q4 || entry.q4_improve,
+      q5_priority: entry.q5 || entry.q5_priority
+    });
   };
 
-  // Profile & Theme controls
+  // --- Theme, Audio & General Preferences ---
   const toggleTheme = () => {
     setData((prev: any) => {
       const nextTheme = prev.profile?.theme === 'light' ? 'dark' : 'light';
@@ -432,51 +682,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }));
   };
 
-  const updateChallenge = (fields: any) => {
-    setData((prev: any) => ({
-      ...prev,
-      challenge: { ...prev.challenge, ...fields }
-    }));
-  };
-
-  const launchSprint = (startDate: string) => {
-    setData((prev: any) => {
-      const start = new Date(startDate);
-      const end = new Date(start);
-      end.setDate(start.getDate() + 89);
-      return {
-        ...prev,
-        challenge: {
-          ...prev.challenge,
-          startDate,
-          endDate: end.toISOString().split('T')[0],
-          currentDay: 1,
-          status: 'active'
-        }
-      };
-    });
-    triggerCelebration();
-  };
-
-  const setOnboardingStep = (step: string) => {
-    setData((prev: any) => ({
-      ...prev,
-      onboardingStep: step
-    }));
-  };
-
-  const completeOnboarding = () => {
-    setOnboardingStep('completed');
-  };
-
-  const toggleGettingStartedGuide = () => {
-    setData((prev: any) => ({
-      ...prev,
-      showGettingStartedGuide: !prev.showGettingStartedGuide
-    }));
-  };
-
-  // Backups and Clean Reset
   const handleExport = () => {
     exportDataAsJSON(data);
     triggerSound('pop');
@@ -495,29 +700,11 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const handleReset = () => {
-    if (confirm('Are you sure you want to reset all data back to the clean Day 1 state?')) {
+    if (confirm('Are you sure you want to reset all data back to the clean Project 19 baseline?')) {
       const clean = resetToCleanUserData(data.profile);
       setData(clean);
       triggerSound('pop');
     }
-  };
-
-  const clearAllDataToScratch = async () => {
-    const clean = resetToCleanUserData(data.profile);
-    setData(clean);
-    triggerSound('pop');
-  };
-
-  const loadDemoAccount = () => {
-    const clean = resetToCleanUserData();
-    setData(clean);
-    triggerCelebration();
-  };
-
-  const loadCleanUserAccount = async (profile: any) => {
-    const clean = resetToCleanUserData(profile);
-    setData(clean);
-    return clean;
   };
 
   const handleSignOut = async () => {
@@ -529,37 +716,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       await (authClient as any).signOut();
     }
   };
-
-  // Safe stubs for legacy functions
-  const setHabitStatus = () => {};
-  const addHabit = () => {};
-  const updateHabit = () => {};
-  const deleteHabit = () => {};
-  const addProject = () => {};
-  const updateProject = () => {};
-  const deleteProject = () => {};
-  const addTask = () => {};
-  const updateTask = () => {};
-  const toggleTask = () => {};
-  const toggleTaskToday = () => {};
-  const awardTaskPoints = () => {};
-  const deleteTask = () => {};
-  const addRecurringWeeklyEvent = () => {};
-  const updateRecurringWeeklyEvent = () => {};
-  const deleteRecurringWeeklyEvent = () => {};
-  const setWeeklyEventStatus = () => {};
-  const toggleWeeklyEventToday = () => {};
-  const startTimer = () => {};
-  const pauseTimer = () => {};
-  const resumeTimer = () => {};
-  const stopTimer = () => {};
-  const updateActiveTimerFields = () => {};
-  const addManualTimeEntry = () => {};
-  const deleteTimeEntry = () => {};
-  const saveWeeklyPlan = () => {};
-  const updateGoalProgress = () => {};
-  const addGoal = () => {};
-  const deleteGoal = () => {};
 
   const value = {
     data,
@@ -575,75 +731,48 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     setModalData,
     isAuthModalOpen,
     setIsAuthModalOpen,
-    isSetupWizardOpen,
-    setIsSetupWizardOpen,
     isDbSynced,
     todayStr,
+    // Theme & Audio
     toggleTheme,
     toggleSound,
     triggerSound,
     triggerCelebration,
     updateProfile,
+    handleSignOut,
+    // Challenge API
     updateChallenge,
-    launchSprint,
-    setOnboardingStep,
-    completeOnboarding,
-    // Dynamic Pillars
-    addPillar,
-    updatePillar,
-    deletePillar,
+    createNewChallenge,
+    // Categories API
     addCategory,
     updateCategory,
     deleteCategory,
-    // Routines
+    addPillar,
+    updatePillar,
+    deletePillar,
+    // Routines API
     addRoutine,
     updateRoutine,
     deleteRoutine,
     toggleRoutineActive,
     logRoutineTaskExecution,
     setRoutineStatus,
-    // Journal & Scores
-    saveJournalEntry,
-    saveCategoryDayScores,
-    // Data & Backups
-    handleExport,
-    handleImport,
-    handleReset,
-    clearAllDataToScratch,
-    toggleGettingStartedGuide,
-    loadDemoAccount,
-    loadCleanUserAccount,
-    handleSignOut,
-    // Legacy stubs
-    setHabitStatus,
-    addHabit,
-    updateHabit,
-    deleteHabit,
-    addProject,
-    updateProject,
-    deleteProject,
+    // Tasks API
     addTask,
     updateTask,
-    toggleTask,
-    toggleTaskToday,
-    awardTaskPoints,
     deleteTask,
-    addRecurringWeeklyEvent,
-    updateRecurringWeeklyEvent,
-    deleteRecurringWeeklyEvent,
-    setWeeklyEventStatus,
-    toggleWeeklyEventToday,
-    startTimer,
-    pauseTimer,
-    resumeTimer,
-    stopTimer,
-    updateActiveTimerFields,
-    addManualTimeEntry,
+    toggleTaskStatus,
+    // 24h Time Tracking API
+    addTimeEntry,
+    updateTimeEntry,
     deleteTimeEntry,
-    saveWeeklyPlan,
-    updateGoalProgress,
-    addGoal,
-    deleteGoal
+    // Reflection API
+    saveDailyReflection,
+    saveJournalEntry,
+    // Backup & Data
+    handleExport,
+    handleImport,
+    handleReset
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

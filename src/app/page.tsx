@@ -10,11 +10,13 @@ import { MobileNavBar } from '@/components/layout/MobileNavBar';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { AuthModal } from '@/components/auth/AuthModal';
 
-// Views
+// 8 Core Views
 import { DashboardView } from '@/components/dashboard/DashboardView';
+import { MyDayView } from '@/components/timeline/MyDayView';
 import { RoutinesView } from '@/components/routines/RoutinesView';
-import { DailyTimelineView } from '@/components/timeline/DailyTimelineView';
-import { Calendar90View } from '@/components/calendar/Calendar90View';
+import { TasksView } from '@/components/tasks/TasksView';
+import { CalendarView } from '@/components/calendar/CalendarView';
+import { WeeklyReportView } from '@/components/reports/WeeklyReportView';
 import { DailyReflectionView } from '@/components/journal/DailyReflectionView';
 import { AchievementsView } from '@/components/achievements/AchievementsView';
 import { SettingsView } from '@/components/settings/SettingsView';
@@ -68,13 +70,18 @@ function MainApp() {
             onOpenManual={() => setIsManualOpen(true)}
           />
         );
+      case 'my_day':
+      case 'timeline':
+        return <MyDayView />;
       case 'routines':
       case 'habits':
         return <RoutinesView />;
-      case 'timeline':
-        return <DailyTimelineView />;
+      case 'tasks':
+        return <TasksView />;
       case 'calendar':
-        return <Calendar90View />;
+        return <CalendarView />;
+      case 'reports':
+        return <WeeklyReportView />;
       case 'journal':
         return <DailyReflectionView />;
       case 'achievements':
@@ -152,7 +159,7 @@ function MainApp() {
   );
 }
 
-export default function Page() {
+export default function Home() {
   return (
     <AppProvider>
       <MainApp />

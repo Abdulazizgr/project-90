@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState } from 'react';
 import { 
   Settings, 
@@ -13,19 +15,24 @@ import {
   Layers, 
   Plus, 
   Trash2,
-  Sparkles
+  Sparkles,
+  Calendar,
+  Clock,
+  Flame,
+  Target
 } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
+import { useApp } from '@/context/AppContext';
 
 export const SettingsView = () => {
   const { 
     data, 
+    todayStr,
     updateProfile, 
     updateChallenge, 
+    createNewChallenge,
     toggleTheme, 
     toggleSound, 
     addCategory, 
-    addProject, 
     deleteCategory, 
     handleExport, 
     handleImport, 
@@ -40,252 +47,368 @@ export const SettingsView = () => {
 
   const [name, setName] = useState(profile.name || 'Abdulaziz');
   const [goal, setGoal] = useState(profile.challengeGoal || '');
-  const [timezone, setTimezone] = useState(profile.timezone || 'Asia/Riyadh (GMT+3)');
-  const [challengeName, setChallengeName] = useState(challenge.name || 'PROJECT 90: Master Life Sprint');
+  const [timezone, setTimezone] = useState(profile.timezone || 'Africa/Addis_Ababa (GMT+3)');
+
+  // Challenge Configuration states
+  const [challengeName, setChallengeName] = useState(challenge.name || 'Project 19');
+  const [startDate, setStartDate] = useState(challenge.startDate || todayStr);
+  const [durationDays, setDurationDays] = useState(challenge.totalDurationDays || 19);
   const [challengeStatus, setChallengeStatus] = useState(challenge.status || 'active');
 
-  // Category modal states
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [challengeSuccess, setChallengeSuccess] = useState(false);
+
+  // New Category states
   const [newCatName, setNewCatName] = useState('');
   const [newCatIcon, setNewCatIcon] = useState('🎯');
   const [newCatColor, setNewCatColor] = useState('#6366f1');
 
-  // New project state
-  const [selectedCatForProj, setSelectedCatForProj] = useState(categories[0]?.id || 'career');
-  const [newProjName, setNewProjName] = useState('');
-  const [newProjDesc, setNewProjDesc] = useState('');
-
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  const handleSaveProfile = (e) => {
+  const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile({
       name: name.trim(),
       challengeGoal: goal.trim(),
       timezone
     });
-    updateChallenge({
-      name: challengeName.trim(),
-      status: challengeStatus
-    });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
 
-  const handleCreateCategory = (e) => {
+  const handleSaveChallenge = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateChallenge({
+      name: challengeName.trim(),
+      startDate,
+      totalDurationDays: Number(durationDays) || 19,
+      status: challengeStatus as any
+    });
+    setChallengeSuccess(true);
+    setTimeout(() => setChallengeSuccess(false), 2500);
+  };
+
+  const handleStartBrandNewChallenge = () => {
+    if (confirm(`Start a brand new challenge "${challengeName}" starting ${startDate} for ${durationDays} days?`)) {
+      createNewChallenge(challengeName.trim(), startDate, Number(durationDays) || 19);
+      setChallengeSuccess(true);
+      setTimeout(() => setChallengeSuccess(false), 2500);
+    }
+  };
+
+  const handleCreateCategory = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCatName.trim()) return;
     addCategory({
       name: newCatName.trim(),
       icon: newCatIcon || '🎯',
       color: newCatColor,
-      description: 'Custom life category'
+      description: 'Custom life focus category'
     });
     setNewCatName('');
   };
 
-  const handleCreateProject = (e) => {
-    e.preventDefault();
-    if (!newProjName.trim()) return;
-    addProject(selectedCatForProj, {
-      name: newProjName.trim(),
-      description: newProjDesc.trim()
-    });
-    setNewProjName('');
-    setNewProjDesc('');
-  };
-
-  const handleFileImport = (e) => {
+  const handleFileImport = (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
-        const text = evt.target.result;
+        const text = evt.target?.result as string;
         handleImport(text);
         alert('Data imported successfully!');
-      } catch (err) {
+      } catch (err: any) {
         alert('Failed to parse JSON backup file: ' + err.message);
       }
     };
     reader.readAsText(file);
   };
 
+  // Compute challenge end date preview
+  const sDate = new Date(startDate || todayStr);
+  const eDate = new Date(sDate);
+  eDate.setDate(sDate.getDate() + ((Number(durationDays) || 19) - 1));
+  const endDatePreview = eDate.toISOString().split('T')[0];
+
   return (
-    <div className="page-container">
+    <div className="page-container" style={{ paddingBottom: '5rem' }}>
       {/* Header Deck */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.9), rgba(15, 23, 42, 0.9))',
+        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.95), rgba(15, 23, 42, 0.95))',
         border: '1px solid var(--border-color)',
-        marginBottom: '1.75rem'
+        marginBottom: '1.25rem',
+        padding: '1.25rem'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-              <span style={{ fontSize: '1.4rem' }}>⚙️</span>
-              <h3 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Settings & Customization</h3>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+              <Settings size={22} color="var(--primary-light)" />
+              <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Settings & Challenge Configuration</h2>
             </div>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '580px' }}>
-              Configure your profile, 90-day challenge parameters, themes, sound effects, and backup data.
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              Configure your challenge duration, start date, profile, themes, and backup your personal management records.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="grid-2" style={{ alignItems: 'flex-start' }}>
-        {/* User Profile & Challenge Config */}
-        <div className="card">
-          <div className="card-header">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem', alignItems: 'start' }}>
+        {/* CHALLENGE CONFIGURATION (Configurable duration, start date, challenge name) */}
+        <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary-light)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
             <div>
-              <h4 className="card-title">
-                <span>👤</span>
-                <span>Profile & 90-Day Challenge</span>
-              </h4>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Target size={18} color="var(--primary-light)" />
+                <span>Challenge Configuration</span>
+              </h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Personalize your sprint identity and targets
+                Customize challenge name, start date, and length (19, 30, 90 days)
               </p>
             </div>
-            {saveSuccess && (
-              <span className="badge badge-excellent">
-                <CheckCircle2 size={12} />
-                <span>Saved</span>
+            {challengeSuccess && (
+              <span className="badge badge-excellent" style={{ fontSize: '0.7rem' }}>
+                <CheckCircle2 size={12} /> Saved
               </span>
             )}
           </div>
 
-          <form onSubmit={handleSaveProfile}>
-            <div className="form-group">
-              <label className="form-label">User Name *</label>
+          <form onSubmit={handleSaveChallenge}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                Challenge Name
+              </label>
               <input
                 type="text"
-                className="form-input"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Sprint Name</label>
-              <input
-                type="text"
-                className="form-input"
+                className="input"
                 value={challengeName}
                 onChange={(e) => setChallengeName(e.target.value)}
+                placeholder="e.g. Project 19, Ramadan Sprint, 90-Day Transformation"
+                required
+                style={{ width: '100%' }}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label">90-Day Challenge Goal / Mantra</label>
-              <textarea
-                className="form-textarea"
-                rows={3}
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-              />
-            </div>
-
-            <div className="grid-2">
-              <div className="form-group">
-                <label className="form-label">Timezone</label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                  Start Date
+                </label>
                 <input
-                  type="text"
-                  className="form-input"
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
+                  type="date"
+                  className="input"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  required
+                  style={{ width: '100%' }}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Challenge Status</label>
-                <select
-                  className="form-select"
-                  value={challengeStatus}
-                  onChange={(e) => setChallengeStatus(e.target.value)}
-                >
-                  <option value="active">🟢 Active</option>
-                  <option value="paused">⏸️ Paused</option>
-                  <option value="completed">✅ Completed</option>
-                  <option value="cancelled">❌ Cancelled</option>
-                </select>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                  Duration (Days)
+                </label>
+                <input
+                  type="number"
+                  className="input"
+                  min={1}
+                  max={365}
+                  value={durationDays}
+                  onChange={(e) => setDurationDays(Number(e.target.value))}
+                  required
+                  style={{ width: '100%' }}
+                />
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-              <button type="submit" className="btn btn-primary">
-                <Save size={16} />
-                <span>Save Profile Settings</span>
+            {/* Quick Duration Buttons */}
+            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.85rem' }}>
+              {[19, 30, 60, 90].map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  className={`btn btn-sm ${Number(durationDays) === d ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => setDurationDays(d)}
+                  style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}
+                >
+                  {d} Days
+                </button>
+              ))}
+            </div>
+
+            <div style={{
+              padding: '0.65rem 0.85rem',
+              background: 'var(--bg-input)',
+              borderRadius: 'var(--radius-md)',
+              fontSize: '0.75rem',
+              color: 'var(--text-secondary)',
+              marginBottom: '1rem',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}>
+              <span>Current: Day {challenge.currentDay || 1} of {durationDays}</span>
+              <span>Ends: <strong style={{ color: 'var(--text-primary)' }}>{endDatePreview}</strong></span>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={handleStartBrandNewChallenge}
+              >
+                Reset to Day 1
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary btn-sm"
+                style={{ fontWeight: 700 }}
+              >
+                <Save size={14} /> Update Challenge
               </button>
             </div>
           </form>
         </div>
 
-        {/* Preferences & Theme */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Theme & Sound Preferences */}
-          <div className="card">
-            <h4 className="card-title" style={{ marginBottom: '1rem' }}>
-              <span>🎨</span>
-              <span>Appearance & Feedback</span>
-            </h4>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {/* Theme toggle row */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>Color Theme</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Current: {profile.theme === 'light' ? 'Light Mode' : 'Dark Obsidian'}
-                  </div>
-                </div>
-                <button className="btn btn-secondary btn-sm" onClick={toggleTheme} style={{ gap: '0.4rem' }}>
-                  {profile.theme === 'light' ? <Moon size={15} /> : <Sun size={15} color="#f59e0b" />}
-                  <span>Toggle to {profile.theme === 'light' ? 'Dark' : 'Light'}</span>
-                </button>
-              </div>
-
-              {/* Sound effects toggle */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.85rem 1rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)' }}>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem' }}>Web Audio Sound Effects</div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    Uplifting chimes on completing routine steps and milestones
-                  </div>
-                </div>
-                <button className="btn btn-secondary btn-sm" onClick={toggleSound} style={{ gap: '0.4rem' }}>
-                  {profile.soundEnabled !== false ? <Volume2 size={15} color="var(--primary-light)" /> : <VolumeX size={15} color="var(--text-muted)" />}
-                  <span>{profile.soundEnabled !== false ? 'Enabled' : 'Muted'}</span>
-                </button>
-              </div>
+        {/* USER PROFILE */}
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>User Profile & Goal</h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Personal identity and timezone</p>
             </div>
+            {saveSuccess && (
+              <span className="badge badge-excellent" style={{ fontSize: '0.7rem' }}>
+                <CheckCircle2 size={12} /> Saved
+              </span>
+            )}
           </div>
 
-          {/* Backup & Data Management */}
-          <div className="card">
-            <h4 className="card-title" style={{ marginBottom: '1rem' }}>
-              <span>💾</span>
-              <span>Data Backup & Sync</span>
-            </h4>
+          <form onSubmit={handleSaveProfile}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                User Name *
+              </label>
+              <input
+                type="text"
+                className="input"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
 
-            <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-              All progress is persisted securely in your local browser storage. Export a JSON backup to transfer between devices.
-            </p>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                Primary Goal / Purpose
+              </label>
+              <textarea
+                className="input"
+                rows={2}
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                placeholder="e.g. Master daily discipline across spiritual, RHIZAN engineering, and physical health"
+                style={{ width: '100%', resize: 'vertical' }}
+              />
+            </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              {/* Export */}
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                System Timezone
+              </label>
+              <input
+                type="text"
+                className="input"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                style={{ width: '100%' }}
+              />
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
+                Configured for Africa/Addis_Ababa (East Africa Time, UTC+3)
+              </span>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+              <button type="submit" className="btn btn-primary btn-sm" style={{ fontWeight: 700 }}>
+                <Save size={14} /> Save Profile
+              </button>
+            </div>
+          </form>
+        </div>
+
+        {/* APPEARANCE & PREFERENCES */}
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem' }}>Appearance & Sound</h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '0.65rem 0.85rem',
+              background: 'var(--bg-input)',
+              borderRadius: 'var(--radius-md)'
+            }}>
+              <div>
+                <strong style={{ fontSize: '0.85rem' }}>Theme Mode</strong>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Current: {data.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={toggleTheme}
+                style={{ gap: '0.35rem' }}
+              >
+                {data.theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
+                <span>Toggle Theme</span>
+              </button>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '0.65rem 0.85rem',
+              background: 'var(--bg-input)',
+              borderRadius: 'var(--radius-md)'
+            }}>
+              <div>
+                <strong style={{ fontSize: '0.85rem' }}>Audio Feedback</strong>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Completion sound effects: {data.soundEnabled ? 'Enabled' : 'Muted'}
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={toggleSound}
+                style={{ gap: '0.35rem' }}
+              >
+                {data.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
+                <span>{data.soundEnabled ? 'Mute' : 'Enable'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* BACKUP & DATA MANAGEMENT */}
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem' }}>Backup & Recovery</h3>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={handleExport}
-                style={{ gap: '0.4rem' }}
+                style={{ flex: 1, gap: '0.35rem', fontWeight: 700 }}
               >
-                <Download size={15} />
+                <Download size={14} />
                 <span>Export JSON Backup</span>
               </button>
 
-              {/* Import */}
-              <label className="btn btn-secondary btn-sm" style={{ gap: '0.4rem', cursor: 'pointer' }}>
-                <Upload size={15} />
-                <span>Import JSON</span>
+              <label className="btn btn-secondary btn-sm" style={{ flex: 1, gap: '0.35rem', fontWeight: 700, cursor: 'pointer', margin: 0 }}>
+                <Upload size={14} />
+                <span>Import Backup</span>
                 <input
                   type="file"
                   accept=".json"
@@ -293,24 +416,29 @@ export const SettingsView = () => {
                   style={{ display: 'none' }}
                 />
               </label>
+            </div>
 
-              {/* Wipe & Reset to Scratch */}
+            <div style={{
+              paddingTop: '0.75rem',
+              borderTop: '1px solid var(--border-color)',
+              display: 'flex',
+              gap: '0.5rem'
+            }}>
               <button
                 type="button"
-                className="btn btn-danger btn-sm"
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to wipe all data from scratch? This will reset your database and local state to Day 1 with 0 logs.')) {
-                    if (clearAllDataToScratch) {
-                      clearAllDataToScratch();
-                    } else if (handleReset) {
-                      handleReset();
-                    }
-                  }
-                }}
-                style={{ gap: '0.4rem', marginLeft: 'auto' }}
+                className="btn btn-ghost btn-sm"
+                onClick={loadCleanUserAccount}
+                style={{ flex: 1, fontSize: '0.75rem' }}
               >
-                <RotateCcw size={15} />
-                <span>Wipe & Reset All Data to Scratch (Day 1)</span>
+                Load Default Templates
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={handleReset}
+                style={{ color: '#ef4444', fontSize: '0.75rem' }}
+              >
+                Reset Account
               </button>
             </div>
           </div>

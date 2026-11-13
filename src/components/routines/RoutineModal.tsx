@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Clock, Calendar, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2, Clock, Calendar, Sparkles, Moon } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { calculateMinutesBetween, parseTimeToMinutes, formatDurationHuman } from '@/utils/calculations';
 
 export const RoutineModal = () => {
   const { data, activeModal, setActiveModal, modalData, addRoutine, updateRoutine, triggerSound } = useApp();
@@ -14,15 +15,17 @@ export const RoutineModal = () => {
   const categories = data.categories || [];
 
   const [title, setTitle] = useState('');
-  const [categoryId, setCategoryId] = useState(categories[0]?.id || 'pillar_spiritual');
-  const [timeOfDay, setTimeOfDay] = useState<'morning' | 'afternoon' | 'evening' | 'anytime'>('morning');
-  const [days, setDays] = useState<string[]>(['daily']);
-  const [durationMinutes, setDurationMinutes] = useState(30);
+  const [categoryId, setCategoryId] = useState(categories[0]?.id || 'spiritual');
+  const [startTime, setStartTime] = useState('06:00');
+  const [endTime, setEndTime] = useState('06:45');
+  const [durationMinutes, setDurationMinutes] = useState(45);
+  const [assignedDays, setAssignedDays] = useState<string[]>(['daily']);
+  const [template, setTemplate] = useState<string>('all');
   const [description, setDescription] = useState('');
   const [icon, setIcon] = useState('⚡');
   const [color, setColor] = useState('#6366f1');
   const [steps, setSteps] = useState<Array<{ id: string; title: string; durationMinutes?: number }>>([
-    { id: 'st_1', title: 'Start with 500ml water and focus intention', durationMinutes: 5 }
+    { id: 'st_1', title: 'Start with 500ml water and intention', durationMinutes: 5 }
   ]);
   const [newStepText, setNewStepText] = useState('');
 
@@ -36,39 +39,50 @@ export const RoutineModal = () => {
     { key: 'sun', label: 'Sun' }
   ];
 
+  // Auto-calculate duration whenever start or end time changes
+  useEffect(() => {
+    if (startTime && endTime) {
+      const dur = calculateMinutesBetween(startTime, endTime);
+      setDurationMinutes(dur || 30);
+    }
+  }, [startTime, endTime]);
+
   useEffect(() => {
     if (isEditing && modalData) {
-      setTitle(modalData.title || modalData.name || '');
-      setCategoryId(modalData.categoryId || categories[0]?.id || '');
-      setTimeOfDay(modalData.timeOfDay || 'morning');
-      setDays(modalData.days || ['daily']);
-      setDurationMinutes(modalData.durationMinutes || modalData.duration || 30);
+      setTitle(modalData.name || modalData.title || '');
+      setCategoryId(modalData.categoryId || categories[0]?.id || 'spiritual');
+      setStartTime(modalData.startTime || '06:00');
+      setEndTime(modalData.endTime || '06:45');
+      setDurationMinutes(modalData.durationMinutes || 45);
+      setAssignedDays(modalData.assignedDays || modalData.days || ['daily']);
+      setTemplate(modalData.template || 'all');
       setDescription(modalData.description || '');
       setIcon(modalData.icon || '⚡');
       setColor(modalData.color || '#6366f1');
       setSteps(modalData.steps && modalData.steps.length > 0 ? modalData.steps : [
-        { id: 'st_1', title: modalData.title || 'Execute Routine', durationMinutes: 15 }
+        { id: 'st_1', title: modalData.title || modalData.name || 'Execute Routine', durationMinutes: 15 }
       ]);
     } else {
-      const defaultPillarId = modalData?.categoryId || categories[0]?.id || 'pillar_spiritual';
+      const defaultPillarId = modalData?.categoryId || categories[0]?.id || 'spiritual';
       const defaultPillar = categories.find((c: any) => c.id === defaultPillarId);
       setTitle('');
       setCategoryId(defaultPillarId);
-      setTimeOfDay('morning');
-      setDays(['daily']);
-      setDurationMinutes(30);
+      setStartTime('06:00');
+      setEndTime('06:45');
+      setDurationMinutes(45);
+      setAssignedDays(['daily']);
+      setTemplate('all');
       setDescription('');
       setIcon(defaultPillar?.icon || '⚡');
       setColor(defaultPillar?.color || '#6366f1');
       setSteps([
         { id: 'st_1', title: 'Prepare focus environment and hydrate', durationMinutes: 5 },
-        { id: 'st_2', title: 'Execute primary routine block', durationMinutes: 20 },
-        { id: 'st_3', title: 'Wrap up and log progress', durationMinutes: 5 }
+        { id: 'st_2', title: 'Execute primary routine block', durationMinutes: 30 },
+        { id: 'st_3', title: 'Review and wrap up', durationMinutes: 10 }
       ]);
     }
   }, [activeModal, modalData]);
 
-  // When pillar changes, update color and icon default
   const handlePillarChange = (newCatId: string) => {
     setCategoryId(newCatId);
     const pillar = categories.find((c: any) => c.id === newCatId);
@@ -78,20 +92,36 @@ export const RoutineModal = () => {
     }
   };
 
+  const applyTemplate = (type: 'gym' | 'nongym' | 'sunday' | 'daily') => {
+    if (type === 'gym') {
+      setAssignedDays(['tue', 'thu', 'sat']);
+      setTemplate('gym');
+    } else if (type === 'nongym') {
+      setAssignedDays(['mon', 'wed', 'fri']);
+      setTemplate('non_gym');
+    } else if (type === 'sunday') {
+      setAssignedDays(['sun']);
+      setTemplate('sunday');
+    } else {
+      setAssignedDays(['daily']);
+      setTemplate('all');
+    }
+  };
+
   const toggleDay = (dayKey: string) => {
     if (dayKey === 'daily') {
-      setDays(['daily']);
+      setAssignedDays(['daily']);
       return;
     }
 
-    let nextDays = days.filter((d) => d !== 'daily');
+    let nextDays = assignedDays.filter((d) => d !== 'daily');
     if (nextDays.includes(dayKey)) {
       nextDays = nextDays.filter((d) => d !== dayKey);
       if (nextDays.length === 0) nextDays = ['daily'];
     } else {
       nextDays.push(dayKey);
     }
-    setDays(nextDays);
+    setAssignedDays(nextDays);
   };
 
   const handleAddStep = () => {
@@ -113,16 +143,20 @@ export const RoutineModal = () => {
     if (!title.trim()) return;
 
     const routinePayload = {
+      name: title.trim(),
       title: title.trim(),
       categoryId,
-      timeOfDay,
-      days,
+      startTime,
+      endTime,
       durationMinutes: Number(durationMinutes) || 30,
-      target: `${durationMinutes} mins`,
+      assignedDays,
+      days: assignedDays,
+      template,
       description: description.trim(),
       icon,
       color,
-      steps
+      steps,
+      active: true
     };
 
     if (isEditing && modalData?.id) {
@@ -133,6 +167,8 @@ export const RoutineModal = () => {
 
     setActiveModal(null);
   };
+
+  const isCrossMidnight = parseTimeToMinutes(endTime) < parseTimeToMinutes(startTime);
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
@@ -152,135 +188,171 @@ export const RoutineModal = () => {
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 800 }}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800 }}>
               {isEditing ? 'Edit Daily Routine' : 'Create Daily Routine'}
-            </h2>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-              Attach to a focus pillar and schedule days for daily execution
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              Configure start time, duration, and assigned template days
             </p>
           </div>
-          <button className="btn btn-ghost btn-icon" onClick={() => setActiveModal(null)}>
+          <button 
+            type="button"
+            className="btn btn-ghost btn-sm btn-icon" 
+            onClick={() => setActiveModal(null)}
+          >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* 1. Focus Pillar Selector */}
-          <div className="form-group" style={{ marginBottom: '1.1rem' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>
-              Focus Pillar (Category) *
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Routine Name */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Routine Name *
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.45rem' }}>
-              {categories.map((c: any) => {
-                const isSelected = categoryId === c.id;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => handlePillarChange(c.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
-                      padding: '0.5rem 0.65rem',
-                      borderRadius: 'var(--radius-md)',
-                      background: isSelected ? `${c.color}25` : 'var(--bg-input)',
-                      border: isSelected ? `2px solid ${c.color}` : '1px solid var(--border-color)',
-                      color: isSelected ? '#ffffff' : 'var(--text-secondary)',
-                      fontSize: '0.78rem',
-                      fontWeight: isSelected ? 700 : 500,
-                      cursor: 'pointer',
-                      textAlign: 'left'
-                    }}
-                  >
-                    <span>{c.icon}</span>
-                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{c.name}</span>
-                  </button>
-                );
-              })}
-            </div>
+            <input
+              type="text"
+              className="input"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g. Fajr Prayer & Quran, RHIZAN Sprint, Gym Workout..."
+              required
+              style={{ width: '100%' }}
+            />
           </div>
 
-          {/* 2. Routine Title & Emoji */}
-          <div style={{ display: 'grid', gridTemplateColumns: '70px 1fr', gap: '0.65rem', marginBottom: '1.1rem' }}>
-            <div className="form-group">
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>Icon</label>
-              <input
-                type="text"
-                className="form-control"
-                value={icon}
-                onChange={(e) => setIcon(e.target.value)}
-                style={{ textAlign: 'center', fontSize: '1.2rem', padding: '0.45rem' }}
-                maxLength={4}
-              />
-            </div>
+          {/* Category */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Category
+            </label>
+            <select
+              className="input"
+              value={categoryId}
+              onChange={(e) => handlePillarChange(e.target.value)}
+              style={{ width: '100%' }}
+            >
+              {categories.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.icon} {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div className="form-group">
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>Routine Title *</label>
+          {/* Start Time, End Time & Auto-Duration */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                Start Time (24h)
+              </label>
               <input
-                type="text"
-                className="form-control"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Morning Awakening & Tilawat"
+                type="time"
+                className="input"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
                 required
+                style={{ width: '100%' }}
               />
             </div>
-          </div>
 
-          {/* 3. Time of Day & Duration */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.1rem' }}>
-            <div className="form-group">
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>Time of Day</label>
-              <select
-                className="form-control"
-                value={timeOfDay}
-                onChange={(e) => setTimeOfDay(e.target.value as any)}
-              >
-                <option value="morning">🌅 Morning</option>
-                <option value="afternoon">☀️ Afternoon</option>
-                <option value="evening">🌙 Evening</option>
-                <option value="anytime">⚡ Anytime</option>
-              </select>
-            </div>
-
-            <div className="form-group">
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>Target Duration (Minutes)</label>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+                End Time (24h)
+              </label>
               <input
-                type="number"
-                className="form-control"
-                value={durationMinutes}
-                onChange={(e) => setDurationMinutes(Number(e.target.value))}
-                min={1}
-                max={480}
+                type="time"
+                className="input"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                required
+                style={{ width: '100%' }}
               />
             </div>
           </div>
 
-          {/* 4. Scheduling Days */}
-          <div className="form-group" style={{ marginBottom: '1.1rem' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>
-              Frequency / Days Scheduled
+          {/* Duration Indicator */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0.5rem 0.8rem',
+            background: 'var(--bg-input)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: '0.78rem'
+          }}>
+            <span>Duration (Calculated): <strong style={{ color: 'var(--primary-light)' }}>{formatDurationHuman(durationMinutes)}</strong></span>
+            {isCrossMidnight && (
+              <span style={{ color: '#8b5cf6', display: 'flex', alignItems: 'center', gap: '0.2rem', fontWeight: 700 }}>
+                <Moon size={12} /> Crosses Midnight
+              </span>
+            )}
+          </div>
+
+          {/* Template Presets */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Template Presets
             </label>
-            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
-                className={`btn btn-sm ${days.includes('daily') ? 'btn-primary' : 'btn-ghost'}`}
-                onClick={() => toggleDay('daily')}
-                style={{ fontSize: '0.75rem', padding: '0.3rem 0.65rem' }}
+                className={`btn btn-sm ${assignedDays.join(',') === 'tue,thu,sat' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => applyTemplate('gym')}
+                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
               >
-                Every Day
+                🏋️ Gym (Tue/Thu/Sat)
               </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${assignedDays.join(',') === 'mon,wed,fri' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => applyTemplate('nongym')}
+                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
+              >
+                💻 Non-Gym (Mon/Wed/Fri)
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${assignedDays.join(',') === 'sun' ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => applyTemplate('sunday')}
+                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
+              >
+                ☕ Sunday (Rest Day)
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${assignedDays.includes('daily') ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => applyTemplate('daily')}
+                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
+              >
+                🌟 Daily
+              </button>
+            </div>
+          </div>
 
+          {/* Custom Assigned Days Selector */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Custom Days
+            </label>
+            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                className={`btn btn-sm ${assignedDays.includes('daily') ? 'btn-primary' : 'btn-secondary'}`}
+                onClick={() => toggleDay('daily')}
+                style={{ fontSize: '0.72rem' }}
+              >
+                Daily
+              </button>
               {daysOfWeek.map((d) => {
-                const isSelected = !days.includes('daily') && days.includes(d.key);
+                const isSelected = assignedDays.includes(d.key);
                 return (
                   <button
                     key={d.key}
                     type="button"
-                    className={`btn btn-sm ${isSelected ? 'btn-secondary' : 'btn-ghost'}`}
+                    className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => toggleDay(d.key)}
-                    style={{ fontSize: '0.75rem', padding: '0.3rem 0.55rem' }}
+                    style={{ fontSize: '0.72rem', minWidth: '40px' }}
                   >
                     {d.label}
                   </button>
@@ -289,49 +361,36 @@ export const RoutineModal = () => {
             </div>
           </div>
 
-          {/* 5. Description / Mission */}
-          <div className="form-group" style={{ marginBottom: '1.1rem' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>
-              Description / Notes (Optional)
+          {/* Description & Notes */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Notes / Instructions (Optional)
             </label>
             <input
               type="text"
-              className="form-control"
+              className="input"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="What does success look like in this routine?"
+              placeholder="e.g. 5 pages of Quran recitation, hydration..."
+              style={{ width: '100%' }}
             />
           </div>
 
-          {/* 6. Step-by-Step Checklist Builder */}
-          <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-            <label style={{ fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem', display: 'block' }}>
-              Checklist Steps (for Guided Runner)
+          {/* Steps Checklist */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
+              Checklist Steps ({steps.length})
             </label>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.65rem' }}>
-              {steps.map((st, idx) => (
-                <div
-                  key={st.id || idx}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.45rem 0.75rem',
-                    background: 'var(--bg-input)',
-                    borderRadius: 'var(--radius-md)',
-                    fontSize: '0.82rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-muted)' }}>{idx + 1}.</span>
-                    <span>{st.title}</span>
-                  </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginBottom: '0.5rem' }}>
+              {steps.map((st, i) => (
+                <div key={st.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-input)', padding: '0.4rem 0.6rem', borderRadius: 'var(--radius-sm)' }}>
+                  <span className="mono" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{i + 1}.</span>
+                  <span style={{ flex: 1, fontSize: '0.8rem' }}>{st.title}</span>
                   <button
                     type="button"
+                    className="btn btn-ghost btn-sm btn-icon"
                     onClick={() => handleRemoveStep(st.id)}
-                    className="btn btn-ghost btn-icon"
-                    style={{ padding: '0.2rem', color: 'var(--text-muted)' }}
+                    style={{ color: '#ef4444' }}
                   >
                     <Trash2 size={13} />
                   </button>
@@ -339,38 +398,31 @@ export const RoutineModal = () => {
               ))}
             </div>
 
-            {/* Add Step Input */}
-            <div style={{ display: 'flex', gap: '0.45rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem' }}>
               <input
                 type="text"
-                className="form-control"
+                className="input"
+                placeholder="Add sub-step..."
                 value={newStepText}
                 onChange={(e) => setNewStepText(e.target.value)}
-                placeholder="+ Add a step (e.g. Drink 500ml water)"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddStep();
-                  }
-                }}
-                style={{ fontSize: '0.82rem' }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddStep(); } }}
+                style={{ flex: 1, fontSize: '0.8rem' }}
               />
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
                 onClick={handleAddStep}
-                style={{ whiteSpace: 'nowrap', fontWeight: 700 }}
               >
                 <Plus size={14} /> Add
               </button>
             </div>
           </div>
 
-          {/* Submit */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem' }}>
+          {/* Modal Actions */}
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem', marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)' }}>
             <button
               type="button"
-              className="btn btn-ghost"
+              className="btn btn-secondary"
               onClick={() => setActiveModal(null)}
             >
               Cancel
@@ -378,7 +430,7 @@ export const RoutineModal = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              style={{ fontWeight: 800, padding: '0.6rem 1.4rem' }}
+              style={{ fontWeight: 700 }}
             >
               {isEditing ? 'Save Changes' : 'Create Routine'}
             </button>

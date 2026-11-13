@@ -3,11 +3,13 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
-  SunMedium, 
   Clock, 
+  SunMedium, 
+  CheckSquare, 
   CalendarDays, 
-  Trophy, 
-  BookOpen
+  BarChart3,
+  Trophy,
+  Settings
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
@@ -15,12 +17,12 @@ export const MobileNavBar: React.FC = () => {
   const { activeTab, setActiveTab, triggerSound } = useApp();
 
   const navItems = [
-    { id: 'dashboard', label: 'Today', icon: LayoutDashboard },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'my_day', label: 'My Day', icon: Clock },
     { id: 'routines', label: 'Routines', icon: SunMedium },
-    { id: 'timeline', label: 'Timeline', icon: Clock },
-    { id: 'calendar', label: '90-Day', icon: CalendarDays },
-    { id: 'journal', label: 'Review', icon: BookOpen },
-    { id: 'achievements', label: 'Badges', icon: Trophy }
+    { id: 'tasks', label: 'Tasks', icon: CheckSquare },
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+    { id: 'reports', label: 'Reports', icon: BarChart3 }
   ];
 
   return (
@@ -40,7 +42,7 @@ export const MobileNavBar: React.FC = () => {
             }}
           >
             <div className="mobile-nav-icon-wrap">
-              <Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <Icon size={19} strokeWidth={isActive ? 2.5 : 1.8} />
               {isActive && <span className="mobile-nav-dot" />}
             </div>
             <span className="mobile-nav-label">{item.label}</span>
@@ -50,4 +52,3 @@ export const MobileNavBar: React.FC = () => {
     </nav>
   );
 };
-

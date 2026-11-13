@@ -1,7 +1,7 @@
 // Storage manager with LocalStorage persistence, JSON export/import and clean scratch reset
 import { getCleanUserData } from './seedData';
 
-const STORAGE_KEY = 'project90_data_v3';
+const STORAGE_KEY = 'project19_management_system_v1';
 
 export const loadDataFromStorage = (profile = {}) => {
   if (typeof window === 'undefined') {
@@ -11,12 +11,12 @@ export const loadDataFromStorage = (profile = {}) => {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (parsed && parsed.challenge && parsed.categories && parsed.routines) {
+      if (parsed && parsed.challenge && parsed.categories && parsed.routines && parsed.tasks) {
         return parsed;
       }
     }
   } catch (e) {
-    console.error('Failed to parse stored Project 90 data', e);
+    console.error('Failed to parse stored Project 19 data', e);
   }
   const initial = getCleanUserData(profile);
   saveDataToStorage(initial);
@@ -28,7 +28,7 @@ export const saveDataToStorage = (data: any) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
-    console.error('Failed to save Project 90 data', e);
+    console.error('Failed to save Project 19 data', e);
   }
 };
 
@@ -37,7 +37,7 @@ export const exportDataAsJSON = (data: any) => {
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `project90_routines_backup_${new Date().toISOString().split('T')[0]}.json`);
+  downloadAnchor.setAttribute('download', `project19_backup_${new Date().toISOString().split('T')[0]}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -52,7 +52,7 @@ export const importDataFromJSON = (jsonString: string) => {
       saveDataToStorage(parsed);
       return parsed;
     }
-    throw new Error('Invalid Project 90 data format');
+    throw new Error('Invalid Project 19 data format');
   } catch (err) {
     throw err;
   }

@@ -1,7 +1,17 @@
+'use client';
+
 import React from 'react';
-import { X, CheckCircle2, Clock, Star, BookOpen, Calendar, ChevronRight } from 'lucide-react';
-import { useApp } from '../../context/AppContext';
-import { getScoreLevel, formatDurationHuman, getCategoryMeta, getRoutinesForDay } from '../../utils/calculations';
+import { X, CheckCircle2, Clock, Star, BookOpen, Calendar, CheckSquare, Layers } from 'lucide-react';
+import { useApp } from '@/context/AppContext';
+import { 
+  getScoreLevel, 
+  formatDurationHuman, 
+  getCategoryMeta, 
+  getRoutinesForDay,
+  calculate24HourAllocation,
+  getDayKeyFromDateStr,
+  isRoutineScheduledForDay
+} from '@/utils/calculations';
 
 export const DayDetailModal = () => {
   const { data, activeModal, setActiveModal, modalData, todayStr } = useApp();
@@ -11,25 +21,32 @@ export const DayDetailModal = () => {
   const { dayNumber, dateStr } = modalData;
   const categories = data.categories || [];
   const routines = data.routines || [];
-  const dayScheduledRoutines = getRoutinesForDay(routines, dateStr);
-  const dayCategoryScores = data.dailyLogsHistory?.[dateStr]?.categoryScores || {};
-  const dayHabitLogs = data.habitLogsHistory?.[dateStr] || {};
+  const tasks = data.tasks || [];
+  const dayKey = getDayKeyFromDateStr(dateStr);
+
+  const dayScheduledRoutines = routines.filter((r: any) => isRoutineScheduledForDay(r, dayKey));
+  const dayLogs = data.routineLogsHistory?.[dateStr] || {};
+  const dayTasks = tasks.filter((t: any) => t.plannedDate === dateStr && t.status !== 'cancelled');
+
   const dayScore = data.dayScores?.[dateStr] || (dateStr === todayStr ? (data.dailyScore || 0) : 0);
   const scoreMeta = getScoreLevel(dayScore);
 
-  const dayTimeEntries = (data.timeEntries || []).filter((e) => e.date === dateStr);
-  const totalDayMinutes = dayTimeEntries.reduce((acc, curr) => acc + (curr.durationMinutes || 0), 0);
+  const dayTimeEntries = (data.timeEntriesHistory?.[dateStr] || (data.timeEntries || []).filter((e: any) => e.date === dateStr));
+  const totalDayMinutes = dayTimeEntries.reduce((acc: number, curr: any) => acc + (curr.durationMinutes || 0), 0);
   const journal = data.journalEntries?.[dateStr];
 
+  // 24h Allocation
+  const { allocations } = calculate24HourAllocation(categories, dayTimeEntries, dayScheduledRoutines, dayTasks);
+
   const isToday = dateStr === todayStr;
-  const isFuture = new Date(dateStr) > new Date(todayStr);
+  const isFuture = dateStr > todayStr;
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
       <div 
         className="modal-content" 
         onClick={(e) => e.stopPropagation()}
-        style={{ maxWidth: '680px', maxHeight: '90vh' }}
+        style={{ maxWidth: '720px', maxHeight: '90vh', overflowY: 'auto' }}
       >
         {/* Header */}
         <div className="modal-header">
@@ -75,171 +92,165 @@ export const DayDetailModal = () => {
         {/* Top Summary Banner */}
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
           gap: '0.75rem',
-          marginBottom: '1.5rem'
+          marginBottom: '1.25rem'
         }}>
-          <div className="card" style={{ padding: '1rem', borderLeft: `4px solid ${scoreMeta.color}` }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Daily Score (5-Pillar Avg)
+          <div className="card" style={{ padding: '0.85rem', borderLeft: `4px solid ${scoreMeta.color}` }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Daily Score
             </span>
-            <div className="mono" style={{ fontSize: '1.6rem', fontWeight: 800, color: scoreMeta.color, marginTop: '0.2rem' }}>
-              {isFuture ? '—' : `${dayScore} / 100`}
+            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: scoreMeta.color, marginTop: '0.1rem' }}>
+              {isFuture ? '—' : `${dayScore}%`}
             </div>
-            <span className={`badge ${scoreMeta.badgeClass}`} style={{ fontSize: '0.68rem', marginTop: '0.2rem' }}>
+            <span className={`badge ${scoreMeta.badgeClass}`} style={{ fontSize: '0.65rem', marginTop: '0.2rem' }}>
               {isFuture ? '⚪ Future' : `${scoreMeta.icon} ${scoreMeta.label}`}
             </span>
           </div>
 
-          <div className="card" style={{ padding: '1rem', borderLeft: '4px solid var(--primary-light)' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Time Tracked
+          <div className="card" style={{ padding: '0.85rem', borderLeft: '4px solid var(--primary-light)' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Tracked Time
             </span>
-            <div className="mono" style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.2rem' }}>
+            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-primary)', marginTop: '0.1rem' }}>
               {formatDurationHuman(totalDayMinutes)}
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              {dayTimeEntries.length} logged sessions
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+              {dayTimeEntries.length} logged entries
             </span>
           </div>
 
-          <div className="card" style={{ padding: '1rem', borderLeft: '4px solid #10b981' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
-              Routines Executed
+          <div className="card" style={{ padding: '0.85rem', borderLeft: '4px solid #10b981' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Routines Done
             </span>
-            <div className="mono" style={{ fontSize: '1.6rem', fontWeight: 800, color: '#10b981', marginTop: '0.2rem' }}>
-              {dayScheduledRoutines.filter((r) => {
-                const log = data.routineLogsHistory?.[dateStr]?.[r.id];
+            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#10b981', marginTop: '0.1rem' }}>
+              {dayScheduledRoutines.filter((r: any) => {
+                const log = dayLogs[r.id];
                 return log && (log.completed || log.status === 'done' || log.status === 'completed');
               }).length} / {dayScheduledRoutines.length}
             </div>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-              scheduled routines
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+              routines completed
+            </span>
+          </div>
+
+          <div className="card" style={{ padding: '0.85rem', borderLeft: '4px solid #06b6d4' }}>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Tasks Done
+            </span>
+            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#06b6d4', marginTop: '0.1rem' }}>
+              {dayTasks.filter((t: any) => t.status === 'completed').length} / {dayTasks.length}
+            </div>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+              tasks completed
             </span>
           </div>
         </div>
 
-        {/* 5-Category Pillar Scores Breakdown */}
-        {dayCategoryScores && Object.keys(dayCategoryScores).length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Star size={16} color="#f59e0b" />
-              <span>Evening 5-Pillar Evaluation Breakdown</span>
-            </h4>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(110px, 1fr))', gap: '0.5rem' }}>
-              {categories.map((cat) => {
-                const score = dayCategoryScores[cat.id] ?? '—';
-                return (
-                  <div key={cat.id} className="card" style={{ padding: '0.6rem 0.75rem', textAlign: 'center', borderTop: `3px solid ${cat.color || 'var(--primary)'}` }}>
-                    <div style={{ fontSize: '1.1rem' }}>{cat.icon}</div>
-                    <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginTop: '0.2rem' }}>{cat.name}</div>
-                    <div className="mono" style={{ fontSize: '1.1rem', fontWeight: 800, color: typeof score === 'number' ? (score >= 80 ? '#10b981' : score >= 60 ? '#3b82f6' : '#eab308') : 'var(--text-muted)', marginTop: '0.1rem' }}>
-                      {score}{typeof score === 'number' ? ' pts' : ''}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Scheduled Routines Checklist for that day */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <CheckCircle2 size={16} color="var(--cat-spiritual)" />
-            <span>Scheduled Routines & Tasks on Day {dayNumber}</span>
+        {/* 24-Hour Category Allocation */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h4 style={{ fontSize: '0.92rem', fontWeight: 800, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <Layers size={16} color="var(--primary-light)" />
+            <span>24-Hour Time Breakdown (1,440 min total)</span>
           </h4>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
-            {dayScheduledRoutines.map((routine) => {
-              const execLog = data.routineLogsHistory?.[dateStr]?.[routine.id];
-              const isDone = execLog?.completed || execLog?.status === 'done' || execLog?.status === 'completed';
-              const isPartial = execLog?.status === 'partial';
-              const isMissed = execLog?.status === 'missed';
-              const meta = getCategoryMeta(routine.categoryId, categories);
-
-              return (
-                <div
-                  key={routine.id}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    padding: '0.6rem 0.8rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-surface)',
-                    border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)',
-                    gap: '0.25rem'
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0 }}>
-                      <span>{routine.icon || meta.icon}</span>
-                      <span style={{ fontSize: '0.82rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {routine.name || routine.title}
-                      </span>
-                    </div>
-                    <span style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      color: isDone ? '#10b981' : isPartial ? '#3b82f6' : isMissed ? '#ef4444' : 'var(--text-muted)'
-                    }}>
-                      {isDone ? (execLog?.timing === 'ontime' ? '✅ On-Time' : '⏰ Late') : isPartial ? '⚡ Partial' : isMissed ? '❌ Missed' : isFuture ? '⚪ Future' : '⏳ Pending'}
-                    </span>
-                  </div>
-
-                  {/* Location or reason metadata if logged */}
-                  {execLog && (
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                      {execLog.location && <span>📍 {execLog.location === 'mosque' ? 'Mosque' : 'Home/Work'}</span>}
-                      {execLog.reason && <span style={{ fontStyle: 'italic' }}>Reason: "{execLog.reason}"</span>}
-                    </div>
-                  )}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.5rem' }}>
+            {allocations.map((cat) => (
+              <div key={cat.categoryId} className="card" style={{ padding: '0.6rem 0.75rem', textAlign: 'center', borderTop: `3px solid ${cat.color}` }}>
+                <div style={{ fontSize: '1.1rem' }}>{cat.icon}</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-muted)', marginTop: '0.15rem' }}>{cat.categoryName}</div>
+                <div className="mono" style={{ fontSize: '0.95rem', fontWeight: 800, color: cat.color, marginTop: '0.1rem' }}>
+                  {cat.formattedActual}
                 </div>
-              );
-            })}
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>{cat.actualPercentage}%</div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Time Entries for that day */}
-        {dayTimeEntries.length > 0 && (
-          <div style={{ marginBottom: '1.5rem' }}>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Clock size={16} color="var(--primary-light)" />
-              <span>Tracked Time Entries ({dayTimeEntries.length})</span>
-            </h4>
+        {/* Scheduled Routines */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h4 style={{ fontSize: '0.92rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <CheckCircle2 size={16} color="var(--primary-light)" />
+            <span>Scheduled Routines ({dayScheduledRoutines.length})</span>
+          </h4>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-              {dayTimeEntries.map((entry) => {
-                const meta = getCategoryMeta(entry.categoryId, categories);
+          {dayScheduledRoutines.length === 0 ? (
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No routines scheduled for this day.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.5rem' }}>
+              {dayScheduledRoutines.map((routine: any) => {
+                const execLog = dayLogs[routine.id];
+                const isDone = execLog && (execLog.completed || execLog.status === 'done' || execLog.status === 'completed');
+                const meta = getCategoryMeta(routine.categoryId, categories);
+
                 return (
                   <div
-                    key={entry.id}
+                    key={routine.id}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '0.6rem 0.85rem',
-                      borderRadius: 'var(--radius-sm)',
-                      background: 'var(--bg-surface)',
-                      border: '1px solid var(--border-color)'
+                      padding: '0.55rem 0.75rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-input)',
+                      border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <span>{meta.icon}</span>
-                      <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600 }}>{entry.activityName}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{entry.startTime} – {entry.endTime}</div>
-                      </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
+                      <span>{routine.icon || meta.icon}</span>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {routine.name || routine.title}
+                      </span>
                     </div>
-                    <span className="mono" style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      {formatDurationHuman(entry.durationMinutes)}
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#10b981' : isFuture ? 'var(--text-muted)' : '#ef4444' }}>
+                      {isDone ? '✅ Done' : isFuture ? '⚪ Pending' : '❌ Missed'}
                     </span>
                   </div>
                 );
               })}
             </div>
-          </div>
-        )}
+          )}
+        </div>
+
+        {/* Tasks Planned for this Date */}
+        <div style={{ marginBottom: '1.25rem' }}>
+          <h4 style={{ fontSize: '0.92rem', fontWeight: 800, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <CheckSquare size={16} color="var(--primary-light)" />
+            <span>Tasks Planned ({dayTasks.length})</span>
+          </h4>
+
+          {dayTasks.length === 0 ? (
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No tasks planned for this date.</p>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.5rem' }}>
+              {dayTasks.map((t: any) => {
+                const isDone = t.status === 'completed';
+                return (
+                  <div
+                    key={t.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '0.55rem 0.75rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: isDone ? 'rgba(16, 185, 129, 0.08)' : 'var(--bg-input)',
+                      border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
+                    }}
+                  >
+                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textDecoration: isDone ? 'line-through' : 'none', color: isDone ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                      {t.title}
+                    </span>
+                    <span className="badge" style={{ fontSize: '0.65rem' }}>
+                      {t.status?.replace('_', ' ')}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Daily Reflection Journal Entry */}
         {journal ? (
@@ -250,37 +261,41 @@ export const DayDetailModal = () => {
             padding: '1rem'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <h4 style={{ fontSize: '0.92rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <BookOpen size={16} color="var(--primary-light)" />
-                <span>Evening Journal Reflection</span>
+                <span>Evening 5-Question Reflection</span>
               </h4>
-              <span className="badge badge-excellent">
+              <span className="badge badge-excellent" style={{ fontSize: '0.68rem' }}>
                 Mood: {journal.mood?.toUpperCase() || 'GOOD'}
               </span>
             </div>
 
-            <div style={{ fontSize: '0.82rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+            <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
               <div>
                 <strong style={{ color: 'var(--text-primary)' }}>1. What went well:</strong>{' '}
-                <span style={{ color: 'var(--text-secondary)' }}>{journal.q1}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{journal.q1_well || journal.q1 || '—'}</span>
               </div>
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>2. What failed:</strong>{' '}
-                <span style={{ color: 'var(--text-secondary)' }}>{journal.q2}</span>
+                <strong style={{ color: 'var(--text-primary)' }}>2. What did not go as planned:</strong>{' '}
+                <span style={{ color: 'var(--text-secondary)' }}>{journal.q2_failed || journal.q2 || '—'}</span>
               </div>
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>3. Distractions:</strong>{' '}
-                <span style={{ color: 'var(--text-secondary)' }}>{journal.q3}</span>
+                <strong style={{ color: 'var(--text-primary)' }}>3. What did I learn:</strong>{' '}
+                <span style={{ color: 'var(--text-secondary)' }}>{journal.q3_learned || journal.q3 || '—'}</span>
               </div>
               <div>
-                <strong style={{ color: 'var(--text-primary)' }}>4. Tomorrow's Improvement:</strong>{' '}
-                <span style={{ color: 'var(--text-secondary)' }}>{journal.q4}</span>
+                <strong style={{ color: 'var(--text-primary)' }}>4. What should I improve tomorrow:</strong>{' '}
+                <span style={{ color: 'var(--text-secondary)' }}>{journal.q4_improve || journal.q4 || '—'}</span>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--text-primary)' }}>5. Tomorrow's Top Priority:</strong>{' '}
+                <span style={{ color: 'var(--text-secondary)' }}>{journal.q5_priority || '—'}</span>
               </div>
             </div>
           </div>
         ) : (
-          <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--bg-surface)', borderRadius: 'var(--radius-md)', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-            No journal reflection recorded for this day yet.
+          <div style={{ textAlign: 'center', padding: '1rem', background: 'var(--bg-input)', borderRadius: 'var(--radius-md)', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+            No reflection recorded for this day yet.
           </div>
         )}
       </div>

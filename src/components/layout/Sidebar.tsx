@@ -3,19 +3,19 @@
 import React from 'react';
 import { 
   LayoutDashboard, 
-  SunMedium, 
   Clock, 
+  SunMedium, 
+  CheckSquare, 
   CalendarDays, 
+  BarChart3, 
   Trophy, 
-  BookOpen, 
   Settings, 
   Flame,
   Sparkles,
-  Layers,
   LogOut
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { getScoreLevel, calculateRoutineProgressToday, calculateCurrentStreak } from '@/utils/calculations';
+import { calculateDailyProgress, calculateCurrentStreak } from '@/utils/calculations';
 
 interface SidebarProps {
   isMobileOpen?: boolean;
@@ -26,23 +26,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
   const { data, activeTab, setActiveTab, todayStr, handleSignOut, triggerSound } = useApp();
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
-  const totalDays = challenge.totalDurationDays || 90;
+  const totalDays = challenge.totalDurationDays || 19;
+  const challengeName = challenge.name || 'Project 19';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];
   const routineLogs = data.routineLogsHistory?.[todayStr] || {};
-  const routineProgress = calculateRoutineProgressToday(routines, routineLogs, todayStr);
+  const tasks = data.tasks || [];
+  const progress = calculateDailyProgress(routines, routineLogs, tasks, todayStr);
   const currentStreak = calculateCurrentStreak(data.dayScores || {}, todayStr);
-  const todayScore = data.dayScores?.[todayStr] || (routineProgress.percentage);
-  const scoreMeta = getScoreLevel(todayScore);
 
   const navItems = [
-    { id: 'dashboard', label: 'Today Dashboard', icon: LayoutDashboard },
-    { id: 'routines', label: 'Pillars & Routines', icon: SunMedium, count: routineProgress.scheduledCount },
-    { id: 'timeline', label: 'Daily Timeline', icon: Clock },
-    { id: 'calendar', label: '90-Day Calendar', icon: CalendarDays },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'my_day', label: 'My Day (24h Time)', icon: Clock },
+    { id: 'routines', label: 'Daily Routines', icon: SunMedium, count: progress.scheduledRoutinesCount },
+    { id: 'tasks', label: 'Daily Tasks', icon: CheckSquare, count: progress.plannedTasksCount },
+    { id: 'calendar', label: 'Monthly Calendar', icon: CalendarDays },
+    { id: 'reports', label: 'Weekly Reports', icon: BarChart3 },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
-    { id: 'journal', label: 'Evening Reflection', icon: BookOpen },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];
 
@@ -63,14 +64,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
           <Sparkles size={20} color="#ffffff" />
         </div>
         <div>
-          <h1 style={{ fontSize: '1.15rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-            PROJECT <span style={{ color: 'var(--primary-light)' }}>90</span>
+          <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
+            {challengeName}
           </h1>
-          <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 500 }}>Routine & Pillars OS</p>
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>Personal Management OS</p>
         </div>
       </div>
 
-      {/* 90-Day Sprint Progress Card */}
+      {/* Challenge Progress Card */}
       <div style={{
         background: 'var(--bg-card)',
         border: '1px solid var(--border-color)',
@@ -80,11 +81,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
         boxShadow: 'var(--shadow-sm)'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--primary-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              Day {currentDay} of {totalDays}
-            </span>
-          </div>
+          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--primary-light)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Day {currentDay} of {totalDays}
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.75rem', fontWeight: 700, color: '#f59e0b' }}>
             <Flame size={14} color="#f59e0b" fill="#f59e0b" />
             <span>{currentStreak}d Streak</span>
@@ -109,7 +108,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
           }} />
         </div>
 
-        {/* Today's Routine Snapshot */}
+        {/* Today's Execution Snapshot */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -119,9 +118,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
           borderRadius: 'var(--radius-sm)',
           fontSize: '0.72rem'
         }}>
-          <span style={{ color: 'var(--text-secondary)' }}>Today's Routines:</span>
-          <span style={{ fontWeight: 700, color: routineProgress.percentage === 100 ? '#10b981' : 'var(--text-primary)' }}>
-            {routineProgress.completedCount} / {routineProgress.scheduledCount} ({routineProgress.percentage}%)
+          <span style={{ color: 'var(--text-secondary)' }}>Today's Execution:</span>
+          <span style={{ fontWeight: 700, color: progress.percentage >= 80 ? '#10b981' : 'var(--text-primary)' }}>
+            {progress.completedItems} / {progress.totalItems} ({progress.percentage}%)
           </span>
         </div>
       </div>
@@ -144,24 +143,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.75rem',
-                padding: '0.65rem 0.85rem',
+                padding: '0.6rem 0.85rem',
                 borderRadius: 'var(--radius-md)',
                 background: isActive ? 'var(--primary-glow)' : 'transparent',
                 color: isActive ? 'var(--primary-light)' : 'var(--text-secondary)',
                 border: 'none',
                 fontWeight: isActive ? 600 : 500,
-                fontSize: '0.85rem',
+                fontSize: '0.84rem',
                 cursor: 'pointer',
                 textAlign: 'left',
                 width: '100%',
                 transition: 'all var(--transition-fast)'
               }}
             >
-              <Icon size={18} color={isActive ? 'var(--primary-light)' : 'var(--text-muted)'} />
+              <Icon size={17} color={isActive ? 'var(--primary-light)' : 'var(--text-muted)'} />
               <span style={{ flex: 1 }}>{item.label}</span>
               {item.count !== undefined && item.count > 0 && (
                 <span style={{
-                  fontSize: '0.68rem',
+                  fontSize: '0.65rem',
                   padding: '0.1rem 0.45rem',
                   borderRadius: '10px',
                   background: isActive ? 'var(--primary)' : 'var(--bg-input)',
@@ -198,14 +197,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
             fontWeight: 700,
             color: 'var(--primary-light)'
           }}>
-            {(data.profile?.name || 'U').charAt(0).toUpperCase()}
+            {(data.profile?.name || 'A').charAt(0).toUpperCase()}
           </div>
           <div style={{ overflow: 'hidden' }}>
             <p style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {data.profile?.name || 'User'}
+              {data.profile?.name || 'Abdulaziz'}
             </p>
             <p style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>
-              {data.categories?.length || 0} Focus Pillars
+              Addis Ababa Time
             </p>
           </div>
         </div>

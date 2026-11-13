@@ -51,7 +51,8 @@ export const DailyTimelineView = () => {
       const log = routineLogs[r.id];
       return log && (log.completed || log.status === 'done' || log.status === 'completed');
     }).length;
-    const firstRoutineTime = dayRoutines[0]?.timeSlot ? dayRoutines[0].timeSlot.split('-')[0].trim() : '05:00 AM';
+    const r0: any = dayRoutines[0];
+    const firstRoutineTime = r0?.startTime || (r0?.timeSlot ? r0.timeSlot.split('-')[0].trim() : '05:00 AM');
 
     timelineEvents.push({
       type: 'routines_group',
