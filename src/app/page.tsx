@@ -6,6 +6,9 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { MobileNavBar } from '@/components/layout/MobileNavBar';
 
+// Auth
+import { LoginPage } from '@/components/auth/LoginPage';
+
 // 8 Core Views
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { MyDayView } from '@/components/timeline/MyDayView';
@@ -30,6 +33,8 @@ import { PWAInstallBanner } from '@/components/common/PWAInstallBanner';
 
 function MainApp() {
   const { 
+    isAuthenticated,
+    setIsAuthenticated,
     activeTab, 
     isAuthModalOpen, 
     setIsAuthModalOpen, 
@@ -41,6 +46,11 @@ function MainApp() {
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
+
+  // If owner is not logged in, render the secure Sign In screen!
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
+  }
 
   const renderActiveView = () => {
     switch (activeTab) {
