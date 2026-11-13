@@ -184,7 +184,7 @@ export const CalendarView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
               <CalendarDays size={22} color="var(--primary-light)" />
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>
-                {challenge.name || 'Project 19'} Monthly Calendar
+                {challenge.name || 'Apex OS'} Monthly Calendar
               </h2>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>

@@ -50,7 +50,7 @@ export const SettingsView = () => {
   const [timezone, setTimezone] = useState(profile.timezone || 'Africa/Addis_Ababa (GMT+3)');
 
   // Challenge Configuration states
-  const [challengeName, setChallengeName] = useState(challenge.name || 'Project 19');
+  const [challengeName, setChallengeName] = useState(challenge.name || 'Apex OS');
   const [startDate, setStartDate] = useState(challenge.startDate || todayStr);
   const [durationDays, setDurationDays] = useState(challenge.totalDurationDays || 19);
   const [challengeStatus, setChallengeStatus] = useState(challenge.status || 'active');
@@ -180,7 +180,7 @@ export const SettingsView = () => {
                 className="input"
                 value={challengeName}
                 onChange={(e) => setChallengeName(e.target.value)}
-                placeholder="e.g. Project 19, Ramadan Sprint, 90-Day Transformation"
+                placeholder="e.g. Apex OS, Sprint Alpha, Daily Mastery"
                 required
                 style={{ width: '100%' }}
               />

@@ -12,8 +12,8 @@ export const loadDataFromStorage = (profile = {}) => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.challenge && parsed.categories && parsed.routines && parsed.tasks) {
-        if (!parsed.challenge.name || parsed.challenge.name === 'Project 19' || parsed.challenge.name.includes('PROJECT 90')) {
-          parsed.challenge.name = 'Project 19: Personal Management Sprint';
+        if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19') || parsed.challenge.name.includes('PROJECT 90')) {
+          parsed.challenge.name = 'Apex OS: Personal Management System';
           parsed.challenge.totalDurationDays = parsed.challenge.totalDurationDays || 19;
           parsed.challenge.currentDay = parsed.challenge.currentDay || 1;
         }
@@ -21,7 +21,7 @@ export const loadDataFromStorage = (profile = {}) => {
       }
     }
   } catch (e) {
-    console.error('Failed to parse stored Project 19 data', e);
+    console.error('Failed to parse stored Apex OS data', e);
   }
   const initial = getCleanUserData(profile);
   saveDataToStorage(initial);
@@ -33,7 +33,7 @@ export const saveDataToStorage = (data: any) => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   } catch (e) {
-    console.error('Failed to save Project 19 data', e);
+    console.error('Failed to save Apex OS data', e);
   }
 };
 
@@ -42,7 +42,7 @@ export const exportDataAsJSON = (data: any) => {
   const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(data, null, 2));
   const downloadAnchor = document.createElement('a');
   downloadAnchor.setAttribute('href', dataStr);
-  downloadAnchor.setAttribute('download', `project19_backup_${new Date().toISOString().split('T')[0]}.json`);
+  downloadAnchor.setAttribute('download', `apex_os_backup_${new Date().toISOString().split('T')[0]}.json`);
   document.body.appendChild(downloadAnchor);
   downloadAnchor.click();
   downloadAnchor.remove();
@@ -57,7 +57,7 @@ export const importDataFromJSON = (jsonString: string) => {
       saveDataToStorage(parsed);
       return parsed;
     }
-    throw new Error('Invalid Project 19 data format');
+    throw new Error('Invalid Apex OS data format');
   } catch (err) {
     throw err;
   }

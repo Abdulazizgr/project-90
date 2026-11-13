@@ -116,7 +116,7 @@ export const PWAInstallBanner: React.FC = () => {
           </div>
           <div style={{ minWidth: 0 }}>
             <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: 0, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-              Install Project 19 App
+              Install Apex OS App
             </h4>
             <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0 }}>
               Install on your home screen for quick offline access
@@ -167,7 +167,7 @@ export const PWAInstallBanner: React.FC = () => {
               Install on iOS Safari
             </h3>
             <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-              Follow these two quick steps to add Project 19 to your iPhone home screen:
+              Follow these two quick steps to add Apex OS to your iPhone home screen:
             </p>
 
             <div style={{

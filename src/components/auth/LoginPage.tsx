@@ -184,7 +184,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
           </div>
 
           <h1 style={{ fontSize: '1.45rem', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '0.3rem' }}>
-            Project 19: Personal Management Sprint
+            Apex OS: Personal Management System
           </h1>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
             Personal Management OS
@@ -203,7 +203,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
               gap: '0.35rem'
             }}>
               <ShieldCheck size={13} />
-              <span>Private Owner Access • Day 1 of 19</span>
+              <span>Private Owner Access • Daily Execution</span>
             </span>
           </div>
         </div>

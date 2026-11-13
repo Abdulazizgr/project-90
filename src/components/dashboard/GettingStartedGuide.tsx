@@ -64,7 +64,7 @@ export const GettingStartedGuide: React.FC<GettingStartedGuideProps> = ({
     {
       id: 'step1',
       title: '1. Master Your 5 Core Life Pillars',
-      desc: 'PROJECT 90 balances Spiritual 🕌, Digital 📱, Personal 👤, Health 💪, and Career 💻. Customize tasks anytime in Projects.',
+      desc: 'Apex OS balances your core life categories: Spiritual, Career & RHIZAN, Fitness, Learning, English, Personal, and Sleep.',
       completed: true,
       actionLabel: 'View Pillars',
       onClick: () => onOpenCategoryManager?.()

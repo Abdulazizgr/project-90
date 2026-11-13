@@ -61,7 +61,7 @@ export const NotificationDrawer = ({ isOpen, onClose }) => {
       Notification.requestPermission().then((permission) => {
         if (permission === 'granted') {
           setBrowserPushEnabled(true);
-          new Notification('PROJECT 90 Reminders Active', {
+          new Notification('Apex OS Reminders Active', {
             body: 'You will receive intelligent daily routine & deep work nudges!',
             icon: '/favicon.ico'
           });

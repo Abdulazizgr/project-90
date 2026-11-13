@@ -1,5 +1,5 @@
-// Project 19 PWA Service Worker (Offline Support & Fast Caching)
-const CACHE_NAME = 'project19-pwa-v2';
+// Apex OS PWA Service Worker (Offline Support & Fast Caching)
+const CACHE_NAME = 'apex-os-pwa-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',

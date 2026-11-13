@@ -224,7 +224,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
         ...prev,
         challenge: {
           id: `ch_${Date.now()}`,
-          name: name.trim() || 'Project 19',
+          name: name.trim() || 'Apex OS: Personal Management System',
           startDate,
           endDate,
           totalDurationDays: Number(durationDays) || 19,
@@ -700,7 +700,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const handleReset = () => {
-    if (confirm('Are you sure you want to reset all data back to the clean Project 19 baseline?')) {
+    if (confirm('Are you sure you want to reset all data back to the clean Apex OS baseline?')) {
       const clean = resetToCleanUserData(data.profile);
       setData(clean);
       triggerSound('pop');

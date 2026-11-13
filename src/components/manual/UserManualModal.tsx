@@ -50,7 +50,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
               <BookOpen size={22} />
             </div>
             <div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>PROJECT 90 — User Manual & Operational Blueprint</h3>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 800 }}>Apex OS — User Manual & Operational Blueprint</h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Your complete guide to transforming life one day at a time
               </p>
@@ -94,7 +94,7 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                 padding: '1rem'
               }}>
                 <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.35rem', color: 'var(--primary-light)' }}>
-                  A Day in the Life with PROJECT 90
+                  A Day in the Life with Apex OS
                 </h4>
                 <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
                   Here is the exact step-by-step workflow followed every single day to guarantee peak discipline, deep focus, and an 🟢 <strong>Excellent (90+) Score</strong>.

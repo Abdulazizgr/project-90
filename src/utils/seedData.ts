@@ -1,4 +1,4 @@
-// PROJECT 19 / PERSONAL MANAGEMENT SYSTEM
+// APEX OS / PERSONAL MANAGEMENT SYSTEM
 // Data Models & Clean Seed Generator
 
 export const TIMEZONE = 'Africa/Addis_Ababa';
@@ -113,7 +113,7 @@ export interface Achievement {
 
 export interface Challenge {
   id: string;
-  name: string; // e.g. "Project 19"
+  name: string; // e.g. "Apex OS"
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   totalDurationDays: number; // e.g. 19
@@ -713,8 +713,8 @@ export const getCleanUserData = ({ name = 'Abdulaziz', email = '' }: { name?: st
       theme: 'dark'
     },
     challenge: {
-      id: `ch_19_${Date.now()}`,
-      name: 'Project 19: Personal Management Sprint',
+      id: `ch_apex_${Date.now()}`,
+      name: 'Apex OS: Personal Management System',
       startDate: startDate,
       endDate: endDate,
       totalDurationDays: duration,

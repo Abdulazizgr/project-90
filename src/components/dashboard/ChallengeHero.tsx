@@ -10,7 +10,7 @@ export const ChallengeHero = () => {
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
   const totalDays = challenge.totalDurationDays || 19;
-  const challengeName = challenge.name || 'Project 19: Personal Management Sprint';
+  const challengeName = challenge.name || 'Apex OS: Personal Management System';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];

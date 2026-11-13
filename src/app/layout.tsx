@@ -1,13 +1,13 @@
 import '@/styles/main.css';
 
 export const metadata = {
-  title: 'Project 19: Personal Management Sprint — Personal Management OS',
+  title: 'Apex OS: Personal Management System — Personal Management OS',
   description: 'Personal Management OS: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Project 19'
+    title: 'Apex OS'
   }
 };
 
