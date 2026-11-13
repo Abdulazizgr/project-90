@@ -121,6 +121,17 @@ export interface Challenge {
   status: 'active' | 'completed' | 'planning';
 }
 
+export interface Profile {
+  name: string;
+  email: string;
+  password?: string;
+  avatarUrl?: string;
+  challengeGoal?: string;
+  timezone?: string;
+  soundEnabled?: boolean;
+  theme?: 'dark' | 'light';
+}
+
 export const DEFAULT_CATEGORIES: Category[] = [
   {
     id: 'spiritual',
@@ -691,10 +702,10 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   }
 ];
 
-export const getCleanUserData = ({ name = 'Abdulaziz', email = '' }: { name?: string; email?: string } = {}) => {
+export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@gmail.com' }: { name?: string; email?: string } = {}) => {
   const todayStr = getLocalDateString();
   const startDate = todayStr;
-  const duration = 19; // Project 19 default (configurable)
+  const duration = 19; // Project duration default (configurable)
 
   // Compute end date: startDate + duration - 1
   const s = new Date(startDate);
@@ -704,8 +715,9 @@ export const getCleanUserData = ({ name = 'Abdulaziz', email = '' }: { name?: st
 
   return {
     profile: {
-      name: name || 'User',
-      email: email || '',
+      name: name || 'Abdulaziz',
+      email: email || 'abdulazizisa579@gmail.com',
+      password: 'password',
       avatarUrl: '',
       challengeGoal: 'Master daily discipline, RHIZAN engineering, and healthy life balance',
       timezone: TIMEZONE,

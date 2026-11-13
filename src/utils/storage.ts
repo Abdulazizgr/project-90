@@ -17,6 +17,17 @@ export const loadDataFromStorage = (profile = {}) => {
           parsed.challenge.totalDurationDays = parsed.challenge.totalDurationDays || 19;
           parsed.challenge.currentDay = parsed.challenge.currentDay || 1;
         }
+        // Ensure owner profile has email & password seeded if blank or default
+        if (!parsed.profile) parsed.profile = {};
+        if (!parsed.profile.email || parsed.profile.email === '' || parsed.profile.email === 'user@example.com') {
+          parsed.profile.email = 'abdulazizisa579@gmail.com';
+        }
+        if (!parsed.profile.password) {
+          parsed.profile.password = 'password';
+        }
+        if (!parsed.profile.name || parsed.profile.name === 'User') {
+          parsed.profile.name = 'Abdulaziz';
+        }
         return parsed;
       }
     }

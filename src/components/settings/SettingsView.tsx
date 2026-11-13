@@ -46,6 +46,8 @@ export const SettingsView = () => {
   const categories = data.categories || [];
 
   const [name, setName] = useState(profile.name || 'Abdulaziz');
+  const [email, setEmail] = useState(profile.email || 'abdulazizisa579@gmail.com');
+  const [password, setPassword] = useState(profile.password || 'password');
   const [goal, setGoal] = useState(profile.challengeGoal || '');
   const [timezone, setTimezone] = useState(profile.timezone || 'Africa/Addis_Ababa (GMT+3)');
 
@@ -67,6 +69,8 @@ export const SettingsView = () => {
     e.preventDefault();
     updateProfile({
       name: name.trim(),
+      email: email.trim(),
+      password: password.trim(),
       challengeGoal: goal.trim(),
       timezone
     });
@@ -293,6 +297,35 @@ export const SettingsView = () => {
                 onChange={(e) => setName(e.target.value)}
                 style={{ width: '100%' }}
               />
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '0.85rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                  Owner Email / Login ID *
+                </label>
+                <input
+                  type="email"
+                  className="input"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                  Login Password *
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
             </div>
 
             <div style={{ marginBottom: '0.85rem' }}>

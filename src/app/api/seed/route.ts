@@ -5,7 +5,7 @@ import { getCleanUserData } from '@/utils/seedData';
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
-    const { userId = 'user_default', name = '', action = 'reset' } = body;
+    const { userId = 'abdulazizisa579@gmail.com', name = 'Abdulaziz', action = 'reset' } = body;
 
     const db = await getDatabase('project90');
     const collection = db.collection('user_data');
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
       await collection.deleteMany({});
     }
 
-    const initial = getCleanUserData({ name: name || (userId.includes('@') ? userId.split('@')[0] : 'User'), email: userId });
+    const initial = getCleanUserData({ name: name || 'Abdulaziz', email: userId.includes('@') ? userId : 'abdulazizisa579@gmail.com' });
 
     const resetData = {
       userId,

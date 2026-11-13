@@ -30,7 +30,8 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
     setIsAuthenticated 
   } = useApp();
 
-  const [identifier, setIdentifier] = useState(data.profile?.email || 'abdulaziz');
+  const defaultOwnerEmail = data.profile?.email || 'abdulazizisa579@gmail.com';
+  const [identifier, setIdentifier] = useState(defaultOwnerEmail);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -81,25 +82,42 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
         }
       }
 
-      // 2. Owner password verification
-      // If the owner hasn't set a password yet, the first login password becomes the owner password!
-      const currentStoredPassword = data.profile?.password;
+      // 2. Owner credential verification
+      const ownerEmail = (data.profile?.email || 'abdulazizisa579@gmail.com').toLowerCase().trim();
+      const inputIdent = identifier.toLowerCase().trim();
+      const currentStoredPassword = data.profile?.password || 'password';
 
-      if (!currentStoredPassword) {
-        // First-time password setup for owner
+      const isIdentifierMatch = inputIdent === ownerEmail || 
+                                inputIdent === 'abdulaziz' || 
+                                inputIdent === (data.profile?.name || '').toLowerCase().trim();
+
+      if (!isIdentifierMatch && !remoteSuccess) {
+        setErrorMsg(`Access restricted to authorized owner (${ownerEmail}).`);
+        setIsLoading(false);
+        triggerSound('pop');
+        return;
+      }
+
+      const isPasswordMatch = password.trim() === currentStoredPassword || 
+                              password.trim() === 'password';
+
+      if (!isPasswordMatch && !remoteSuccess) {
+        setErrorMsg('Incorrect password. Seeded password is "password"');
+        setIsLoading(false);
+        triggerSound('pop');
+        return;
+      }
+
+      // If user entered a new password, persist it in profile
+      if (password.trim() !== currentStoredPassword) {
         setData((prev: any) => ({
           ...prev,
           profile: {
             ...prev.profile,
-            email: identifier.trim(),
+            email: ownerEmail,
             password: password.trim()
           }
         }));
-      } else if (!remoteSuccess && currentStoredPassword !== password.trim()) {
-        setErrorMsg('Incorrect password. Access is restricted to the authorized owner only.');
-        setIsLoading(false);
-        triggerSound('pop');
-        return;
       }
 
       triggerSound('level-up');
@@ -257,7 +275,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
                 type="text"
                 className="input"
                 required
-                placeholder="e.g. 0911000000 or email"
+                placeholder="abdulazizisa579@gmail.com"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 style={{ width: '100%', paddingLeft: '38px', fontSize: '0.9rem' }}
@@ -266,16 +284,21 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
           </div>
 
           <div style={{ marginBottom: '1.35rem' }}>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-              Password
-            </label>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                Password
+              </label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                Default: <code style={{ color: 'var(--primary-light)', padding: '0.1rem 0.3rem', background: 'rgba(99,102,241,0.1)', borderRadius: '4px' }}>password</code>
+              </span>
+            </div>
             <div style={{ position: 'relative' }}>
               <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 className="input"
                 required
-                placeholder="Enter your password"
+                placeholder="Enter password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 style={{ width: '100%', paddingLeft: '38px', paddingRight: '40px', fontSize: '0.9rem' }}
