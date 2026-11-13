@@ -1,7 +1,7 @@
 {
-  "name": "Project 19 — Personal Management System",
+  "name": "Project 19: Personal Management Sprint",
   "short_name": "Project 19",
-  "description": "Mobile-first personal management system: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports",
+  "description": "Personal Management OS: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports",
   "start_url": "/",
   "id": "/",
   "display": "standalone",

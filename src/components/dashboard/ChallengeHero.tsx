@@ -10,7 +10,7 @@ export const ChallengeHero = () => {
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
   const totalDays = challenge.totalDurationDays || 19;
-  const challengeName = challenge.name || 'Project 19';
+  const challengeName = challenge.name || 'Project 19: Personal Management Sprint';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];
@@ -53,9 +53,12 @@ export const ChallengeHero = () => {
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#ffffff' }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
             {challengeName}
           </h2>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0' }}>
+            Personal Management OS
+          </p>
         </div>
 
         {/* Right: Streak & Quick Daily Action */}

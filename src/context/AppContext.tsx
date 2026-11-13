@@ -36,12 +36,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   const [modalData, setModalData] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isDbSynced, setIsDbSynced] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('p90_logged_in') === 'true';
-    }
-    return false;
-  });
+  const [isAuthenticated, setIsAuthenticated] = useState(true);
 
   const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
   const user = sessionResult?.data?.user;
@@ -708,12 +703,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const handleSignOut = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('p90_logged_in');
-    }
-    setIsAuthenticated(false);
-    if ((authClient as any)?.signOut) {
-      await (authClient as any).signOut();
+    if (confirm('Reload Project 19: Personal Management Sprint default seed data?')) {
+      const clean = resetToCleanUserData(data.profile);
+      setData(clean);
+      triggerCelebration();
     }
   };
 

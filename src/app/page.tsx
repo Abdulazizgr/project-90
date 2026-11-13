@@ -6,10 +6,6 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { Topbar } from '@/components/layout/Topbar';
 import { MobileNavBar } from '@/components/layout/MobileNavBar';
 
-// Auth
-import { LoginPage } from '@/components/auth/LoginPage';
-import { AuthModal } from '@/components/auth/AuthModal';
-
 // 8 Core Views
 import { DashboardView } from '@/components/dashboard/DashboardView';
 import { MyDayView } from '@/components/timeline/MyDayView';
@@ -30,18 +26,13 @@ import { CategoryManagerModal } from '@/components/categories/CategoryManagerMod
 import { CommandPaletteModal } from '@/components/common/CommandPaletteModal';
 import { UserManualModal } from '@/components/manual/UserManualModal';
 import { SetupWizardModal } from '@/components/onboarding/SetupWizardModal';
-import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
 import { PWAInstallBanner } from '@/components/common/PWAInstallBanner';
 
 function MainApp() {
   const { 
-    data, 
-    isAuthenticated, 
-    setIsAuthenticated, 
     activeTab, 
     isAuthModalOpen, 
     setIsAuthModalOpen, 
-    setOnboardingStep,
     setActiveModal
   } = useApp();
 
@@ -50,16 +41,6 @@ function MainApp() {
   const [isCategoryManagerOpen, setIsCategoryManagerOpen] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
-
-  // If user is not authenticated yet, render the Login Page first!
-  if (!isAuthenticated) {
-    return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
-  }
-
-  // If new user hasn't completed onboarding flow, show the dedicated setup experience!
-  if (data.onboardingStep && data.onboardingStep !== 'completed') {
-    return <OnboardingFlow onComplete={() => setOnboardingStep('completed')} />;
-  }
 
   const renderActiveView = () => {
     switch (activeTab) {
@@ -148,7 +129,6 @@ function MainApp() {
       <RoutineRunnerModal />
       <RoutineModal />
       <DayDetailModal />
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
       <NotificationDrawer isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)} />
       <CategoryManagerModal isOpen={isCategoryManagerOpen} onClose={() => setIsCategoryManagerOpen(false)} />
       <SetupWizardModal />

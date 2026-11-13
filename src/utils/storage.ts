@@ -12,6 +12,11 @@ export const loadDataFromStorage = (profile = {}) => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.challenge && parsed.categories && parsed.routines && parsed.tasks) {
+        if (!parsed.challenge.name || parsed.challenge.name === 'Project 19' || parsed.challenge.name.includes('PROJECT 90')) {
+          parsed.challenge.name = 'Project 19: Personal Management Sprint';
+          parsed.challenge.totalDurationDays = parsed.challenge.totalDurationDays || 19;
+          parsed.challenge.currentDay = parsed.challenge.currentDay || 1;
+        }
         return parsed;
       }
     }

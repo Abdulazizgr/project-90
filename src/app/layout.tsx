@@ -1,8 +1,8 @@
 import '@/styles/main.css';
 
 export const metadata = {
-  title: 'Project 19 — Personal Management System',
-  description: 'Mobile-first personal management system: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports',
+  title: 'Project 19: Personal Management Sprint — Personal Management OS',
+  description: 'Personal Management OS: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

@@ -12,7 +12,8 @@ import {
   LogOut, 
   Search,
   Clock,
-  SunMedium
+  SunMedium,
+  RotateCcw
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { getScoreLevel, calculateRoutineProgressToday, calculateCurrentStreak } from '@/utils/calculations';
@@ -96,7 +97,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="badge badge-primary" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
-            DAY {currentDay}
+            DAY {currentDay} OF {data.challenge?.totalDurationDays || 19}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700 }}>
             <Flame size={15} fill="#f59e0b" color="#f59e0b" />
@@ -197,14 +198,14 @@ export const Topbar: React.FC<TopbarProps> = ({
           {currentTheme === 'dark' ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} />}
         </button>
 
-        {/* Sign Out Button */}
+        {/* Reset / Reload Seeds Button */}
         <button
           className="btn btn-ghost btn-icon"
           onClick={handleSignOut}
-          title="Sign Out"
+          title="Reset to Day 1 Seeds"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
         >
-          <LogOut size={17} />
+          <RotateCcw size={17} />
         </button>
       </div>
     </header>

@@ -12,7 +12,7 @@ import {
   Settings, 
   Flame,
   Sparkles,
-  LogOut
+  RotateCcw
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { calculateDailyProgress, calculateCurrentStreak } from '@/utils/calculations';
@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
   const totalDays = challenge.totalDurationDays || 19;
-  const challengeName = challenge.name || 'Project 19';
+  const challengeName = challenge.name || 'Project 19: Personal Management Sprint';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];
@@ -211,11 +211,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
 
         <button
           onClick={handleSignOut}
-          title="Sign Out"
+          title="Reset to Day 1 Seeds"
           className="btn btn-ghost btn-icon"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
         >
-          <LogOut size={16} />
+          <RotateCcw size={16} />
         </button>
       </div>
     </aside>
