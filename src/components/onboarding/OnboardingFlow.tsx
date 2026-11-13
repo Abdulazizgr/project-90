@@ -59,8 +59,8 @@ export const OnboardingFlow = ({ onComplete }) => {
 
   const [startDateOption, setStartDateOption] = useState('tomorrow');
   const [customStartDate, setCustomStartDate] = useState(tomorrowStr);
-  const [challengeName, setChallengeName] = useState('PROJECT 90: Master Life Sprint');
-  const [challengeGoal, setChallengeGoal] = useState('Build sustainable discipline, balance 5 life pillars, and eliminate burnout.');
+  const [challengeName, setChallengeName] = useState('Apex OS: Personal Management System');
+  const [challengeGoal, setChallengeGoal] = useState('Build sustainable discipline, balance 7 life pillars, and eliminate burnout.');
 
   const selectedStartDateStr = startDateOption === 'today' 
     ? todayStr 
@@ -221,10 +221,10 @@ export const OnboardingFlow = ({ onComplete }) => {
             </div>
             <div>
               <h1 style={{ fontSize: '1.35rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em' }}>
-                PROJECT 90
+                Apex OS
               </h1>
               <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>
-                Build Your Life, One Day at a Time.
+                Personal Management System
               </p>
             </div>
           </div>
@@ -323,14 +323,14 @@ export const OnboardingFlow = ({ onComplete }) => {
                 marginBottom: '0.8rem'
               }}>
                 <Sparkles size={14} />
-                Welcome to PROJECT 90
+                Welcome to Apex OS
               </div>
               <h2 style={{ fontSize: '2.1rem', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '0.6rem' }}>
                 Transform Your Life with Unshakeable Balance
               </h2>
               <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '680px', margin: '0 auto', lineHeight: '1.6' }}>
                 Most productivity systems fail because of burnout: you plan 20 things, push hard for 2 days, hyper-focus on one area, crash, and quit. 
-                <strong> PROJECT 90 builds a balanced life operating system across 5 core pillars.</strong>
+                <strong> Apex OS builds a balanced life operating system across your core focus pillars.</strong>
               </p>
             </div>
 
@@ -820,7 +820,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
-                    <CheckCircle2 size={14} color="#a855f7" /> 15m PROJECT 90 Daily Reflection
+                    <CheckCircle2 size={14} color="#a855f7" /> 15m Apex OS Daily Reflection
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
                     <CheckCircle2 size={14} color="#a855f7" /> 25m Non-Fiction Reading
@@ -1144,7 +1144,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                 }}
               >
                 <Rocket size={20} />
-                <span>Launch PROJECT 90 🚀</span>
+                <span>Launch Apex OS 🚀</span>
               </button>
             </div>
           </div>

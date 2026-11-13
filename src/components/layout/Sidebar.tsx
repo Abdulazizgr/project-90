@@ -26,8 +26,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
   const { data, activeTab, setActiveTab, todayStr, handleSignOut, triggerSound } = useApp();
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
-  const totalDays = challenge.totalDurationDays || 19;
-  const challengeName = challenge.name || 'Apex OS: Personal Management System';
+  const rawDuration = challenge.totalDurationDays;
+  const totalDays = (rawDuration === 30 || rawDuration === 90 || !rawDuration) ? 19 : rawDuration;
+  const rawName = challenge.name || '';
+  const challengeName = (!rawName || rawName.includes('Project 19') || rawName.includes('PROJECT 90') || rawName.includes('Project 90'))
+    ? 'Apex OS: Personal Management System'
+    : rawName;
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];

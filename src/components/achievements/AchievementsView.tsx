@@ -38,7 +38,7 @@ export const AchievementsView = () => {
               <h2 style={{ fontSize: '1.4rem', fontWeight: 800 }}>Routine Mastery & Focus Badges</h2>
             </div>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '580px' }}>
-              Unlock discipline badges by building daily routine streaks, balancing your focus pillars, and conquering the 90-day sprint.
+              Unlock discipline badges by building daily routine streaks, balancing your focus pillars, and conquering your personal management sprint.
             </p>
           </div>
 

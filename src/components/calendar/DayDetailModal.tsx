@@ -197,13 +197,13 @@ export const DayDetailModal = () => {
                       border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flex: 1, minWidth: 0 }}>
                       <span>{routine.icon || meta.icon}</span>
                       <span style={{ fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {routine.name || routine.title}
                       </span>
                     </div>
-                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#10b981' : isFuture ? 'var(--text-muted)' : '#ef4444' }}>
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: isDone ? '#10b981' : isFuture ? 'var(--text-muted)' : '#ef4444', flexShrink: 0, marginLeft: '0.5rem' }}>
                       {isDone ? '✅ Done' : isFuture ? '⚪ Pending' : '❌ Missed'}
                     </span>
                   </div>
@@ -239,10 +239,20 @@ export const DayDetailModal = () => {
                       border: isDone ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
                     }}
                   >
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, textDecoration: isDone ? 'line-through' : 'none', color: isDone ? 'var(--text-muted)' : 'var(--text-primary)' }}>
+                    <span style={{
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      textDecoration: isDone ? 'line-through' : 'none',
+                      color: isDone ? 'var(--text-muted)' : 'var(--text-primary)',
+                      flex: 1,
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}>
                       {t.title}
                     </span>
-                    <span className="badge" style={{ fontSize: '0.65rem' }}>
+                    <span className="badge" style={{ fontSize: '0.65rem', flexShrink: 0, marginLeft: '0.5rem' }}>
                       {t.status?.replace('_', ' ')}
                     </span>
                   </div>

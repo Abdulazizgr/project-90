@@ -388,27 +388,31 @@ export const WeeklyReportView: React.FC = () => {
                 🎉 Outstanding! Zero missed routines or tasks this week.
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '180px', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', maxHeight: '220px', overflowY: 'auto' }}>
                 {report.incompleteActivities.map((item, idx) => (
                   <div
                     key={idx}
                     style={{
                       display: 'flex',
-                      alignItems: 'center',
+                      alignItems: 'flex-start',
                       justifyContent: 'space-between',
-                      padding: '0.45rem 0.65rem',
+                      flexWrap: 'wrap',
+                      gap: '0.4rem',
+                      padding: '0.5rem 0.65rem',
                       borderRadius: 'var(--radius-sm)',
                       background: 'rgba(239, 68, 68, 0.05)',
                       fontSize: '0.78rem'
                     }}
                   >
-                    <div>
-                      <span style={{ fontWeight: 600 }}>{item.title}</span>
-                      <span style={{ color: 'var(--text-muted)', marginLeft: '0.4rem', fontSize: '0.7rem' }}>
+                    <div style={{ flex: 1, minWidth: '160px' }}>
+                      <span style={{ fontWeight: 600, display: 'inline' }}>{item.title}</span>
+                      <span style={{ color: 'var(--text-muted)', marginLeft: '0.4rem', fontSize: '0.7rem', display: 'inline-block' }}>
                         ({item.type} • {item.category})
                       </span>
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem' }}>{item.date}</span>
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', flexShrink: 0, marginLeft: 'auto' }} className="mono">
+                      {item.date}
+                    </span>
                   </div>
                 ))}
               </div>

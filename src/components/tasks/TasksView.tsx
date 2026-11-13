@@ -327,66 +327,82 @@ export const TasksView: React.FC = () => {
                   border: isDone ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid var(--border-color)',
                   borderLeft: `4px solid ${cat?.color || 'var(--primary)'}`,
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
+                  flexDirection: 'column',
+                  gap: '0.6rem',
                   transition: 'all 0.15s ease'
                 }}
               >
-                {/* One-tap Checkbox */}
-                <button
-                  type="button"
-                  onClick={() => toggleTaskStatus(task.id)}
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    padding: '0.2rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: isDone ? '#10b981' : 'var(--text-muted)'
-                  }}
-                  aria-label={isDone ? 'Mark as incomplete' : 'Mark as complete'}
-                >
-                  {isDone ? (
-                    <CheckCircle2 size={22} fill="#10b981" color="#ffffff" />
-                  ) : (
-                    <Circle size={22} />
-                  )}
-                </button>
+                {/* Top Row: Checkbox + Title + Category/Priority Badges */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', width: '100%' }}>
+                  <button
+                    type="button"
+                    onClick={() => toggleTaskStatus(task.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      padding: '0.15rem 0',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: isDone ? '#10b981' : 'var(--text-muted)',
+                      flexShrink: 0
+                    }}
+                    aria-label={isDone ? 'Mark as incomplete' : 'Mark as complete'}
+                  >
+                    {isDone ? (
+                      <CheckCircle2 size={22} fill="#10b981" color="#ffffff" />
+                    ) : (
+                      <Circle size={22} />
+                    )}
+                  </button>
 
-                {/* Content */}
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
-                    <h4 style={{
-                      fontSize: '0.92rem',
-                      fontWeight: 700,
-                      margin: 0,
-                      textDecoration: isDone ? 'line-through' : 'none',
-                      color: isDone ? 'var(--text-muted)' : 'var(--text-primary)'
-                    }}>
-                      {task.title}
-                    </h4>
-                    {getPriorityBadge(task.priority)}
-                    <span style={{ fontSize: '0.7rem', color: cat?.color || 'var(--text-muted)', fontWeight: 600 }}>
-                      {cat?.icon} {cat?.name}
-                    </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.2rem' }}>
+                      <h4 style={{
+                        fontSize: '0.94rem',
+                        fontWeight: 700,
+                        margin: 0,
+                        textDecoration: isDone ? 'line-through' : 'none',
+                        color: isDone ? 'var(--text-muted)' : 'var(--text-primary)',
+                        lineHeight: 1.3,
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere'
+                      }}>
+                        {task.title}
+                      </h4>
+                      {getPriorityBadge(task.priority)}
+                      <span style={{ fontSize: '0.7rem', color: cat?.color || 'var(--text-muted)', fontWeight: 600 }}>
+                        {cat?.icon} {cat?.name}
+                      </span>
+                    </div>
+
+                    {task.description && (
+                      <p style={{
+                        fontSize: '0.78rem',
+                        color: 'var(--text-secondary)',
+                        margin: '0 0 0.25rem',
+                        lineHeight: 1.4
+                      }}>
+                        {task.description}
+                      </p>
+                    )}
                   </div>
+                </div>
 
-                  {task.description && (
-                    <p style={{
-                      fontSize: '0.75rem',
-                      color: 'var(--text-secondary)',
-                      margin: '0 0 0.3rem',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {task.description}
-                    </p>
-                  )}
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.72rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
+                {/* Bottom Row: Metadata (Date/Time) on Left, Actions (Status + Edit + Delete) on Right */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '0.5rem',
+                  paddingTop: '0.45rem',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                  fontSize: '0.72rem'
+                }}>
+                  {/* Metadata */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: 'var(--text-muted)', flexWrap: 'wrap' }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                       <Calendar size={12} /> {task.plannedDate}
                     </span>
@@ -396,49 +412,50 @@ export const TasksView: React.FC = () => {
                       </span>
                     )}
                     {task.notes && (
-                      <span style={{ fontStyle: 'italic' }}>
+                      <span style={{ fontStyle: 'italic', maxWidth: '220px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         "{task.notes}"
                       </span>
                     )}
                   </div>
-                </div>
 
-                {/* Actions */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                  <select
-                    className="input"
-                    value={task.status}
-                    onChange={(e) => updateTask(task.id, { status: e.target.value as any })}
-                    style={{ fontSize: '0.7rem', padding: '0.25rem 0.45rem', width: 'auto' }}
-                  >
-                    <option value="not_started">Not Started</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                  {/* Actions Bar */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: 'auto' }}>
+                    <select
+                      className="input"
+                      value={task.status}
+                      onChange={(e) => updateTask(task.id, { status: e.target.value as any })}
+                      style={{ fontSize: '0.72rem', padding: '0.2rem 0.5rem', width: 'auto', minWidth: '105px' }}
+                    >
+                      <option value="not_started">Not Started</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="completed">Completed</option>
+                      <option value="cancelled">Cancelled</option>
+                    </select>
 
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm btn-icon"
-                    onClick={() => handleStartEdit(task)}
-                    title="Edit Task"
-                  >
-                    <Edit3 size={14} />
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm btn-icon"
+                      onClick={() => handleStartEdit(task)}
+                      title="Edit Task"
+                      style={{ padding: '0.3rem' }}
+                    >
+                      <Edit3 size={14} />
+                    </button>
 
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm btn-icon"
-                    onClick={() => {
-                      if (confirm(`Delete task "${task.title}"?`)) {
-                        deleteTask(task.id);
-                      }
-                    }}
-                    title="Delete Task"
-                    style={{ color: '#ef4444' }}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm btn-icon"
+                      onClick={() => {
+                        if (confirm(`Delete task "${task.title}"?`)) {
+                          deleteTask(task.id);
+                        }
+                      }}
+                      title="Delete Task"
+                      style={{ color: '#ef4444', padding: '0.3rem' }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

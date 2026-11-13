@@ -51,7 +51,7 @@ export const SetupWizardModal: React.FC<SetupWizardModalProps> = ({ isOpen, onCl
   nextMonday.setDate(today.getDate() + daysUntilMon);
 
   const [startDate, setStartDate] = useState(formatDate(today));
-  const [sprintName, setSprintName] = useState(data.challenge?.name || 'PROJECT 90: Master Life Sprint');
+  const [sprintName, setSprintName] = useState(data.challenge?.name || 'Apex OS: Personal Management System');
   const [goal, setGoal] = useState(data.profile?.challengeGoal || 'Transform my life across 90 days with balance, discipline, and focus');
 
   if (!isModalOpen) return null;
@@ -383,7 +383,7 @@ export const SetupWizardModal: React.FC<SetupWizardModalProps> = ({ isOpen, onCl
                   className="form-input"
                   value={sprintName}
                   onChange={e => setSprintName(e.target.value)}
-                  placeholder="PROJECT 90: Master Life Sprint"
+                  placeholder="Apex OS: Personal Management System"
                 />
               </div>
 

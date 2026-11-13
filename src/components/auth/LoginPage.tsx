@@ -179,7 +179,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
         background: 'var(--bg-card)',
         border: '1px solid var(--border-color)',
         borderRadius: 'var(--radius-xl)',
-        padding: '2.25rem 2rem',
+        padding: 'clamp(1.5rem, 5vw, 2.25rem) clamp(1rem, 5vw, 2rem)',
         boxShadow: '0 20px 45px rgba(0,0,0,0.4), 0 0 40px rgba(99, 102, 241, 0.12)',
         position: 'relative',
         zIndex: 1,

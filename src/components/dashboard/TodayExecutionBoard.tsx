@@ -243,7 +243,7 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                     gap: '0.65rem'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: '220px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
                     <button
                       type="button"
                       onClick={() => handleToggleRoutine(routine.id)}
@@ -253,14 +253,15 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                         cursor: 'pointer',
                         color: isDone ? '#10b981' : 'var(--text-muted)',
                         display: 'flex',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        flexShrink: 0
                       }}
                       title={isDone ? 'Mark incomplete' : 'Mark completed'}
                     >
                       {isDone ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                     </button>
 
-                    <div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                         <span style={{
                           fontSize: '0.66rem',
@@ -284,7 +285,9 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                         fontWeight: 700,
                         marginTop: '0.15rem',
                         color: isDone ? 'var(--text-muted)' : 'var(--text-primary)',
-                        textDecoration: isDone ? 'line-through' : 'none'
+                        textDecoration: isDone ? 'line-through' : 'none',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'anywhere'
                       }}>
                         {routine.name || routine.title}
                       </h4>
@@ -358,7 +361,7 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                       gap: '0.65rem'
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: '220px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
                       <button
                         type="button"
                         onClick={() => toggleTaskStatus(task.id)}
@@ -368,13 +371,14 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                           cursor: 'pointer',
                           color: isCompleted ? '#10b981' : 'var(--text-muted)',
                           display: 'flex',
-                          alignItems: 'center'
+                          alignItems: 'center',
+                          flexShrink: 0
                         }}
                       >
                         {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                       </button>
 
-                      <div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                           <span style={{
                             fontSize: '0.66rem',
@@ -411,7 +415,9 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                           fontWeight: 700,
                           marginTop: '0.15rem',
                           color: isCompleted ? 'var(--text-muted)' : 'var(--text-primary)',
-                          textDecoration: isCompleted ? 'line-through' : 'none'
+                          textDecoration: isCompleted ? 'line-through' : 'none',
+                          wordBreak: 'break-word',
+                          overflowWrap: 'anywhere'
                         }}>
                           {task.title}
                         </h4>

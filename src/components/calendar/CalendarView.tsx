@@ -184,7 +184,7 @@ export const CalendarView: React.FC = () => {
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
               <CalendarDays size={22} color="var(--primary-light)" />
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>
-                {challenge.name || 'Apex OS'} Monthly Calendar
+                Monthly Calendar & Activity Matrix
               </h2>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
@@ -283,20 +283,19 @@ export const CalendarView: React.FC = () => {
           borderBottom: '1px solid var(--border-color)',
           marginBottom: '0.65rem'
         }}>
-          <span>SUN</span>
-          <span>MON</span>
-          <span>TUE</span>
-          <span>WED</span>
-          <span>THU</span>
-          <span>FRI</span>
-          <span>SAT</span>
+          {['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'].map((d, i) => (
+            <span key={d} style={{ display: 'flex', justifyContent: 'center' }}>
+              <span className="hide-mobile">{d}</span>
+              <span className="show-mobile">{['S', 'M', 'T', 'W', 'T', 'F', 'S'][i]}</span>
+            </span>
+          ))}
         </div>
 
         {/* Calendar Day Cells */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: '0.45rem'
+          gap: 'clamp(2px, 1vw, 6px)'
         }}>
           {/* Empty spacer cells before 1st of month */}
           {Array.from({ length: firstDayOfMonth }).map((_, idx) => (
@@ -330,7 +329,7 @@ export const CalendarView: React.FC = () => {
                 className="calendar-day-card"
                 style={{
                   minHeight: '68px',
-                  padding: '0.35rem 0.25rem',
+                  padding: '0.35rem clamp(2px, 0.6vw, 4px)',
                   borderRadius: 'var(--radius-md)',
                   background: isToday ? 'rgba(99, 102, 241, 0.12)' : status.bg || 'var(--bg-input)',
                   border: isToday 
@@ -368,24 +367,30 @@ export const CalendarView: React.FC = () => {
                 </div>
 
                 {/* Day Content Badges */}
-                <div style={{ marginTop: '0.2rem' }}>
+                <div style={{ marginTop: '0.15rem', display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%' }}>
                   <div style={{
-                    fontSize: '0.68rem',
+                    fontSize: '0.72rem',
                     fontWeight: 700,
                     color: status.color,
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.2rem'
+                    justifyContent: 'center',
+                    gap: '0.25rem'
                   }}>
-                    <span>{status.icon}</span>
-                    <span>{status.label}</span>
+                    <span style={{ fontSize: '0.8rem', lineHeight: 1 }}>{status.icon}</span>
+                    <span className="hide-mobile" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{status.label}</span>
                   </div>
 
                   {(dayRoutines.length > 0 || dayTasks.length > 0) && (
-                    <div style={{ fontSize: '0.62rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
-                      {dayRoutines.length > 0 && `${doneRoutines}/${dayRoutines.length}r`}
-                      {dayRoutines.length > 0 && dayTasks.length > 0 && ' • '}
-                      {dayTasks.length > 0 && `${doneTasks}/${dayTasks.length}t`}
+                    <div style={{
+                      fontSize: '0.58rem',
+                      fontWeight: 700,
+                      color: 'var(--text-muted)',
+                      marginTop: '0.15rem',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      {dayRoutines.length > 0 ? `${doneRoutines}/${dayRoutines.length}` : `${doneTasks}t`}
                     </div>
                   )}
                 </div>

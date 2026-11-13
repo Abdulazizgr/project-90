@@ -186,8 +186,8 @@ export const UserManualModal: React.FC<UserManualModalProps> = ({ isOpen, onClos
                 <p style={{ color: 'var(--text-secondary)' }}>Routines are actionable tasks scheduled for daily or selected days (e.g. Gym 3 days/week, Deep Work 5 days/week). Log on-time vs late, mosque attendance, and reasons for missed or partial tasks. In the evening, evaluate each of the 5 categories (0-100) with the overall day score computed as the average.</p>
               </div>
               <div className="card">
-                <h5 style={{ fontWeight: 800, color: 'var(--cat-career)', marginBottom: '0.3rem' }}>🗓️ 90-Day Calendar Matrix & Weekly Schedule</h5>
-                <p style={{ color: 'var(--text-secondary)' }}>Visual 90-day sprint heatmap and weekly schedule that automatically syncs your routines for each day alongside custom tasks and events.</p>
+                <h5 style={{ fontWeight: 800, color: 'var(--cat-career)', marginBottom: '0.3rem' }}>🗓️ Monthly Calendar & Weekly Schedule</h5>
+                <p style={{ color: 'var(--text-secondary)' }}>Visual sprint heatmap and weekly schedule that automatically syncs your routines for each day alongside custom tasks and events.</p>
               </div>
               <div className="card">
                 <h5 style={{ fontWeight: 800, color: 'var(--cat-personal)', marginBottom: '0.3rem' }}>💾 MongoDB Atlas & Better Auth Sync</h5>

@@ -172,7 +172,7 @@ export const DailyReflectionView: React.FC = () => {
           <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.65rem' }}>
             Overall Day Energy & Mood
           </label>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.65rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(68px, 1fr))', gap: '0.65rem' }}>
             {moods.map((m) => {
               const isSelected = mood === m.id;
               return (

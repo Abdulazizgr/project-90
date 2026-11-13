@@ -38,7 +38,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
 
         triggerSound('fanfare');
         confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-        setSuccessMsg('Account created successfully! Welcome to PROJECT 90.');
+        setSuccessMsg('Account created successfully! Welcome to Apex OS.');
         if (loadCleanUserAccount) {
           await loadCleanUserAccount({ name: name.trim() || 'User', email: email.trim() });
         }
@@ -94,7 +94,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
             </div>
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
-                {mode === 'login' ? 'Sign In to PROJECT 90' : 'Create Your Account'}
+                {mode === 'login' ? 'Sign In to Apex OS' : 'Create Your Account'}
               </h3>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                 Powered by Better Auth & MongoDB

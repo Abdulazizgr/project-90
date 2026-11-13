@@ -12,10 +12,15 @@ export const loadDataFromStorage = (profile = {}) => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.challenge && parsed.categories && parsed.routines && parsed.tasks) {
-        if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19') || parsed.challenge.name.includes('PROJECT 90')) {
+        // Automatically migrate any legacy challenge names or durations
+        if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19') || parsed.challenge.name.includes('PROJECT 90') || parsed.challenge.name.includes('Project 90')) {
           parsed.challenge.name = 'Apex OS: Personal Management System';
-          parsed.challenge.totalDurationDays = parsed.challenge.totalDurationDays || 19;
-          parsed.challenge.currentDay = parsed.challenge.currentDay || 1;
+        }
+        if (!parsed.challenge.totalDurationDays || parsed.challenge.totalDurationDays === 30 || parsed.challenge.totalDurationDays === 90) {
+          parsed.challenge.totalDurationDays = 19;
+        }
+        if (!parsed.challenge.currentDay) {
+          parsed.challenge.currentDay = 1;
         }
         // Ensure owner profile has email & password seeded if blank or default
         if (!parsed.profile) parsed.profile = {};

@@ -80,6 +80,8 @@ export const Topbar: React.FC<TopbarProps> = ({
   const todayScore = data.dayScores?.[todayStr] || progress.percentage;
   const scoreMeta = getScoreLevel(todayScore);
   const currentDay = data.challenge?.currentDay || 1;
+  const rawDuration = data.challenge?.totalDurationDays;
+  const totalDays = (rawDuration === 30 || rawDuration === 90 || !rawDuration) ? 19 : rawDuration;
 
   return (
     <header className="topbar">
@@ -97,7 +99,7 @@ export const Topbar: React.FC<TopbarProps> = ({
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="badge badge-primary" style={{ fontSize: '0.75rem', fontWeight: 800 }}>
-            DAY {currentDay} OF {data.challenge?.totalDurationDays || 19}
+            DAY {currentDay} OF {totalDays}
           </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', color: '#f59e0b', fontSize: '0.8rem', fontWeight: 700 }}>
             <Flame size={15} fill="#f59e0b" color="#f59e0b" />
