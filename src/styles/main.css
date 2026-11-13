@@ -732,3 +732,49 @@ option {
     display: none;
   }
 }
+
+/* Mobile-First Touch, PWA & iOS Safari Optimizations */
+@media (max-width: 768px) {
+  /* Prevent iOS Safari from zooming in on input focus */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  .app-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+
+  .main-content {
+    margin-left: 0;
+    min-height: 100dvh;
+    padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px));
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .topbar {
+    padding-top: env(safe-area-inset-top, 0px);
+    height: calc(60px + env(safe-area-inset-top, 0px));
+  }
+
+  .mobile-bottom-nav {
+    height: calc(64px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav-btn {
+    min-height: 48px;
+    touch-action: manipulation;
+  }
+
+  /* Smooth horizontal scrolling containers on mobile */
+  .mobile-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .mobile-scroll-x::-webkit-scrollbar {
+    display: none;
+  }
+}

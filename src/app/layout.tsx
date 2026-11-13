@@ -1,13 +1,13 @@
 import '@/styles/main.css';
 
 export const metadata = {
-  title: 'PROJECT 90 — Routine & Life OS',
-  description: 'Your 90-Day Routine & Dynamic Pillars Life Operating System',
+  title: 'Project 19 — Personal Management System',
+  description: 'Mobile-first personal management system: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Project 90'
+    title: 'Project 19'
   }
 };
 

@@ -31,6 +31,7 @@ import { CommandPaletteModal } from '@/components/common/CommandPaletteModal';
 import { UserManualModal } from '@/components/manual/UserManualModal';
 import { SetupWizardModal } from '@/components/onboarding/SetupWizardModal';
 import { OnboardingFlow } from '@/components/onboarding/OnboardingFlow';
+import { PWAInstallBanner } from '@/components/common/PWAInstallBanner';
 
 function MainApp() {
   const { 
@@ -101,6 +102,9 @@ function MainApp() {
 
   return (
     <div className="app-container">
+      {/* PWA Mobile Add to Home Screen Prompt */}
+      <PWAInstallBanner />
+
       {/* Mobile Sidebar Backdrop */}
       {isMobileOpen && (
         <div

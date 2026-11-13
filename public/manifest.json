@@ -1,14 +1,15 @@
 {
-  "name": "PROJECT 90 — Routine & Life OS",
-  "short_name": "Project 90",
-  "description": "Your 90-Day Routine & Dynamic Pillars Life Operating System",
+  "name": "Project 19 — Personal Management System",
+  "short_name": "Project 19",
+  "description": "Mobile-first personal management system: daily routines, tasks, 24-hour time tracking, monthly calendar & weekly reports",
   "start_url": "/",
   "id": "/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#090d16",
+  "background_color": "#0a0f1d",
   "theme_color": "#6366f1",
   "scope": "/",
+  "categories": ["productivity", "lifestyle"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -25,19 +26,32 @@
   ],
   "shortcuts": [
     {
-      "name": "Today's Routines",
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "View today's sprint overview and execution board",
+      "url": "/?tab=dashboard",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Day (24h Time)",
+      "short_name": "My Day",
+      "description": "Record and balance your 24-hour time tracking",
+      "url": "/?tab=my_day",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Daily Routines",
       "short_name": "Routines",
       "description": "View and run your daily routines",
       "url": "/?tab=routines",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Evening Reflection",
-      "short_name": "Reflection",
-      "description": "Log your daily evening reflection",
-      "url": "/?tab=journal",
+      "name": "Daily Tasks",
+      "short_name": "Tasks",
+      "description": "Manage actionable tasks and deadlines",
+      "url": "/?tab=tasks",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
-
