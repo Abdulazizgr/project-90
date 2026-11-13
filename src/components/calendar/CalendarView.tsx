@@ -345,22 +345,27 @@ export const CalendarView: React.FC = () => {
                 }}
               >
                 {/* Day Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{
-                    fontWeight: isToday ? 900 : 700,
-                    fontSize: '0.85rem',
-                    color: isToday ? 'var(--primary-light)' : 'var(--text-primary)'
-                  }}>
+                <div className="calendar-day-header">
+                  <span
+                    className="calendar-day-num"
+                    style={{
+                      fontWeight: isToday ? 900 : 700,
+                      color: isToday ? 'var(--primary-light)' : 'var(--text-primary)',
+                      whiteSpace: 'nowrap',
+                      lineHeight: 1
+                    }}
+                  >
                     {dayNum}
                   </span>
 
                   {challengeDay && (
-                    <span className="badge" style={{
-                      fontSize: '0.62rem',
-                      padding: '0.1rem 0.35rem',
-                      background: 'rgba(255, 255, 255, 0.1)',
-                      color: 'var(--text-secondary)'
-                    }}>
+                    <span 
+                      className="calendar-sprint-badge"
+                      style={{
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1
+                      }}
+                    >
                       D{challengeDay}
                     </span>
                   )}

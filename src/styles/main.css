@@ -579,6 +579,60 @@ option {
   }
 }
 
+/* Responsive visibility classes (Desktop default) */
+.mobile-bottom-nav {
+  display: none;
+}
+.show-mobile {
+  display: none !important;
+}
+.hide-mobile {
+  display: inline-flex !important;
+}
+
+/* Calendar Card & Cell Header Optimizations */
+.calendar-day-header {
+  display: flex;
+  justifyContent: space-between;
+  align-items: center;
+  width: 100%;
+}
+.calendar-day-num {
+  font-size: 0.85rem;
+  font-weight: 700;
+  white-space: nowrap !important;
+  line-height: 1;
+}
+.calendar-sprint-badge {
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  white-space: nowrap !important;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .calendar-day-header {
+    flex-direction: column !important;
+    align-items: center !important;
+    justifyContent: center !important;
+    gap: 2px !important;
+  }
+  .calendar-day-num {
+    font-size: 0.78rem !important;
+    text-align: center !important;
+  }
+  .calendar-sprint-badge {
+    font-size: 0.52rem !important;
+    padding: 1px 3px !important;
+    border-radius: 3px !important;
+    text-align: center !important;
+  }
+}
+
 @media (max-width: 1200px) {
   .grid-5 { grid-template-columns: repeat(3, 1fr); }
   .grid-4 { grid-template-columns: repeat(2, 1fr); }
@@ -741,14 +795,6 @@ option {
   .show-mobile {
     display: inline-flex !important;
   }
-}
-
-/* Desktop default: hide mobile bottom nav and mobile-only elements */
-.mobile-bottom-nav {
-  display: none;
-}
-.show-mobile {
-  display: none !important;
 }
 
 @media (max-width: 480px) {
