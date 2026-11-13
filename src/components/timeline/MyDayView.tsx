@@ -731,3 +731,4 @@ export const MyDayView: React.FC = () => {
     </div>
   );
 };
+
