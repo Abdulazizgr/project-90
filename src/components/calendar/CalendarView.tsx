@@ -352,6 +352,7 @@ export const CalendarView: React.FC = () => {
                       fontWeight: isToday ? 900 : 700,
                       color: isToday ? 'var(--primary-light)' : 'var(--text-primary)',
                       whiteSpace: 'nowrap',
+                      wordBreak: 'keep-all',
                       lineHeight: 1
                     }}
                   >
@@ -363,6 +364,7 @@ export const CalendarView: React.FC = () => {
                       className="calendar-sprint-badge"
                       style={{
                         whiteSpace: 'nowrap',
+                        wordBreak: 'keep-all',
                         lineHeight: 1
                       }}
                     >

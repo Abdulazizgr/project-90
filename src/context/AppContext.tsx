@@ -65,18 +65,57 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }
   }, [data.profile?.theme]);
 
-  // Sync with MongoDB Atlas or use LocalStorage fallback
+  // Sync with MongoDB or use LocalStorage fallback
   useEffect(() => {
     let isMounted = true;
-    const userId = user?.id || user?.email || 'guest_user';
+    const ownerEmail = data.profile?.email || user?.email || 'abdulazizisa579@gmail.com';
 
     const fetchMongoData = async () => {
       try {
-        const res = await fetch(`/api/data?userId=${encodeURIComponent(userId)}`);
+        const res = await fetch(`/api/data?userId=${encodeURIComponent(ownerEmail)}`);
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data && isMounted) {
-            setData(json.data);
+            const remote = json.data;
+            setData((localState: any) => {
+              if (!localState || !localState.challenge) return remote;
+
+              // Intelligent merge: never revert user task completions or challenge duration
+              const localTasks = localState.tasks || [];
+              const remoteTasks = remote.tasks || [];
+
+              const mergedTasks = remoteTasks.map((rt: any) => {
+                const lt = localTasks.find((t: any) => t.id === rt.id);
+                if (lt && lt.status === 'completed') return lt;
+                return rt;
+              });
+
+              return {
+                ...remote,
+                profile: {
+                  ...remote.profile,
+                  ...localState.profile
+                },
+                challenge: {
+                  ...remote.challenge,
+                  totalDurationDays: localState.challenge?.totalDurationDays || remote.challenge?.totalDurationDays || 19,
+                  name: localState.challenge?.name || remote.challenge?.name || 'Apex OS: Personal Management System'
+                },
+                tasks: mergedTasks.length ? mergedTasks : localTasks,
+                routineLogsHistory: {
+                  ...(remote.routineLogsHistory || {}),
+                  ...(localState.routineLogsHistory || {})
+                },
+                timeEntriesHistory: {
+                  ...(remote.timeEntriesHistory || {}),
+                  ...(localState.timeEntriesHistory || {})
+                },
+                journalEntries: {
+                  ...(remote.journalEntries || {}),
+                  ...(localState.journalEntries || {})
+                }
+              };
+            });
             setIsDbSynced(true);
           }
         }
@@ -90,7 +129,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     return () => {
       isMounted = false;
     };
-  }, [user?.id, user?.email]);
+  }, []);
 
   // Debounced auto-sync to LocalStorage and MongoDB
   const syncTimeoutRef = useRef<any>(null);
@@ -104,22 +143,22 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
 
     syncTimeoutRef.current = setTimeout(async () => {
       try {
-        const userId = user?.id || user?.email || 'guest_user';
+        const ownerEmail = data.profile?.email || 'abdulazizisa579@gmail.com';
         await fetch('/api/data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId, data })
+          body: JSON.stringify({ userId: ownerEmail, data })
         });
         setIsDbSynced(true);
       } catch (err) {
         console.debug('Failed to sync to MongoDB', err);
       }
-    }, 1500);
+    }, 600);
 
     return () => {
       if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     };
-  }, [data, user?.id, user?.email]);
+  }, [data]);
 
   const triggerSound = (type: string) => {
     if (data.profile?.soundEnabled !== false) {

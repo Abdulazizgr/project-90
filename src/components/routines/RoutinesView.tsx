@@ -36,7 +36,7 @@ export const RoutinesView = () => {
   const todayDayKey = getDayKeyFromDateStr(todayStr);
 
   // Filters
-  const [templateFilter, setTemplateFilter] = useState<'all' | 'gym' | 'nongym' | 'sunday' | 'today'>('today');
+  const [activeFilter, setActiveFilter] = useState<'today' | 'all'>('today');
   const [selectedPillarFilter, setSelectedPillarFilter] = useState('all');
 
   const filteredRoutines = useMemo(() => {
@@ -45,25 +45,12 @@ export const RoutinesView = () => {
       if (selectedPillarFilter !== 'all' && r.categoryId !== selectedPillarFilter) {
         return false;
       }
-
-      // Template filter
-      const rDays = (r.assignedDays || r.days || []).map((d: string) => d.toLowerCase());
-      if (templateFilter === 'today') {
+      if (activeFilter === 'today') {
         if (!isRoutineScheduledForDay(r, todayDayKey)) return false;
-      } else if (templateFilter === 'gym') {
-        const isGym = r.template === 'gym' || rDays.some((d: string) => ['tue', 'thu', 'sat'].includes(d));
-        if (!isGym) return false;
-      } else if (templateFilter === 'nongym') {
-        const isNonGym = r.template === 'non_gym' || rDays.some((d: string) => ['mon', 'wed', 'fri'].includes(d));
-        if (!isNonGym) return false;
-      } else if (templateFilter === 'sunday') {
-        const isSun = r.template === 'sunday' || rDays.includes('sun');
-        if (!isSun) return false;
       }
-
       return true;
     });
-  }, [routines, selectedPillarFilter, templateFilter, todayDayKey]);
+  }, [routines, selectedPillarFilter, activeFilter, todayDayKey]);
 
   const handleEditRoutine = (routine: any) => {
     setModalData(routine);
@@ -101,10 +88,10 @@ export const RoutinesView = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <SunMedium size={24} color="var(--primary-light)" />
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Daily Routines & Templates</h1>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Daily Routines</h1>
           </div>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
-            Reusable daily routines with start & end times, assigned templates (Gym, Non-Gym, Sunday rest).
+            Your core daily routines with scheduled start and end times across your focus pillars.
           </p>
         </div>
 
@@ -124,7 +111,7 @@ export const RoutinesView = () => {
         </div>
       </div>
 
-      {/* Template & Day Filter Bar */}
+      {/* Routine Filter Bar */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -137,25 +124,24 @@ export const RoutinesView = () => {
         borderRadius: 'var(--radius-lg)',
         border: '1px solid var(--border-color)'
       }}>
-        {/* Template Tabs */}
-        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', overflowX: 'auto', width: '100%', maxWidth: '100%' }}>
-          {[
-            { id: 'today', label: "Today's Schedule" },
-            { id: 'gym', label: '🏋️ Gym Days (Tue/Thu/Sat)' },
-            { id: 'nongym', label: '💻 Non-Gym (Mon/Wed/Fri)' },
-            { id: 'sunday', label: '☕ Sunday Rest' },
-            { id: 'all', label: `All (${routines.length})` }
-          ].map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={`btn btn-sm ${templateFilter === t.id ? 'btn-primary' : 'btn-ghost'}`}
-              onClick={() => setTemplateFilter(t.id as any)}
-              style={{ fontSize: '0.78rem', padding: '0.3rem 0.75rem', fontWeight: 700 }}
-            >
-              {t.label}
-            </button>
-          ))}
+        {/* View Filter Tabs */}
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className={`btn btn-sm ${activeFilter === 'today' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setActiveFilter('today')}
+            style={{ fontSize: '0.78rem', padding: '0.3rem 0.85rem', fontWeight: 700 }}
+          >
+            Today's Schedule
+          </button>
+          <button
+            type="button"
+            className={`btn btn-sm ${activeFilter === 'all' ? 'btn-primary' : 'btn-ghost'}`}
+            onClick={() => setActiveFilter('all')}
+            style={{ fontSize: '0.78rem', padding: '0.3rem 0.85rem', fontWeight: 700 }}
+          >
+            All Routines ({routines.length})
+          </button>
         </div>
 
         {/* Pillar Filter Dropdown */}
@@ -184,7 +170,7 @@ export const RoutinesView = () => {
             No routines found for this filter
           </h3>
           <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-            Switch templates or create a new routine to schedule your day.
+            Adjust your day filter or create a new routine to schedule your day.
           </p>
           <button
             type="button"

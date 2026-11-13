@@ -80,8 +80,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   const todayScore = data.dayScores?.[todayStr] || progress.percentage;
   const scoreMeta = getScoreLevel(todayScore);
   const currentDay = data.challenge?.currentDay || 1;
-  const rawDuration = data.challenge?.totalDurationDays;
-  const totalDays = (rawDuration === 30 || rawDuration === 90 || !rawDuration) ? 19 : rawDuration;
+  const totalDays = data.challenge?.totalDurationDays || 19;
 
   return (
     <header className="topbar">

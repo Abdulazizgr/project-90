@@ -366,8 +366,8 @@ export const TasksView: React.FC = () => {
                         textDecoration: isDone ? 'line-through' : 'none',
                         color: isDone ? 'var(--text-muted)' : 'var(--text-primary)',
                         lineHeight: 1.3,
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere'
+                        wordBreak: 'normal',
+                        overflowWrap: 'break-word'
                       }}>
                         {task.title}
                       </h4>

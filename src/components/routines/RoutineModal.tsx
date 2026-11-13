@@ -92,22 +92,6 @@ export const RoutineModal = () => {
     }
   };
 
-  const applyTemplate = (type: 'gym' | 'nongym' | 'sunday' | 'daily') => {
-    if (type === 'gym') {
-      setAssignedDays(['tue', 'thu', 'sat']);
-      setTemplate('gym');
-    } else if (type === 'nongym') {
-      setAssignedDays(['mon', 'wed', 'fri']);
-      setTemplate('non_gym');
-    } else if (type === 'sunday') {
-      setAssignedDays(['sun']);
-      setTemplate('sunday');
-    } else {
-      setAssignedDays(['daily']);
-      setTemplate('all');
-    }
-  };
-
   const toggleDay = (dayKey: string) => {
     if (dayKey === 'daily') {
       setAssignedDays(['daily']);
@@ -192,7 +176,7 @@ export const RoutineModal = () => {
               {isEditing ? 'Edit Daily Routine' : 'Create Daily Routine'}
             </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              Configure start time, duration, and assigned template days
+              Configure start time, duration, and scheduled days
             </p>
           </div>
           <button 
@@ -289,60 +273,19 @@ export const RoutineModal = () => {
             )}
           </div>
 
-          {/* Template Presets */}
+          {/* Assigned Days Selector */}
           <div>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-              Template Presets
-            </label>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-              <button
-                type="button"
-                className={`btn btn-sm ${assignedDays.join(',') === 'tue,thu,sat' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => applyTemplate('gym')}
-                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
-              >
-                🏋️ Gym (Tue/Thu/Sat)
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${assignedDays.join(',') === 'mon,wed,fri' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => applyTemplate('nongym')}
-                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
-              >
-                💻 Non-Gym (Mon/Wed/Fri)
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${assignedDays.join(',') === 'sun' ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => applyTemplate('sunday')}
-                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
-              >
-                ☕ Sunday (Rest Day)
-              </button>
-              <button
-                type="button"
-                className={`btn btn-sm ${assignedDays.includes('daily') ? 'btn-primary' : 'btn-secondary'}`}
-                onClick={() => applyTemplate('daily')}
-                style={{ fontSize: '0.72rem', padding: '0.3rem 0.6rem' }}
-              >
-                🌟 Daily
-              </button>
-            </div>
-          </div>
-
-          {/* Custom Assigned Days Selector */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.35rem' }}>
-              Custom Days
+              Scheduled Days
             </label>
             <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 className={`btn btn-sm ${assignedDays.includes('daily') ? 'btn-primary' : 'btn-secondary'}`}
                 onClick={() => toggleDay('daily')}
-                style={{ fontSize: '0.72rem' }}
+                style={{ fontSize: '0.72rem', padding: '0.3rem 0.65rem', fontWeight: 700 }}
               >
-                Daily
+                Every Day (Daily)
               </button>
               {daysOfWeek.map((d) => {
                 const isSelected = assignedDays.includes(d.key);
@@ -352,7 +295,7 @@ export const RoutineModal = () => {
                     type="button"
                     className={`btn btn-sm ${isSelected ? 'btn-primary' : 'btn-secondary'}`}
                     onClick={() => toggleDay(d.key)}
-                    style={{ fontSize: '0.72rem', minWidth: '40px' }}
+                    style={{ fontSize: '0.72rem', minWidth: '42px', fontWeight: 700 }}
                   >
                     {d.label}
                   </button>

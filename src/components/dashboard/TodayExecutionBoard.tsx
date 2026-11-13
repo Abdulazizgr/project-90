@@ -214,7 +214,7 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
               onClick={() => setActiveTab('routines')}
               style={{ fontSize: '0.75rem', gap: '0.25rem' }}
             >
-              <span>Manage Templates</span>
+              <span>All Routines</span>
               <ChevronRight size={13} />
             </button>
           </div>
@@ -286,8 +286,8 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                         marginTop: '0.15rem',
                         color: isDone ? 'var(--text-muted)' : 'var(--text-primary)',
                         textDecoration: isDone ? 'line-through' : 'none',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'anywhere'
+                        wordBreak: 'normal',
+                        overflowWrap: 'break-word'
                       }}>
                         {routine.name || routine.title}
                       </h4>
@@ -416,8 +416,8 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
                           marginTop: '0.15rem',
                           color: isCompleted ? 'var(--text-muted)' : 'var(--text-primary)',
                           textDecoration: isCompleted ? 'line-through' : 'none',
-                          wordBreak: 'break-word',
-                          overflowWrap: 'anywhere'
+                          wordBreak: 'normal',
+                          overflowWrap: 'break-word'
                         }}>
                           {task.title}
                         </h4>

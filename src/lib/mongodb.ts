@@ -1,9 +1,9 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || 'mongodb+srv://abdulazizisa579_db_user:IBbQw6aw8NnsysYu@cluster0.7mbwqf2.mongodb.net/project90?retryWrites=true&w=majority&appName=Cluster0';
+const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/project90';
 const options = {
-  serverSelectionTimeoutMS: 5000,
-  connectTimeoutMS: 10000,
+  serverSelectionTimeoutMS: 4000,
+  connectTimeoutMS: 5000,
 };
 
 declare global {
@@ -35,4 +35,3 @@ export async function getDatabase(dbName = 'project90') {
   const c = await clientPromise;
   return c.db(dbName);
 }
-

@@ -591,6 +591,12 @@ option {
 }
 
 /* Calendar Card & Cell Header Optimizations */
+.calendar-day-card {
+  min-width: 0;
+  overflow: hidden;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
 .calendar-day-header {
   display: flex;
   justifyContent: space-between;
@@ -601,6 +607,8 @@ option {
   font-size: 0.85rem;
   font-weight: 700;
   white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
   line-height: 1;
 }
 .calendar-sprint-badge {
@@ -611,6 +619,8 @@ option {
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-secondary);
   white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
   line-height: 1;
 }
 
@@ -624,12 +634,14 @@ option {
   .calendar-day-num {
     font-size: 0.78rem !important;
     text-align: center !important;
+    white-space: nowrap !important;
   }
   .calendar-sprint-badge {
     font-size: 0.52rem !important;
     padding: 1px 3px !important;
     border-radius: 3px !important;
     text-align: center !important;
+    white-space: nowrap !important;
   }
 }
 
@@ -778,7 +790,8 @@ option {
     max-width: 100% !important;
     box-sizing: border-box !important;
     overflow-x: hidden;
-    word-break: break-word;
+    overflow-wrap: break-word;
+    word-break: normal;
   }
   .topbar {
     padding: 0 1rem;

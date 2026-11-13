@@ -404,13 +404,13 @@ export const WeeklyReportView: React.FC = () => {
                       fontSize: '0.78rem'
                     }}
                   >
-                    <div style={{ flex: 1, minWidth: '160px' }}>
-                      <span style={{ fontWeight: 600, display: 'inline' }}>{item.title}</span>
-                      <span style={{ color: 'var(--text-muted)', marginLeft: '0.4rem', fontSize: '0.7rem', display: 'inline-block' }}>
+                    <div style={{ flex: 1, minWidth: 0, wordBreak: 'normal', overflowWrap: 'break-word' }}>
+                      <span style={{ fontWeight: 600 }}>{item.title}</span>
+                      <span style={{ color: 'var(--text-muted)', marginLeft: '0.35rem', fontSize: '0.7rem' }}>
                         ({item.type} • {item.category})
                       </span>
                     </div>
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.7rem', flexShrink: 0, marginLeft: 'auto' }} className="mono">
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.68rem', flexShrink: 0 }} className="mono">
                       {item.date}
                     </span>
                   </div>

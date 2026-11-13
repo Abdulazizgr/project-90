@@ -16,7 +16,7 @@ export const loadDataFromStorage = (profile = {}) => {
         if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19') || parsed.challenge.name.includes('PROJECT 90') || parsed.challenge.name.includes('Project 90')) {
           parsed.challenge.name = 'Apex OS: Personal Management System';
         }
-        if (!parsed.challenge.totalDurationDays || parsed.challenge.totalDurationDays === 30 || parsed.challenge.totalDurationDays === 90) {
+        if (!parsed.challenge.totalDurationDays) {
           parsed.challenge.totalDurationDays = 19;
         }
         if (!parsed.challenge.currentDay) {

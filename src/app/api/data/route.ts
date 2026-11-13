@@ -5,7 +5,7 @@ import { getCleanUserData } from '@/utils/seedData';
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId') || 'guest_user';
+    const userId = searchParams.get('userId') || 'abdulazizisa579@gmail.com';
     const name = searchParams.get('name') || '';
 
     const db = await getDatabase('project90');
@@ -15,7 +15,10 @@ export async function GET(request: Request) {
 
     if (!userData) {
       // Initialize 100% clean Day 1 state from scratch
-      const initial = getCleanUserData({ name: name || (userId.includes('@') ? userId.split('@')[0] : 'User'), email: userId });
+      const initial = getCleanUserData({ 
+        name: name || (userId.includes('@') ? userId.split('@')[0] : 'Abdulaziz'), 
+        email: userId.includes('@') ? userId : 'abdulazizisa579@gmail.com' 
+      });
 
       userData = {
         userId,
@@ -29,15 +32,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, data: userData });
   } catch (error: any) {
     console.error('Error in GET /api/data:', error);
-    // Fallback gracefully to clean state
-    return NextResponse.json({ success: true, data: getCleanUserData(), error: error?.message || 'Database offline fallback' });
+    // Return error status so client keeps its LocalStorage data and does not overwrite user edits
+    return NextResponse.json({ success: false, error: error?.message || 'Database offline fallback' }, { status: 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId = 'guest_user', data } = body;
+    const { userId = 'abdulazizisa579@gmail.com', data } = body;
 
     if (!data) {
       return NextResponse.json({ success: false, message: 'Missing data payload' }, { status: 400 });
