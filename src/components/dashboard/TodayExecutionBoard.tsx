@@ -111,12 +111,12 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
         </div>
 
         {/* Sub-tab pills */}
-        <div style={{ display: 'flex', gap: '0.35rem', background: 'var(--bg-input)', padding: '0.2rem', borderRadius: 'var(--radius-full)' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', background: 'var(--bg-input)', padding: '0.2rem', borderRadius: 'var(--radius-full)', overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch' }}>
           <button
             type="button"
             className={`btn btn-sm ${activeSubTab === 'all' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setActiveSubTab('all')}
-            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)' }}
+            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
           >
             All Items ({scheduledTodayRoutines.length + todayTasks.length})
           </button>
@@ -124,7 +124,7 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
             type="button"
             className={`btn btn-sm ${activeSubTab === 'routines' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setActiveSubTab('routines')}
-            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)' }}
+            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
           >
             Routines ({completedRoutinesCount}/{scheduledTodayRoutines.length})
           </button>
@@ -132,7 +132,7 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
             type="button"
             className={`btn btn-sm ${activeSubTab === 'tasks' ? 'btn-primary' : 'btn-ghost'}`}
             onClick={() => setActiveSubTab('tasks')}
-            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)' }}
+            style={{ fontSize: '0.74rem', padding: '0.25rem 0.65rem', borderRadius: 'var(--radius-full)', whiteSpace: 'nowrap' }}
           >
             Tasks ({completedTasksCount}/{todayTasks.length})
           </button>
@@ -150,7 +150,8 @@ export const TodayExecutionBoard: React.FC<TodayExecutionBoardProps> = ({
           padding: '0.5rem',
           borderRadius: 'var(--radius-md)',
           border: '1px solid var(--border-color)',
-          alignItems: 'center'
+          alignItems: 'center',
+          flexWrap: 'wrap'
         }}
       >
         <input

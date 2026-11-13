@@ -197,41 +197,47 @@ export const MyDayView: React.FC = () => {
           </div>
 
           {/* Date Picker Switcher */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handlePrevDay}
-              title="Previous Day"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <div style={{
-              background: 'var(--bg-input)',
-              padding: '0.35rem 0.8rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--border-color)',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              minWidth: '130px',
-              textAlign: 'center'
-            }}>
-              {selectedDate} {isToday && <span style={{ color: 'var(--primary-light)', fontSize: '0.72rem' }}>(Today)</span>}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', maxWidth: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: 1, minWidth: 0 }}>
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handlePrevDay}
+                title="Previous Day"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div style={{
+                background: 'var(--bg-input)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-md)',
+                border: '1px solid var(--border-color)',
+                fontWeight: 700,
+                fontSize: '0.82rem',
+                flex: 1,
+                minWidth: 0,
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {selectedDate} {isToday && <span style={{ color: 'var(--primary-light)', fontSize: '0.72rem' }}>(Today)</span>}
+              </div>
+              <button 
+                type="button" 
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handleNextDay}
+                title="Next Day"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handleNextDay}
-              title="Next Day"
-            >
-              <ChevronRight size={16} />
-            </button>
             {!isToday && (
               <button
                 type="button"
                 className="btn btn-ghost btn-sm"
                 onClick={() => setSelectedDate(todayStr)}
-                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
+                style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem', flexShrink: 0 }}
               >
                 Today
               </button>
@@ -241,7 +247,7 @@ export const MyDayView: React.FC = () => {
 
         {/* 24-Hour Visual Balance Bar */}
         <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.3rem', fontSize: '0.78rem', fontWeight: 700, marginBottom: '0.4rem' }}>
             <span>24-HOUR BALANCE (1,440 MIN)</span>
             <span style={{ color: 'var(--text-secondary)' }}>
               Recorded: <strong style={{ color: 'var(--text-primary)' }}>{formatDurationHuman(totalTrackedMinutes)}</strong> • Unlogged Rest: <strong style={{ color: 'var(--text-muted)' }}>{formatDurationHuman(unallocatedMinutes)}</strong>
@@ -278,7 +284,7 @@ export const MyDayView: React.FC = () => {
       {/* Main Grid: Left = Timeline Entries & Logger, Right = 24h Category Balance Table */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))',
         gap: '1.25rem',
         alignItems: 'start'
       }}>
@@ -367,7 +373,7 @@ export const MyDayView: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.65rem', marginBottom: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
                       Category
@@ -402,7 +408,7 @@ export const MyDayView: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', marginBottom: '0.75rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.65rem', marginBottom: '0.75rem' }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
                       Start Time (24h)
@@ -543,7 +549,7 @@ export const MyDayView: React.FC = () => {
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem 0.6rem', flexWrap: 'wrap', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
                         <span className="mono" style={{ fontWeight: 600 }}>
                           {entry.startTime} – {entry.endTime}
                         </span>

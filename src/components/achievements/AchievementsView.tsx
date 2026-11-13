@@ -80,8 +80,8 @@ export const AchievementsView = () => {
       {/* Badges Grid */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-        gap: '1.1rem'
+        gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 280px), 1fr))',
+        gap: '1rem'
       }}>
         {achievements.map((ach: any) => {
           const isUnlocked = ach.unlocked;

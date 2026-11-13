@@ -193,39 +193,45 @@ export const CalendarView: React.FC = () => {
           </div>
 
           {/* Month Switcher Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handlePrevMonth}
-              title="Previous Month"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <div style={{
-              background: 'var(--bg-input)',
-              padding: '0.35rem 0.85rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              minWidth: '140px',
-              textAlign: 'center'
-            }}>
-              {monthTitle}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', maxWidth: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: 1, minWidth: 0 }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handlePrevMonth}
+                title="Previous Month"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div style={{
+                background: 'var(--bg-input)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 800,
+                fontSize: '0.82rem',
+                flex: 1,
+                minWidth: 0,
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {monthTitle}
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handleNextMonth}
+                title="Next Week"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handleNextMonth}
-              title="Next Month"
-            >
-              <ChevronRight size={16} />
-            </button>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={handleGoToday}
-              style={{ fontSize: '0.75rem', fontWeight: 700 }}
+              style={{ fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}
             >
               Today
             </button>
@@ -323,8 +329,8 @@ export const CalendarView: React.FC = () => {
                 onClick={() => handleOpenDay(dateStr, challengeDay)}
                 className="calendar-day-card"
                 style={{
-                  minHeight: '85px',
-                  padding: '0.45rem',
+                  minHeight: '68px',
+                  padding: '0.35rem 0.25rem',
                   borderRadius: 'var(--radius-md)',
                   background: isToday ? 'rgba(99, 102, 241, 0.12)' : status.bg || 'var(--bg-input)',
                   border: isToday 

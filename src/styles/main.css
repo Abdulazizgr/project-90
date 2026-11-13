@@ -58,6 +58,9 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100vh;
   position: relative;
   background-color: var(--bg-app);
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -81,8 +84,12 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
+  width: 100%;
+  max-width: calc(100vw - 270px);
   padding-bottom: 90px; /* space for global timer bar */
   transition: margin-left var(--transition-normal);
+  overflow-x: hidden;
 }
 
 .page-container {
@@ -91,6 +98,8 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 auto;
   padding: 1.75rem 2rem 3rem 2rem;
   animation: fadeIn 0.3s ease;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Topbar Header */
@@ -617,8 +626,11 @@ option {
     transform: translateX(0);
   }
   .main-content {
-    margin-left: 0;
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100vw !important;
     padding-bottom: 84px; /* Space for mobile bottom navigation */
+    overflow-x: hidden !important;
   }
 
   /* Mobile Bottom Navigation Bar */
@@ -629,14 +641,14 @@ option {
     left: 0;
     right: 0;
     height: 64px;
-    background: rgba(13, 17, 28, 0.92);
+    background: rgba(13, 17, 28, 0.95);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-top: 1px solid var(--border-color);
     z-index: 50;
     align-items: center;
     justify-content: space-around;
-    padding: 0 0.5rem;
+    padding: 0 0.25rem;
     padding-bottom: env(safe-area-inset-bottom, 0px);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.4);
   }
@@ -649,12 +661,13 @@ option {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-weight: 500;
-    padding: 0.35rem 0.5rem;
+    padding: 0.25rem 0.15rem;
     border-radius: var(--radius-md);
     cursor: pointer;
     flex: 1;
+    min-width: 0;
     transition: all var(--transition-fast);
     position: relative;
     user-select: none;
@@ -686,6 +699,11 @@ option {
 
   .mobile-nav-label {
     line-height: 1;
+    font-size: 0.62rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 58px;
   }
 
   .global-timer-bar {
@@ -695,7 +713,18 @@ option {
     grid-template-columns: 1fr;
   }
   .page-container {
-    padding: 1rem 0.85rem 3rem 0.85rem;
+    padding: 0.85rem 0.75rem 4rem 0.75rem !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden !important;
+  }
+  .card {
+    padding: 1rem 0.85rem !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow-x: hidden;
+    word-break: break-word;
   }
   .topbar {
     padding: 0 1rem;

@@ -178,7 +178,7 @@ export const DayDetailModal = () => {
           {dayScheduledRoutines.length === 0 ? (
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No routines scheduled for this day.</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '0.5rem' }}>
               {dayScheduledRoutines.map((routine: any) => {
                 const execLog = dayLogs[routine.id];
                 const isDone = execLog && (execLog.completed || execLog.status === 'done' || execLog.status === 'completed');
@@ -223,7 +223,7 @@ export const DayDetailModal = () => {
           {dayTasks.length === 0 ? (
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>No tasks planned for this date.</p>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 250px), 1fr))', gap: '0.5rem' }}>
               {dayTasks.map((t: any) => {
                 const isDone = t.status === 'completed';
                 return (

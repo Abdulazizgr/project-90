@@ -91,39 +91,45 @@ export const WeeklyReportView: React.FC = () => {
           </div>
 
           {/* Week Selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handlePrevWeek}
-              title="Previous Week"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <div style={{
-              background: 'var(--bg-input)',
-              padding: '0.35rem 0.85rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: 800,
-              fontSize: '0.82rem',
-              minWidth: '200px',
-              textAlign: 'center'
-            }}>
-              {report.weekStart} – {report.weekEnd}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', width: '100%', maxWidth: '100%', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flex: 1, minWidth: 0 }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handlePrevWeek}
+                title="Previous Week"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div style={{
+                background: 'var(--bg-input)',
+                padding: '0.35rem 0.5rem',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: 800,
+                fontSize: '0.78rem',
+                flex: 1,
+                minWidth: 0,
+                textAlign: 'center',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}>
+                {report.weekStart} – {report.weekEnd}
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm btn-icon"
+                onClick={handleNextWeek}
+                title="Next Week"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
-            <button
-              type="button"
-              className="btn btn-secondary btn-sm btn-icon"
-              onClick={handleNextWeek}
-              title="Next Week"
-            >
-              <ChevronRight size={16} />
-            </button>
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => setCurrentWeekMonday(getMondayOfDate(new Date(todayStr)))}
-              style={{ fontSize: '0.75rem', fontWeight: 700 }}
+              style={{ fontSize: '0.75rem', fontWeight: 700, flexShrink: 0 }}
             >
               Current
             </button>
@@ -155,22 +161,28 @@ export const WeeklyReportView: React.FC = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(70px, 1fr))',
+            gap: '0.75rem',
+            width: '100%',
+            maxWidth: '100%'
+          }}>
             <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>ROUTINE RATE</span>
-              <span className="mono" style={{ fontSize: '1.2rem', fontWeight: 800, color: '#10b981' }}>{report.routineCompletionRate}%</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>ROUTINE RATE</span>
+              <span className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#10b981' }}>{report.routineCompletionRate}%</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>TASK RATE</span>
-              <span className="mono" style={{ fontSize: '1.2rem', fontWeight: 800, color: '#06b6d4' }}>{report.taskCompletionRate}%</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>TASK RATE</span>
+              <span className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#06b6d4' }}>{report.taskCompletionRate}%</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>TIME LOGGED</span>
-              <span className="mono" style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-primary)' }}>{formatDurationHuman(report.totalTimeTrackedMinutes)}</span>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>TIME LOGGED</span>
+              <span className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--text-primary)' }}>{formatDurationHuman(report.totalTimeTrackedMinutes)}</span>
             </div>
             <div>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>STREAK</span>
-              <span className="mono" style={{ fontSize: '1.2rem', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, display: 'block' }}>STREAK</span>
+              <span className="mono" style={{ fontSize: '1.15rem', fontWeight: 800, color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                 <Flame size={15} fill="#f59e0b" /> {report.currentStreak}d
               </span>
             </div>
@@ -187,7 +199,7 @@ export const WeeklyReportView: React.FC = () => {
 
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
           gap: '1rem'
         }}>
           {/* What Went Well */}
@@ -263,7 +275,7 @@ export const WeeklyReportView: React.FC = () => {
       {/* 2-Column Section: Category Time Breakdown & Best Days */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))',
         gap: '1.25rem',
         marginBottom: '1.5rem'
       }}>

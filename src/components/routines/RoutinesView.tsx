@@ -138,7 +138,7 @@ export const RoutinesView = () => {
         border: '1px solid var(--border-color)'
       }}>
         {/* Template Tabs */}
-        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap', overflowX: 'auto', width: '100%', maxWidth: '100%' }}>
           {[
             { id: 'today', label: "Today's Schedule" },
             { id: 'gym', label: '🏋️ Gym Days (Tue/Thu/Sat)' },
@@ -200,7 +200,7 @@ export const RoutinesView = () => {
           </button>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 290px), 1fr))', gap: '1rem' }}>
           {filteredRoutines.map((routine: any) => {
             const pillar = categories.find((c: any) => c.id === routine.categoryId);
             const pillarColor = routine.color || pillar?.color || '#6366f1';

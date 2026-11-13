@@ -129,7 +129,7 @@ function MainApp() {
         />
 
         {/* Dynamic View Component */}
-        <main style={{ flex: 1 }}>{renderActiveView()}</main>
+        <main style={{ flex: 1, minWidth: 0, width: '100%', overflowX: 'hidden' }}>{renderActiveView()}</main>
 
         {/* Mobile-First Bottom Navigation Bar */}
         <MobileNavBar />
