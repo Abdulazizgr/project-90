@@ -12,7 +12,7 @@ interface AppLockModalProps {
 }
 
 export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }) => {
-  const { data, triggerSound, handleSignOut } = useApp();
+  const { data, triggerSound, handleSignOut, confirmAction } = useApp();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isBiometricVerifying, setIsBiometricVerifying] = useState(false);
@@ -239,14 +239,23 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }
           <button
             type="button"
             onClick={() => {
-              if (typeof window !== 'undefined') {
-                localStorage.removeItem('apex_session_locked');
-              }
-              handleSignOut();
+              confirmAction({
+                title: 'Do you want to exit?',
+                message: 'Are you sure you want to exit Apex OS and end your active session?',
+                confirmText: 'Exit App',
+                cancelText: 'Stay in App',
+                variant: 'warning',
+                onConfirm: () => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('apex_session_locked');
+                  }
+                  handleSignOut();
+                }
+              });
             }}
             style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', padding: 0 }}
           >
-            Sign Out
+            Exit / Sign Out
           </button>
         </div>
       </div>

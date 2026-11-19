@@ -28,9 +28,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
 
   const triggerSignOut = () => {
     confirmAction({
-      title: 'Sign Out?',
-      message: 'Are you sure you want to sign out of your account session?',
-      confirmText: 'Sign Out',
+      title: 'Do you want to exit?',
+      message: 'Are you sure you want to exit Apex OS? Your session vault will be securely locked.',
+      confirmText: 'Exit App',
+      cancelText: 'Stay in App',
       variant: 'warning',
       onConfirm: () => {
         handleSignOut();
@@ -247,10 +248,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
 
         <button
           onClick={triggerSignOut}
-          title="Sign Out"
+          title="Exit App"
           className="btn btn-ghost btn-icon"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
-          aria-label="Sign Out"
+          aria-label="Exit App"
         >
           <LogOut size={16} />
         </button>

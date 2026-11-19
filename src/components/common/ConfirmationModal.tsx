@@ -7,6 +7,7 @@ export interface ConfirmationModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
   title: string;
   message: string;
   confirmText?: string;
@@ -18,6 +19,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   isOpen,
   onClose,
   onConfirm,
+  onCancel,
   title,
   message,
   confirmText = 'Confirm',
@@ -25,6 +27,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   variant = 'danger'
 }) => {
   if (!isOpen) return null;
+
+  const handleCancel = () => {
+    if (onCancel) onCancel();
+    onClose();
+  };
 
   const getVariantStyles = () => {
     switch (variant) {
@@ -78,11 +85,11 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   return (
     <div 
       className="modal-overlay" 
-      onClick={onClose}
+      onClick={handleCancel}
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: 9999,
+        zIndex: 100001,
         background: 'rgba(5, 8, 16, 0.75)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
@@ -114,7 +121,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         <button 
           type="button" 
           className="btn btn-ghost btn-icon" 
-          onClick={onClose} 
+          onClick={handleCancel} 
           style={{ 
             position: 'absolute',
             top: '1rem',
@@ -176,7 +183,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
           <button 
             type="button" 
             className="btn btn-secondary" 
-            onClick={onClose}
+            onClick={handleCancel}
             disabled={isSubmitting}
             style={{ 
               width: '100%',

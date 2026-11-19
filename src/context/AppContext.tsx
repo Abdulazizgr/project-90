@@ -37,6 +37,7 @@ export interface ConfirmDialogOptions {
   cancelText?: string;
   variant?: 'danger' | 'warning' | 'primary';
   onConfirm: () => void | Promise<void>;
+  onCancel?: () => void;
 }
 
 const AppContext = createContext<any>(null);
@@ -120,6 +121,26 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     setIsAppLocked(true);
   };
 
+  const handleSignOut = async () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('p19_authenticated');
+      localStorage.removeItem('p19_active_tab');
+      localStorage.removeItem('apex_session_locked');
+    }
+    setIsAuthenticated(false);
+    setActiveTabState('dashboard');
+    if ((authClient as any)?.signOut) {
+      try {
+        await (authClient as any).signOut();
+      } catch (e) {
+        // ignore
+      }
+    }
+    try {
+      playSound('pop');
+    } catch {}
+  };
+
   // Banking-grade auto-lock on app exit / backgrounding / tab-switch & inactivity (CBE / Telebirr style)
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -137,10 +158,42 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       }
     };
 
-    // Mobile backgrounding, pagehide, and tab switch
+    // BeforeUnload: ask user "Do you want to exit?" when closing tab or navigating away
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      handleExitOrBackground();
+      e.preventDefault();
+      e.returnValue = 'Do you want to exit Apex OS?';
+      return 'Do you want to exit Apex OS?';
+    };
+
+    // Intercept mobile hardware back button to show "Do you want to exit?" dialog
+    try {
+      window.history.pushState({ appGuard: true }, '', window.location.href);
+    } catch {}
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Re-push guard state to stay on current view while asking confirmation
+      try {
+        window.history.pushState({ appGuard: true }, '', window.location.href);
+      } catch {}
+
+      confirmAction({
+        title: 'Do you want to exit?',
+        message: 'Are you sure you want to exit Apex OS? Your session vault will be securely locked.',
+        confirmText: 'Exit App',
+        cancelText: 'Stay in App',
+        variant: 'warning',
+        onConfirm: () => {
+          handleSignOut();
+        }
+      });
+    };
+
+    // Mobile backgrounding, pagehide, tab switch, and exit
     window.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handleExitOrBackground);
-    window.addEventListener('beforeunload', handleExitOrBackground);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
 
     // Inactivity timeout: 3 minutes of no interaction inside the app expires session (CBE / Telebirr style)
     let lastActivity = Date.now();
@@ -164,7 +217,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handleExitOrBackground);
-      window.removeEventListener('beforeunload', handleExitOrBackground);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
       activityEvents.forEach((evt) => {
         window.removeEventListener(evt, updateActivity);
       });
@@ -1104,23 +1158,6 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     triggerSound('habit-complete');
   };
 
-  const handleSignOut = async () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('p19_authenticated');
-      localStorage.removeItem('p19_active_tab');
-    }
-    setIsAuthenticated(false);
-    setActiveTabState('dashboard');
-    if ((authClient as any)?.signOut) {
-      try {
-        await (authClient as any).signOut();
-      } catch (e) {
-        // ignore
-      }
-    }
-    triggerSound('pop');
-  };
-
   const value = {
     data,
     setData,
@@ -1209,6 +1246,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
         variant={confirmDialog?.variant}
         onClose={closeConfirmDialog}
         onConfirm={confirmDialog?.onConfirm || (() => {})}
+        onCancel={confirmDialog?.onCancel}
       />
     </AppContext.Provider>
   );

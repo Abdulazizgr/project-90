@@ -49,9 +49,10 @@ export const Topbar: React.FC<TopbarProps> = ({
 
   const triggerSignOut = () => {
     confirmAction({
-      title: 'Sign Out?',
-      message: 'Are you sure you want to sign out of your account session?',
-      confirmText: 'Sign Out',
+      title: 'Do you want to exit?',
+      message: 'Are you sure you want to exit Apex OS? Your session vault will be securely locked.',
+      confirmText: 'Exit App',
+      cancelText: 'Stay in App',
       variant: 'warning',
       onConfirm: () => {
         handleSignOut();
@@ -214,12 +215,12 @@ export const Topbar: React.FC<TopbarProps> = ({
           {currentTheme === 'dark' ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} />}
         </button>
 
-        {/* Sign Out Button */}
+        {/* Exit / Sign Out Button */}
         <button
           className="btn btn-ghost btn-icon"
           onClick={triggerSignOut}
-          title="Sign Out"
-          aria-label="Sign Out"
+          title="Exit App"
+          aria-label="Exit App"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
         >
           <LogOut size={17} />
