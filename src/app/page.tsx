@@ -30,10 +30,13 @@ import { CommandPaletteModal } from '@/components/common/CommandPaletteModal';
 import { UserManualModal } from '@/components/manual/UserManualModal';
 import { SetupWizardModal } from '@/components/onboarding/SetupWizardModal';
 import { PWAInstallBanner } from '@/components/common/PWAInstallBanner';
+import { ApexLogo } from '@/components/common/ApexLogo';
 
 function MainApp() {
   const { 
     isAuthenticated,
+    isAuthLoading,
+    isViewLoading,
     setIsAuthenticated,
     activeTab, 
     isAuthModalOpen, 
@@ -47,7 +50,42 @@ function MainApp() {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isManualOpen, setIsManualOpen] = useState(false);
 
-  // If owner is not logged in, render the secure Sign In screen!
+  // 1. While resolving session/local auth, show subtle splash screen (never flash Login screen!)
+  if (isAuthLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-app)',
+        gap: '1.25rem',
+        animation: 'pageFadeIn 0.25s ease-out'
+      }}>
+        <ApexLogo size={52} />
+        <div style={{
+          width: '140px',
+          height: '3px',
+          background: 'var(--bg-surface)',
+          borderRadius: '999px',
+          overflow: 'hidden',
+          position: 'relative'
+        }}>
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            background: 'linear-gradient(90deg, transparent, var(--primary-light), transparent)',
+            animation: 'progressIndeterminate 1.2s ease-in-out infinite'
+          }} />
+        </div>
+      </div>
+    );
+  }
+
+  // 2. If owner is not logged in after check completes, render the Sign In screen
   if (!isAuthenticated) {
     return <LoginPage onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
@@ -128,8 +166,34 @@ function MainApp() {
           onOpenRoutineModal={() => setActiveModal('routine_modal')}
         />
 
-        {/* Dynamic View Component */}
-        <main style={{ flex: 1, minWidth: 0, width: '100%', overflowX: 'hidden' }}>{renderActiveView()}</main>
+        {/* Dynamic View Component with Top Slim Loading Progress Bar */}
+        <main style={{ flex: 1, minWidth: 0, width: '100%', overflowX: 'hidden', position: 'relative' }}>
+          {isViewLoading && (
+            <div style={{
+              position: 'sticky',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '3px',
+              zIndex: 99,
+              overflow: 'hidden',
+              background: 'var(--bg-surface)'
+            }}>
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                bottom: 0,
+                left: 0,
+                background: 'linear-gradient(90deg, var(--primary), var(--primary-light), #ec4899)',
+                animation: 'progressIndeterminate 0.8s ease-in-out infinite',
+                boxShadow: '0 0 10px var(--primary-glow)'
+              }} />
+            </div>
+          )}
+          <div key={activeTab} className="page-transition-enter">
+            {renderActiveView()}
+          </div>
+        </main>
 
         {/* Mobile-First Bottom Navigation Bar */}
         <MobileNavBar />

@@ -54,6 +54,7 @@ export const TasksView: React.FC = () => {
   const [status, setStatus] = useState<Task['status']>('not_started');
   const [notes, setNotes] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Filter logic
   const filteredTasks = useMemo(() => {
@@ -122,12 +123,15 @@ export const TasksView: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  const handleSaveTask = (e: React.FormEvent) => {
+  const handleSaveTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       setFormError('Please enter a task title');
       return;
     }
+
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 150));
 
     if (editingTaskId) {
       updateTask(editingTaskId, {
@@ -155,6 +159,7 @@ export const TasksView: React.FC = () => {
       });
     }
 
+    setIsSaving(false);
     resetForm();
   };
 
@@ -653,8 +658,20 @@ export const TasksView: React.FC = () => {
                 <button type="button" className="btn btn-secondary btn-sm" onClick={resetForm}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary btn-sm" style={{ fontWeight: 700 }}>
-                  {editingTaskId ? 'Save Changes' : 'Create Task'}
+                <button 
+                  type="submit" 
+                  className="btn btn-primary btn-sm" 
+                  disabled={isSaving}
+                  style={{ fontWeight: 700 }}
+                >
+                  {isSaving ? (
+                    <>
+                      <span className="btn-spinner" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    editingTaskId ? 'Save Changes' : 'Create Task'
+                  )}
                 </button>
               </div>
             </form>

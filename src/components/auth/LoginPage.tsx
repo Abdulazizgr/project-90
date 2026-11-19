@@ -330,7 +330,10 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
             disabled={isLoading}
           >
             {isLoading ? (
-              <span>Authenticating...</span>
+              <>
+                <span className="btn-spinner" />
+                <span>Authenticating...</span>
+              </>
             ) : (
               <>
                 <LogIn size={17} />

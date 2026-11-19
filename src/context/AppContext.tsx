@@ -41,16 +41,54 @@ const AppContext = createContext<any>(null);
 
 export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   const [data, setData] = useState<any>(() => loadDataFromStorage());
-  const [activeTab, setActiveTab] = useState('dashboard');
+  // Persist activeTab across refreshes & URL hash
+  const [activeTab, setActiveTabState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('p19_active_tab');
+      if (saved) return saved;
+      const hash = window.location.hash.replace('#', '');
+      if (hash) return hash;
+    }
+    return 'dashboard';
+  });
+
+  const [isViewLoading, setIsViewLoading] = useState<boolean>(false);
+
+  const setActiveTab = (tab: string) => {
+    if (tab === activeTab) return;
+    setIsViewLoading(true);
+    setActiveTabState(tab);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('p19_active_tab', tab);
+      try {
+        window.history.replaceState(null, '', `#${tab}`);
+      } catch {}
+    }
+    setTimeout(() => {
+      setIsViewLoading(false);
+    }, 150);
+  };
+
   const [activeModal, setActiveModal] = useState<string | null>(null);
   const [modalData, setModalData] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isDbSynced, setIsDbSynced] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('p19_authenticated') === 'true';
     }
     return false;
+  });
+
+  const [isAuthLoading, setIsAuthLoading] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      // If we already have authenticated flag in localStorage, we can mount immediately
+      if (localStorage.getItem('p19_authenticated') === 'true') {
+        return false;
+      }
+    }
+    return true;
   });
 
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
@@ -72,8 +110,15 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       if (typeof window !== 'undefined') {
         localStorage.setItem('p19_authenticated', 'true');
       }
+      setIsAuthLoading(false);
+    } else if (!sessionResult.isPending) {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('p19_authenticated') === 'true';
+        setIsAuthenticated(stored);
+      }
+      setIsAuthLoading(false);
     }
-  }, [user]);
+  }, [user, sessionResult.isPending]);
 
   const todayStr = getLocalDateString();
 
@@ -907,8 +952,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   const handleSignOut = async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('p19_authenticated');
+      localStorage.removeItem('p19_active_tab');
     }
     setIsAuthenticated(false);
+    setActiveTabState('dashboard');
     if ((authClient as any)?.signOut) {
       try {
         await (authClient as any).signOut();
@@ -925,6 +972,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     user,
     isAuthenticated,
     setIsAuthenticated,
+    isAuthLoading,
+    isViewLoading,
     activeTab,
     setActiveTab,
     activeModal,

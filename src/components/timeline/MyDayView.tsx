@@ -53,6 +53,7 @@ export const MyDayView: React.FC = () => {
   const [isPlanned, setIsPlanned] = useState(false);
   const [notes, setNotes] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const categories = data.categories || [];
   const routines = data.routines || [];
@@ -114,7 +115,7 @@ export const MyDayView: React.FC = () => {
   };
 
   // Submit Time Entry
-  const handleSubmitEntry = (e: React.FormEvent) => {
+  const handleSubmitEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
@@ -128,6 +129,9 @@ export const MyDayView: React.FC = () => {
       return;
     }
 
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 150));
+
     if (editingEntryId) {
       const result = updateTimeEntry(selectedDate, editingEntryId, {
         activityName: activityName.trim(),
@@ -139,6 +143,7 @@ export const MyDayView: React.FC = () => {
       });
 
       if (!result.success) {
+        setIsSaving(false);
         setFormError(result.error || 'Failed to update time entry');
         return;
       }
@@ -153,11 +158,13 @@ export const MyDayView: React.FC = () => {
       });
 
       if (!result.success) {
+        setIsSaving(false);
         setFormError(result.error || 'Failed to record time entry');
         return;
       }
     }
 
+    setIsSaving(false);
     resetForm();
   };
 
@@ -474,8 +481,20 @@ export const MyDayView: React.FC = () => {
                   <button type="button" className="btn btn-secondary btn-sm" onClick={resetForm}>
                     Cancel
                   </button>
-                  <button type="submit" className="btn btn-primary btn-sm" style={{ fontWeight: 700 }}>
-                    {editingEntryId ? 'Update Entry' : 'Save Entry'}
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary btn-sm" 
+                    disabled={isSaving}
+                    style={{ fontWeight: 700 }}
+                  >
+                    {isSaving ? (
+                      <>
+                        <span className="btn-spinner" />
+                        <span>Saving...</span>
+                      </>
+                    ) : (
+                      editingEntryId ? 'Update Entry' : 'Save Entry'
+                    )}
                   </button>
                 </div>
               </form>

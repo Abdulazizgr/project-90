@@ -53,11 +53,16 @@ export const SettingsView = () => {
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [challengeSuccess, setChallengeSuccess] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isSavingChallenge, setIsSavingChallenge] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const isSoundEnabled = data.profile?.soundEnabled !== false && data.soundEnabled !== false;
 
-  const handleSaveProfile = (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingProfile(true);
+    await new Promise((r) => setTimeout(r, 200));
     updateProfile({
       name: name.trim(),
       email: email.trim(),
@@ -65,18 +70,22 @@ export const SettingsView = () => {
       challengeGoal: goal.trim(),
       timezone
     });
+    setIsSavingProfile(false);
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
   };
 
-  const handleSaveChallenge = (e: React.FormEvent) => {
+  const handleSaveChallenge = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSavingChallenge(true);
+    await new Promise((r) => setTimeout(r, 200));
     updateChallenge({
       name: challengeName.trim(),
       startDate,
       totalDurationDays: Number(durationDays) || 30,
       status: challengeStatus as any
     });
+    setIsSavingChallenge(false);
     setChallengeSuccess(true);
     setTimeout(() => setChallengeSuccess(false), 2500);
   };
@@ -287,9 +296,20 @@ export const SettingsView = () => {
               <button
                 type="submit"
                 className="btn btn-primary btn-sm"
+                disabled={isSavingChallenge}
                 style={{ fontWeight: 700 }}
               >
-                <Save size={14} /> Update Challenge
+                {isSavingChallenge ? (
+                  <>
+                    <span className="btn-spinner" />
+                    <span>Updating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    <span>Update Challenge</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -394,8 +414,23 @@ export const SettingsView = () => {
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button type="submit" className="btn btn-primary btn-sm" style={{ fontWeight: 700 }}>
-                <Save size={14} /> Save Profile
+              <button 
+                type="submit" 
+                className="btn btn-primary btn-sm" 
+                disabled={isSavingProfile}
+                style={{ fontWeight: 700 }}
+              >
+                {isSavingProfile ? (
+                  <>
+                    <span className="btn-spinner" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    <span>Save Profile</span>
+                  </>
+                )}
               </button>
             </div>
           </form>
@@ -511,11 +546,26 @@ export const SettingsView = () => {
                 <button
                   type="button"
                   className="btn btn-secondary btn-sm"
-                  onClick={handleExport}
+                  onClick={async () => {
+                    setIsExporting(true);
+                    await new Promise((r) => setTimeout(r, 200));
+                    handleExport();
+                    setIsExporting(false);
+                  }}
+                  disabled={isExporting}
                   style={{ flex: 1, gap: '0.4rem', fontWeight: 700, minWidth: '135px' }}
                 >
-                  <Download size={14} />
-                  <span>Export Backup</span>
+                  {isExporting ? (
+                    <>
+                      <span className="btn-spinner" />
+                      <span>Exporting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Download size={14} />
+                      <span>Export Backup</span>
+                    </>
+                  )}
                 </button>
 
                 <label 

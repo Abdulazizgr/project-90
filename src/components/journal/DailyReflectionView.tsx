@@ -32,6 +32,7 @@ export const DailyReflectionView: React.FC = () => {
   const [q4, setQ4] = useState(existingReflection.q4_improve || existingReflection.q4 || '');
   const [q5, setQ5] = useState(existingReflection.q5_priority || '');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const entry = data.journalEntries?.[selectedDate] || {};
@@ -53,8 +54,10 @@ export const DailyReflectionView: React.FC = () => {
     setSelectedDate((prev) => addDaysToDateStr(prev, 1));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 200));
     saveDailyReflection(selectedDate, {
       mood,
       q1_well: q1.trim(),
@@ -64,6 +67,7 @@ export const DailyReflectionView: React.FC = () => {
       q5_priority: q5.trim()
     });
 
+    setIsSaving(false);
     setSavedSuccess(true);
     triggerSound('level-up');
     setTimeout(() => setSavedSuccess(false), 3000);
@@ -287,10 +291,20 @@ export const DailyReflectionView: React.FC = () => {
           <button
             type="submit"
             className="btn btn-primary"
+            disabled={isSaving}
             style={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.4rem' }}
           >
-            <Save size={16} />
-            <span>Save Reflection</span>
+            {isSaving ? (
+              <>
+                <span className="btn-spinner" />
+                <span>Saving...</span>
+              </>
+            ) : (
+              <>
+                <Save size={16} />
+                <span>Save Reflection</span>
+              </>
+            )}
           </button>
         </div>
       </form>

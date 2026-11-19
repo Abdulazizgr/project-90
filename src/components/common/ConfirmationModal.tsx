@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { AlertTriangle, AlertCircle, HelpCircle, X } from 'lucide-react';
 
 export interface ConfirmationModalProps {
@@ -63,11 +63,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   };
 
   const style = getVariantStyles();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleConfirmClick = async () => {
+    setIsSubmitting(true);
     try {
       await onConfirm();
     } finally {
+      setIsSubmitting(false);
       onClose();
     }
   };
@@ -174,6 +177,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             type="button" 
             className="btn btn-secondary" 
             onClick={onClose}
+            disabled={isSubmitting}
             style={{ 
               width: '100%',
               minWidth: 0,
@@ -183,7 +187,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               borderRadius: '12px',
               justifyContent: 'center',
               boxSizing: 'border-box',
-              cursor: 'pointer'
+              cursor: isSubmitting ? 'not-allowed' : 'pointer'
             }}
           >
             {cancelText}
@@ -193,6 +197,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             type="button" 
             className="btn"
             onClick={handleConfirmClick}
+            disabled={isSubmitting}
             style={{ 
               width: '100%',
               minWidth: 0,
@@ -204,16 +209,26 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               boxShadow: style.btnShadow,
               color: style.btnColor,
               border: 'none',
-              cursor: 'pointer',
+              cursor: isSubmitting ? 'not-allowed' : 'pointer',
               justifyContent: 'center',
               whiteSpace: 'normal',
               wordBreak: 'break-word',
               textAlign: 'center',
               lineHeight: 1.25,
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem'
             }}
           >
-            {confirmText}
+            {isSubmitting ? (
+              <>
+                <span className="btn-spinner" />
+                <span>Processing...</span>
+              </>
+            ) : (
+              confirmText
+            )}
           </button>
         </div>
       </div>

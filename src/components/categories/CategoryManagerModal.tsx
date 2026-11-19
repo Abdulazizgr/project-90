@@ -54,6 +54,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
   const [icon, setIcon] = useState('🎯');
   const [color, setColor] = useState('#6366f1');
   const [description, setDescription] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   if (!isModalOpen) return null;
 
@@ -82,9 +83,12 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
     setDescription(pillar.description || '');
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
+
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 150));
 
     if (editingPillarId) {
       updatePillar(editingPillarId, {
@@ -103,6 +107,7 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
       });
       setIsCreating(false);
     }
+    setIsSaving(false);
   };
 
   const handleDelete = (pillarId: string, pillarName: string) => {
@@ -277,9 +282,17 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
               <button
                 type="submit"
                 className="btn btn-primary btn-sm"
+                disabled={isSaving}
                 style={{ fontWeight: 700, padding: '0.45rem 1rem' }}
               >
-                {editingPillarId ? 'Save Pillar' : 'Register Pillar'}
+                {isSaving ? (
+                  <>
+                    <span className="btn-spinner" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  editingPillarId ? 'Save Pillar' : 'Register Pillar'
+                )}
               </button>
             </div>
           </form>

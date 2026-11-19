@@ -28,6 +28,7 @@ export const RoutineModal = () => {
     { id: 'st_1', title: 'Start with 500ml water and intention', durationMinutes: 5 }
   ]);
   const [newStepText, setNewStepText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   const daysOfWeek = [
     { key: 'mon', label: 'Mon' },
@@ -122,9 +123,12 @@ export const RoutineModal = () => {
     setSteps(steps.filter((s) => s.id !== stepId));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
+
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 150));
 
     const routinePayload = {
       name: title.trim(),
@@ -149,6 +153,7 @@ export const RoutineModal = () => {
       addRoutine(routinePayload);
     }
 
+    setIsSaving(false);
     setActiveModal(null);
   };
 
@@ -373,9 +378,17 @@ export const RoutineModal = () => {
             <button
               type="submit"
               className="btn btn-primary"
+              disabled={isSaving}
               style={{ fontWeight: 700 }}
             >
-              {isEditing ? 'Save Changes' : 'Create Routine'}
+              {isSaving ? (
+                <>
+                  <span className="btn-spinner" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                isEditing ? 'Save Changes' : 'Create Routine'
+              )}
             </button>
           </div>
         </form>

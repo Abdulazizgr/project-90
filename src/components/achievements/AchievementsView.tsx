@@ -38,6 +38,7 @@ export const AchievementsView = () => {
   const [newIcon, setNewIcon] = useState('🏆');
   const [newDesc, setNewDesc] = useState('');
   const [newTarget, setNewTarget] = useState(7);
+  const [isSaving, setIsSaving] = useState(false);
 
   const unlockedCount = achievements.filter((a: any) => a.unlocked).length;
   const totalCount = achievements.length || 1;
@@ -52,9 +53,12 @@ export const AchievementsView = () => {
     });
   };
 
-  const handleCreateAchievement = (e: React.FormEvent) => {
+  const handleCreateAchievement = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
+
+    setIsSaving(true);
+    await new Promise((r) => setTimeout(r, 150));
 
     const selectedCat = categories.find((c: any) => c.id === newCategoryId);
 
@@ -67,6 +71,7 @@ export const AchievementsView = () => {
       progress: `0 / ${newTarget} Sessions`
     });
 
+    setIsSaving(false);
     setNewTitle('');
     setNewDesc('');
     setNewTarget(7);
@@ -254,9 +259,17 @@ export const AchievementsView = () => {
                 <button
                   type="submit"
                   className="btn btn-primary btn-sm"
+                  disabled={isSaving}
                   style={{ fontWeight: 700 }}
                 >
-                  Create Badge
+                  {isSaving ? (
+                    <>
+                      <span className="btn-spinner" />
+                      <span>Creating...</span>
+                    </>
+                  ) : (
+                    'Create Badge'
+                  )}
                 </button>
               </div>
             </form>
