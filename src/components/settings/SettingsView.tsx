@@ -465,21 +465,21 @@ export const SettingsView = () => {
               </div>
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.85rem' }}>
               <button 
                 type="submit" 
-                className="btn btn-primary btn-sm" 
+                className="btn btn-primary" 
                 disabled={isSavingProfile}
-                style={{ fontWeight: 700 }}
+                style={{ fontWeight: 800, width: '100%', maxWidth: '240px', justifyContent: 'center', padding: '0.65rem 1.25rem' }}
               >
                 {isSavingProfile ? (
                   <>
                     <span className="btn-spinner" />
-                    <span>Saving...</span>
+                    <span>Saving Profile...</span>
                   </>
                 ) : (
                   <>
-                    <Save size={14} />
+                    <Save size={16} />
                     <span>Save Profile</span>
                   </>
                 )}
@@ -491,31 +491,32 @@ export const SettingsView = () => {
 
       {/* ROW 3: Biometric Security & Hardware Vault */}
       <div className="card" style={{ padding: '1.35rem', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '1rem' }}>
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.35rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Fingerprint size={20} color="var(--primary-light)" />
-              <span>Biometric Security & Session Vault</span>
-            </h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Hardware-backed fingerprint / Face ID protection and automatic lock when switching apps
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
+              <h3 style={{ fontSize: '1.08rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem', color: 'var(--text-primary)' }}>
+                <Fingerprint size={20} color="var(--primary-light)" />
+                <span>Biometric Security & Vault</span>
+              </h3>
+              <span 
+                className="badge"
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 700,
+                  padding: '0.2rem 0.65rem',
+                  borderRadius: '20px',
+                  background: profile.biometricsEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                  color: profile.biometricsEnabled ? '#10b981' : 'var(--primary-light)',
+                  border: profile.biometricsEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)'
+                }}
+              >
+                {profile.biometricsEnabled ? 'Biometrics Enrolled' : 'Sensor Ready'}
+              </span>
+            </div>
+            <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+              Hardware-backed fingerprint / Face ID verification and banking-grade session auto-lock
             </p>
           </div>
-
-          <span 
-            className="badge"
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              padding: '0.35rem 0.75rem',
-              borderRadius: '20px',
-              background: profile.biometricsEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-              color: profile.biometricsEnabled ? '#10b981' : 'var(--primary-light)',
-              border: profile.biometricsEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)'
-            }}
-          >
-            {profile.biometricsEnabled ? 'Biometrics Enrolled' : 'Sensor Ready'}
-          </span>
         </div>
 
         {bioStatusMsg && (
@@ -537,74 +538,103 @@ export const SettingsView = () => {
           </div>
         )}
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '0.85rem' }}>
           {/* Fingerprint Sensor Action */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '0.85rem 1rem',
-            background: 'var(--bg-input)',
-            borderRadius: 'var(--radius-md)'
-          }}>
-            <div>
-              <strong style={{ display: 'block', fontSize: '0.88rem', marginBottom: '0.15rem' }}>
-                Phone / PC Fingerprint Sensor
-              </strong>
-              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                WebAuthn platform authenticator (Android, iOS Face ID, Touch ID, Windows Hello)
-              </p>
+          <div className="settings-tile-stacked">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: profile.biometricsEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                color: profile.biometricsEnabled ? '#10b981' : 'var(--primary-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Fingerprint size={20} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <strong style={{ display: 'block', fontSize: '0.88rem', color: 'var(--text-primary)', marginBottom: '0.15rem' }}>
+                  Phone / PC Biometric Sensor
+                </strong>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: 1.35, display: 'block' }}>
+                  WebAuthn (Android Fingerprint, iOS Face ID / Touch ID, Windows Hello)
+                </span>
+              </div>
             </div>
+
             <button
               type="button"
               className="btn btn-secondary btn-sm"
               onClick={handleRegisterBiometrics}
               disabled={isRegisteringBio}
-              style={{ gap: '0.4rem', fontWeight: 700, flexShrink: 0 }}
+              style={{ width: '100%', justifyContent: 'center', fontWeight: 700, padding: '0.55rem' }}
             >
               {isRegisteringBio ? (
                 <>
                   <span className="btn-spinner" />
-                  <span>Scanning...</span>
+                  <span>Scanning Sensor...</span>
                 </>
               ) : (
                 <>
                   <Fingerprint size={15} color="var(--primary-light)" />
-                  <span>{profile.biometricsEnabled ? 'Re-enroll / Test' : 'Enroll Fingerprint'}</span>
+                  <span>{profile.biometricsEnabled ? 'Test / Re-enroll Biometrics' : 'Enroll Biometrics Now'}</span>
                 </>
               )}
             </button>
           </div>
 
           {/* Auto Lock on App Exit Toggle */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '0.85rem 1rem',
-            background: 'var(--bg-input)',
-            borderRadius: 'var(--radius-md)'
-          }}>
-            <div>
-              <strong style={{ display: 'block', fontSize: '0.88rem', marginBottom: '0.15rem' }}>
-                Auto-Lock on App Exit / Switch
-              </strong>
-              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                Instantly locks with security vault when minimizing or leaving the app
-              </p>
+          <div className="settings-tile">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '10px',
+                background: autoLockOnExit ? 'rgba(99, 102, 241, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                color: autoLockOnExit ? 'var(--primary-light)' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0
+              }}>
+                <Lock size={18} />
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>
+                    Auto-Lock on App Exit
+                  </strong>
+                  <span className="badge" style={{
+                    fontSize: '0.64rem',
+                    padding: '0.12rem 0.45rem',
+                    background: autoLockOnExit ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                    color: autoLockOnExit ? '#10b981' : 'var(--text-muted)',
+                    border: autoLockOnExit ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
+                  }}>
+                    {autoLockOnExit ? 'Active' : 'Off'}
+                  </span>
+                </div>
+                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0', lineHeight: 1.35 }}>
+                  Locks instantly when leaving or minimizing the app (Banking style)
+                </p>
+              </div>
             </div>
+
             <button
               type="button"
-              className={`btn btn-sm ${autoLockOnExit ? 'btn-primary' : 'btn-secondary'}`}
+              role="switch"
+              aria-checked={autoLockOnExit}
+              className={`toggle-switch ${autoLockOnExit ? 'active' : ''}`}
               onClick={() => {
                 const nextVal = !autoLockOnExit;
                 setAutoLockOnExit(nextVal);
                 updateProfile({ autoLockOnExit: nextVal });
               }}
-              style={{ gap: '0.35rem', fontWeight: 700, flexShrink: 0 }}
             >
-              <Lock size={14} />
-              <span>{autoLockOnExit ? 'Active (Auto-Lock)' : 'Disabled'}</span>
+              <span className="toggle-switch-thumb" />
             </button>
           </div>
         </div>
@@ -620,83 +650,123 @@ export const SettingsView = () => {
         {/* Card 3: Appearance & Sound */}
         <div className="card" style={{ padding: '1.35rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <h3 style={{ fontSize: '1.08rem', fontWeight: 800, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
               <Palette size={19} color="var(--primary-light)" />
               <span>Appearance & Sound</span>
             </h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '1.15rem' }}>
-              Theme switching and interactive audio completion triggers
+            <p style={{ fontSize: '0.76rem', color: 'var(--text-muted)', marginBottom: '1.15rem' }}>
+              Theme customization and audio completion chimes
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               {/* Theme Mode Toggle */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0.75rem 1rem',
-                background: 'var(--bg-input)',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.15rem' }}>
-                    <strong style={{ fontSize: '0.88rem' }}>Theme Mode</strong>
-                    <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
-                      {data.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                    </span>
+              <div className="settings-tile">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: data.theme === 'dark' ? 'rgba(99, 102, 241, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                    color: data.theme === 'dark' ? 'var(--primary-light)' : '#f59e0b',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {data.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                    Switch between dark and light themes
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Theme Mode</strong>
+                      <span className="badge" style={{ fontSize: '0.64rem', background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
+                        {data.theme === 'dark' ? 'Dark' : 'Light'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>
+                      Switch between dark & light themes
+                    </p>
+                  </div>
                 </div>
+
                 <button
                   type="button"
-                  className="btn btn-secondary btn-sm"
                   onClick={toggleTheme}
-                  style={{ gap: '0.35rem', fontWeight: 600 }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                    padding: '0.42rem 0.75rem',
+                    borderRadius: '20px',
+                    background: data.theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+                    border: '1px solid var(--border-color)',
+                    color: 'var(--text-primary)',
+                    fontSize: '0.78rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    flexShrink: 0
+                  }}
                 >
-                  {data.theme === 'dark' ? <Sun size={14} color="#f59e0b" /> : <Moon size={14} />}
-                  <span>{data.theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                  {data.theme === 'dark' ? (
+                    <>
+                      <Sun size={14} color="#f59e0b" />
+                      <span>Light</span>
+                    </>
+                  ) : (
+                    <>
+                      <Moon size={14} color="var(--primary-light)" />
+                      <span>Dark</span>
+                    </>
+                  )}
                 </button>
               </div>
 
               {/* Audio Feedback Toggle */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '0.75rem 1rem',
-                background: 'var(--bg-input)',
-                borderRadius: 'var(--radius-md)'
-              }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.15rem' }}>
-                    <strong style={{ fontSize: '0.88rem' }}>Audio Feedback</strong>
-                    <span 
-                      className="badge" 
-                      style={{ 
-                        fontSize: '0.68rem', 
-                        fontWeight: 700,
-                        background: isSoundEnabled ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-surface)',
-                        color: isSoundEnabled ? '#10b981' : 'var(--text-muted)',
-                        border: isSoundEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
-                      }}
-                    >
-                      {isSoundEnabled ? 'Enabled' : 'Muted'}
-                    </span>
+              <div className="settings-tile">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '10px',
+                    background: isSoundEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.05)',
+                    color: isSoundEnabled ? '#10b981' : 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    {isSoundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                   </div>
-                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                    Completion chimes & routine audio cues
-                  </p>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <strong style={{ fontSize: '0.88rem', color: 'var(--text-primary)' }}>Audio Feedback</strong>
+                      <span 
+                        className="badge" 
+                        style={{ 
+                          fontSize: '0.64rem', 
+                          fontWeight: 700,
+                          padding: '0.12rem 0.45rem',
+                          background: isSoundEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255, 255, 255, 0.06)',
+                          color: isSoundEnabled ? '#10b981' : 'var(--text-muted)',
+                          border: isSoundEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
+                        }}
+                      >
+                        {isSoundEnabled ? 'On' : 'Muted'}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.15rem 0 0 0' }}>
+                      Completion chimes & routine audio cues
+                    </p>
+                  </div>
                 </div>
+
                 <button
                   type="button"
-                  className={`btn btn-sm ${isSoundEnabled ? 'btn-secondary' : 'btn-primary'}`}
+                  role="switch"
+                  aria-checked={isSoundEnabled}
+                  className={`toggle-switch ${isSoundEnabled ? 'active-success' : ''}`}
                   onClick={toggleSound}
-                  style={{ gap: '0.35rem', fontWeight: 700 }}
                 >
-                  {isSoundEnabled ? <VolumeX size={14} /> : <Volume2 size={14} />}
-                  <span>{isSoundEnabled ? 'Mute' : 'Enable'}</span>
+                  <span className="toggle-switch-thumb" />
                 </button>
               </div>
             </div>
@@ -759,15 +829,15 @@ export const SettingsView = () => {
               <div style={{
                 paddingTop: '0.85rem',
                 borderTop: '1px solid var(--border-color)',
-                display: 'flex',
-                gap: '0.6rem',
-                flexWrap: 'wrap'
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 140px), 1fr))',
+                gap: '0.6rem'
               }}>
                 <button
                   type="button"
                   className="btn btn-ghost btn-sm"
                   onClick={triggerLoadTemplates}
-                  style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, minWidth: '140px' }}
+                  style={{ fontSize: '0.75rem', fontWeight: 600, width: '100%', justifyContent: 'center' }}
                 >
                   Load Default Templates
                 </button>
@@ -775,7 +845,7 @@ export const SettingsView = () => {
                   type="button"
                   className="btn btn-ghost btn-sm"
                   onClick={triggerResetAccount}
-                  style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, minWidth: '120px' }}
+                  style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, width: '100%', justifyContent: 'center' }}
                 >
                   Reset Account
                 </button>
