@@ -11,7 +11,8 @@ import {
   Clock, 
   SunMedium, 
   Info,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Flag
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { getDayKeyFromDateStr, isRoutineScheduledForDay } from '@/utils/calculations';
@@ -21,11 +22,17 @@ export const CalendarView: React.FC = () => {
 
   const challenge = data.challenge || {};
   const startDateStr = challenge.startDate || todayStr;
-  const totalDays = challenge.totalDurationDays || 19;
+  const totalDays = Number(challenge.totalDurationDays) || 30;
   const dayScores = data.dayScores || {};
   const routines = data.routines || [];
   const tasks = data.tasks || [];
   const routineLogsHistory = data.routineLogsHistory || {};
+
+  // Compute challenge boundaries
+  const sStart = new Date(startDateStr);
+  const sEnd = new Date(sStart);
+  sEnd.setDate(sStart.getDate() + (totalDays - 1));
+  const challengeEndDateStr = `${sEnd.getFullYear()}-${String(sEnd.getMonth() + 1).padStart(2, '0')}-${String(sEnd.getDate()).padStart(2, '0')}`;
 
   // Calendar view month state (Year and Month)
   const today = new Date(todayStr);
@@ -68,13 +75,14 @@ export const CalendarView: React.FC = () => {
   const firstDayOfMonth = new Date(currentYear, currentMonth, 1).getDay(); // 0 is Sunday
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-  // Helper to determine challenge day number from date string
+  // Helper to determine challenge day number from date string using normalized UTC days
   const getChallengeDayNumber = (dateStr: string): number | null => {
     if (!startDateStr) return null;
-    const start = new Date(startDateStr);
-    const curr = new Date(dateStr);
-    const diffTime = curr.getTime() - start.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const [sy, sm, sd] = startDateStr.split('-').map(Number);
+    const [cy, cm, cd] = dateStr.split('-').map(Number);
+    const startUtc = Date.UTC(sy, sm - 1, sd);
+    const currUtc = Date.UTC(cy, cm - 1, cd);
+    const diffDays = Math.round((currUtc - startUtc) / (1000 * 60 * 60 * 24)) + 1;
     if (diffDays >= 1 && diffDays <= totalDays) {
       return diffDays;
     }
@@ -83,23 +91,55 @@ export const CalendarView: React.FC = () => {
 
   // Calculate day status for a specific date
   const getDayStatus = (dateStr: string) => {
-    const d = new Date(dateStr);
     const dayKey = getDayKeyFromDateStr(dateStr);
     const isSunday = dayKey === 'sun';
-    const isFuture = dateStr > todayStr;
     const isToday = dateStr === todayStr;
+    const isFuture = dateStr > todayStr;
+    const challengeDay = getChallengeDayNumber(dateStr);
+    const isBeforeChallenge = dateStr < startDateStr;
+    const isAfterChallenge = dateStr > challengeEndDateStr;
 
-    if (isFuture) {
+    // 1. Days before challenge start date (e.g. earlier days this month)
+    // NEVER mark as missed - they occurred before the sprint started!
+    if (isBeforeChallenge) {
       return {
-        type: 'future',
-        label: isSunday ? 'Rest Day' : 'Upcoming',
+        type: 'pre_challenge',
+        label: isSunday ? 'Rest Day' : '—',
         color: 'var(--text-muted)',
         bg: 'transparent',
         badgeClass: 'badge-ghost',
-        icon: isSunday ? '☕' : '⚪'
+        icon: isSunday ? '☕' : '',
+        isChallenge: false
       };
     }
 
+    // 2. Future days (after today)
+    if (isFuture) {
+      return {
+        type: 'future',
+        label: isSunday ? 'Rest Day' : (challengeDay ? 'Upcoming' : '—'),
+        color: 'var(--text-muted)',
+        bg: 'transparent',
+        badgeClass: 'badge-ghost',
+        icon: isSunday ? '☕' : (challengeDay ? '⚪' : ''),
+        isChallenge: !!challengeDay
+      };
+    }
+
+    // 3. Days after challenge duration ends
+    if (isAfterChallenge) {
+      return {
+        type: 'post_challenge',
+        label: isSunday ? 'Rest Day' : 'Post-Sprint',
+        color: 'var(--text-muted)',
+        bg: 'transparent',
+        badgeClass: 'badge-ghost',
+        icon: isSunday ? '☕' : '🏁',
+        isChallenge: false
+      };
+    }
+
+    // 4. Sundays within active challenge
     if (isSunday) {
       return {
         type: 'rest',
@@ -107,12 +147,38 @@ export const CalendarView: React.FC = () => {
         color: '#a855f7',
         bg: 'rgba(168, 85, 247, 0.1)',
         badgeClass: 'badge-purple',
-        icon: '☕'
+        icon: '☕',
+        isChallenge: true
       };
     }
 
     const score = dayScores[dateStr] || 0;
 
+    // 5. Today (Active / In Progress)
+    if (isToday) {
+      if (score >= 70) {
+        return {
+          type: 'completed',
+          label: 'Completed',
+          color: '#10b981',
+          bg: 'rgba(16, 185, 129, 0.15)',
+          badgeClass: 'badge-excellent',
+          icon: '🟢',
+          isChallenge: true
+        };
+      }
+      return {
+        type: 'in_progress',
+        label: 'In Progress',
+        color: 'var(--primary-light)',
+        bg: 'rgba(99, 102, 241, 0.15)',
+        badgeClass: 'badge-primary',
+        icon: '⚡',
+        isChallenge: true
+      };
+    }
+
+    // 6. Past days within challenge (startDateStr <= dateStr < todayStr)
     if (score >= 70) {
       return {
         type: 'completed',
@@ -120,7 +186,8 @@ export const CalendarView: React.FC = () => {
         color: '#10b981',
         bg: 'rgba(16, 185, 129, 0.1)',
         badgeClass: 'badge-excellent',
-        icon: '🟢'
+        icon: '🟢',
+        isChallenge: true
       };
     } else if (score >= 40) {
       return {
@@ -129,7 +196,8 @@ export const CalendarView: React.FC = () => {
         color: '#f59e0b',
         bg: 'rgba(245, 158, 11, 0.1)',
         badgeClass: 'badge-average',
-        icon: '🟡'
+        icon: '🟡',
+        isChallenge: true
       };
     } else {
       return {
@@ -138,7 +206,8 @@ export const CalendarView: React.FC = () => {
         color: '#ef4444',
         bg: 'rgba(239, 68, 68, 0.1)',
         badgeClass: 'badge-poor',
-        icon: '🔴'
+        icon: '🔴',
+        isChallenge: true
       };
     }
   };
@@ -151,22 +220,33 @@ export const CalendarView: React.FC = () => {
     setActiveModal('day_detail');
   };
 
-  // Summary statistics across challenge days
+  // Summary statistics across active challenge days
   let completedCount = 0;
   let partialCount = 0;
   let missedCount = 0;
   let restCount = 0;
+  let upcomingCount = 0;
 
   for (let i = 1; i <= totalDays; i++) {
     const s = new Date(startDateStr);
     s.setDate(s.getDate() + (i - 1));
-    const dStr = s.toISOString().split('T')[0];
-    if (dStr <= todayStr) {
+    const dStr = `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
+    
+    // Only count days that have elapsed or are today
+    if (dStr < todayStr) {
       const status = getDayStatus(dStr);
       if (status.type === 'completed') completedCount++;
       else if (status.type === 'partial') partialCount++;
       else if (status.type === 'rest') restCount++;
       else if (status.type === 'missed') missedCount++;
+    } else if (dStr === todayStr) {
+      const status = getDayStatus(dStr);
+      if (status.type === 'completed') completedCount++;
+      else if (status.type === 'partial') partialCount++;
+      else if (status.type === 'rest') restCount++;
+      // Today is in progress; do not penalize as missed!
+    } else {
+      upcomingCount++;
     }
   }
 
@@ -188,7 +268,7 @@ export const CalendarView: React.FC = () => {
               </h2>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Inspect your historical daily reviews, routines, tasks, and 24h category time records.
+              Tracking Sprint: <strong style={{ color: 'var(--text-primary)' }}>{challenge.name || 'Apex OS'}</strong> ({startDateStr} → {challengeEndDateStr}, {totalDays} Days)
             </p>
           </div>
 
@@ -222,7 +302,7 @@ export const CalendarView: React.FC = () => {
                 type="button"
                 className="btn btn-secondary btn-sm btn-icon"
                 onClick={handleNextMonth}
-                title="Next Week"
+                title="Next Month"
               >
                 <ChevronRight size={16} />
               </button>
@@ -259,12 +339,20 @@ export const CalendarView: React.FC = () => {
             Partial (40%-69%)
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--primary-light)' }} />
+            In Progress (Today)
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444' }} />
             Missed (&lt;40%)
           </span>
           <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
             <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#a855f7' }} />
             Rest Day (Sunday)
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--text-muted)' }} />
+            Upcoming Sprint Days
           </span>
         </div>
       </div>
@@ -299,7 +387,7 @@ export const CalendarView: React.FC = () => {
         }}>
           {/* Empty spacer cells before 1st of month */}
           {Array.from({ length: firstDayOfMonth }).map((_, idx) => (
-            <div key={`empty_${idx}`} style={{ minHeight: '75px', opacity: 0.2 }} />
+            <div key={`empty_${idx}`} style={{ minHeight: '75px', opacity: 0.15 }} />
           ))}
 
           {/* Month Days */}
@@ -331,12 +419,17 @@ export const CalendarView: React.FC = () => {
                   minHeight: '68px',
                   padding: '0.35rem clamp(2px, 0.6vw, 4px)',
                   borderRadius: 'var(--radius-md)',
-                  background: isToday ? 'rgba(99, 102, 241, 0.12)' : status.bg || 'var(--bg-input)',
+                  background: isToday 
+                    ? 'rgba(99, 102, 241, 0.12)' 
+                    : challengeDay 
+                      ? (status.bg || 'var(--bg-input)') 
+                      : 'var(--bg-surface)',
                   border: isToday 
                     ? '2px solid var(--primary-light)' 
                     : challengeDay 
                       ? `1px solid ${status.color}` 
                       : '1px solid var(--border-color)',
+                  opacity: challengeDay ? 1 : 0.6,
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
@@ -350,7 +443,7 @@ export const CalendarView: React.FC = () => {
                     className="calendar-day-num"
                     style={{
                       fontWeight: isToday ? 900 : 700,
-                      color: isToday ? 'var(--primary-light)' : 'var(--text-primary)',
+                      color: isToday ? 'var(--primary-light)' : challengeDay ? 'var(--text-primary)' : 'var(--text-muted)',
                       whiteSpace: 'nowrap',
                       wordBreak: 'keep-all',
                       lineHeight: 1
@@ -384,11 +477,11 @@ export const CalendarView: React.FC = () => {
                     justifyContent: 'center',
                     gap: '0.25rem'
                   }}>
-                    <span style={{ fontSize: '0.8rem', lineHeight: 1 }}>{status.icon}</span>
+                    {status.icon && <span style={{ fontSize: '0.8rem', lineHeight: 1 }}>{status.icon}</span>}
                     <span className="hide-mobile" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>{status.label}</span>
                   </div>
 
-                  {(dayRoutines.length > 0 || dayTasks.length > 0) && (
+                  {challengeDay && (dayRoutines.length > 0 || dayTasks.length > 0) && (
                     <div style={{
                       fontSize: '0.58rem',
                       fontWeight: 700,
@@ -440,8 +533,14 @@ export const CalendarView: React.FC = () => {
             {missedCount} Days
           </div>
         </div>
+
+        <div className="card" style={{ padding: '0.75rem 1rem', borderLeft: '3px solid var(--primary-light)' }}>
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700 }}>UPCOMING DAYS</span>
+          <div className="mono" style={{ fontSize: '1.35rem', fontWeight: 800, color: 'var(--primary-light)', marginTop: '0.1rem' }}>
+            {upcomingCount} Days
+          </div>
+        </div>
       </div>
     </div>
   );
 };
-

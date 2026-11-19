@@ -164,7 +164,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
         {/* Action Buttons Row */}
         <div style={{ 
           display: 'grid', 
-          gridTemplateColumns: '1fr 1fr', 
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', 
           gap: '0.75rem', 
           marginTop: '1.25rem',
           width: '100%',
@@ -176,12 +176,14 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             onClick={onClose}
             style={{ 
               width: '100%',
-              padding: '0.7rem 1rem',
+              minWidth: 0,
+              padding: '0.75rem 1rem',
               fontWeight: 600,
               fontSize: '0.88rem',
               borderRadius: '12px',
               justifyContent: 'center',
-              boxSizing: 'border-box'
+              boxSizing: 'border-box',
+              cursor: 'pointer'
             }}
           >
             {cancelText}
@@ -193,7 +195,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             onClick={handleConfirmClick}
             style={{ 
               width: '100%',
-              padding: '0.7rem 1rem',
+              minWidth: 0,
+              padding: '0.75rem 1rem',
               fontWeight: 700, 
               fontSize: '0.88rem',
               borderRadius: '12px',
@@ -204,6 +207,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               cursor: 'pointer',
               justifyContent: 'center',
               whiteSpace: 'normal',
+              wordBreak: 'break-word',
               textAlign: 'center',
               lineHeight: 1.25,
               boxSizing: 'border-box'

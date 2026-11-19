@@ -40,6 +40,7 @@ export const DayDetailModal = () => {
 
   const isToday = dateStr === todayStr;
   const isFuture = dateStr > todayStr;
+  const isBeforeChallenge = data.challenge?.startDate ? dateStr < data.challenge.startDate : false;
 
   return (
     <div className="modal-overlay" onClick={() => setActiveModal(null)}>
@@ -80,6 +81,11 @@ export const DayDetailModal = () => {
                     UPCOMING
                   </span>
                 )}
+                {isBeforeChallenge && (
+                  <span className="badge" style={{ background: 'var(--bg-surface)', color: 'var(--text-muted)', fontSize: '0.7rem' }}>
+                    PRE-CHALLENGE
+                  </span>
+                )}
               </div>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{dateStr}</p>
             </div>
@@ -96,15 +102,15 @@ export const DayDetailModal = () => {
           gap: '0.75rem',
           marginBottom: '1.25rem'
         }}>
-          <div className="card" style={{ padding: '0.85rem', borderLeft: `4px solid ${scoreMeta.color}` }}>
+          <div className="card" style={{ padding: '0.85rem', borderLeft: `4px solid ${isBeforeChallenge || isFuture ? 'var(--border-color)' : scoreMeta.color}` }}>
             <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
               Daily Score
             </span>
-            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: scoreMeta.color, marginTop: '0.1rem' }}>
-              {isFuture ? '—' : `${dayScore}%`}
+            <div className="mono" style={{ fontSize: '1.4rem', fontWeight: 800, color: isBeforeChallenge || isFuture ? 'var(--text-muted)' : scoreMeta.color, marginTop: '0.1rem' }}>
+              {isFuture || isBeforeChallenge ? '—' : `${dayScore}%`}
             </div>
-            <span className={`badge ${scoreMeta.badgeClass}`} style={{ fontSize: '0.65rem', marginTop: '0.2rem' }}>
-              {isFuture ? '⚪ Future' : `${scoreMeta.icon} ${scoreMeta.label}`}
+            <span className={`badge ${isBeforeChallenge || isFuture ? 'badge-ghost' : scoreMeta.badgeClass}`} style={{ fontSize: '0.65rem', marginTop: '0.2rem' }}>
+              {isFuture ? '⚪ Upcoming' : isBeforeChallenge ? '— Pre-Challenge' : isToday && dayScore < 70 ? '⚡ In Progress' : `${scoreMeta.icon} ${scoreMeta.label}`}
             </span>
           </div>
 
