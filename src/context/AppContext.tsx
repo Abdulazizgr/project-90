@@ -163,8 +163,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
                 },
                 challenge: {
                   ...remote.challenge,
-                  totalDurationDays: localState.challenge?.totalDurationDays || remote.challenge?.totalDurationDays || 30,
-                  name: localState.challenge?.name || remote.challenge?.name || 'Apex OS: Personal Management System'
+                  totalDurationDays: (localState.challenge?.totalDurationDays && Number(localState.challenge.totalDurationDays) !== 19)
+                    ? Number(localState.challenge.totalDurationDays)
+                    : (remote.challenge?.totalDurationDays && Number(remote.challenge.totalDurationDays) !== 19 ? Number(remote.challenge.totalDurationDays) : 90),
+                  name: localState.challenge?.name || remote.challenge?.name || 'Project 90: Personal Management System'
                 },
                 tasks: mergedTasks.length ? mergedTasks : localTasks,
                 routineLogsHistory: {
@@ -259,13 +261,16 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
 
     // Calculate Challenge Day Number with UTC date math
     if (state.challenge?.startDate) {
+      if (!state.challenge.totalDurationDays || Number(state.challenge.totalDurationDays) === 19) {
+        state.challenge.totalDurationDays = 90;
+      }
       const [sy, sm, sd] = state.challenge.startDate.split('-').map(Number);
       const [ty, tm, td] = todayStr.split('-').map(Number);
       if (sy && sm && sd && ty && tm && td) {
         const startUtc = Date.UTC(sy, sm - 1, sd);
         const todayUtc = Date.UTC(ty, tm - 1, td);
         const diffDays = Math.round((todayUtc - startUtc) / 86400000) + 1;
-        const totalDuration = state.challenge.totalDurationDays || 30;
+        const totalDuration = state.challenge.totalDurationDays || 90;
         state.challenge.currentDay = Math.max(1, Math.min(totalDuration, diffDays));
       }
     }
@@ -413,7 +418,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
           name: name.trim() || 'Apex OS: Personal Management System',
           startDate,
           endDate,
-          totalDurationDays: Number(durationDays) || 30,
+          totalDurationDays: Number(durationDays) || 90,
           currentDay: 1,
           status: 'active'
         }

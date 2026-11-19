@@ -93,7 +93,9 @@ export const Topbar: React.FC<TopbarProps> = ({
   const todayScore = data.dayScores?.[todayStr] || progress.percentage;
   const scoreMeta = getScoreLevel(todayScore);
   const currentDay = data.challenge?.currentDay || 1;
-  const totalDays = data.challenge?.totalDurationDays || 30;
+  const totalDays = (data.challenge?.totalDurationDays && Number(data.challenge.totalDurationDays) !== 19)
+    ? Number(data.challenge.totalDurationDays)
+    : 90;
 
   return (
     <header className="topbar">

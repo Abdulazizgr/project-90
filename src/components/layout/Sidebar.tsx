@@ -38,7 +38,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
   };
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
-  const totalDays = challenge.totalDurationDays || 30;
+  const totalDays = (challenge.totalDurationDays && Number(challenge.totalDurationDays) !== 19)
+    ? Number(challenge.totalDurationDays)
+    : 90;
   const rawName = challenge.name || '';
   const challengeName = rawName && !rawName.includes('Project 19')
     ? rawName

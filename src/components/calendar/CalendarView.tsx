@@ -22,7 +22,9 @@ export const CalendarView: React.FC = () => {
 
   const challenge = data.challenge || {};
   const startDateStr = challenge.startDate || todayStr;
-  const totalDays = Number(challenge.totalDurationDays) || 30;
+  const totalDays = (challenge.totalDurationDays && Number(challenge.totalDurationDays) !== 19)
+    ? Number(challenge.totalDurationDays)
+    : 90;
   const dayScores = data.dayScores || {};
   const routines = data.routines || [];
   const tasks = data.tasks || [];

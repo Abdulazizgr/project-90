@@ -48,7 +48,11 @@ export const SettingsView = () => {
   // Challenge Configuration states
   const [challengeName, setChallengeName] = useState(challenge.name || 'Apex OS');
   const [startDate, setStartDate] = useState(challenge.startDate || todayStr);
-  const [durationDays, setDurationDays] = useState(challenge.totalDurationDays || 30);
+  const [durationDays, setDurationDays] = useState(
+    challenge.totalDurationDays && Number(challenge.totalDurationDays) !== 19
+      ? challenge.totalDurationDays
+      : 90
+  );
   const [challengeStatus, setChallengeStatus] = useState(challenge.status || 'active');
 
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -82,7 +86,7 @@ export const SettingsView = () => {
     updateChallenge({
       name: challengeName.trim(),
       startDate,
-      totalDurationDays: Number(durationDays) || 30,
+      totalDurationDays: Number(durationDays) || 90,
       status: challengeStatus as any
     });
     setIsSavingChallenge(false);

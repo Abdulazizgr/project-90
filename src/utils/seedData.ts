@@ -118,7 +118,7 @@ export interface Challenge {
   name: string; // e.g. "Apex OS"
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
-  totalDurationDays: number; // e.g. 19
+  totalDurationDays: number; // e.g. 90
   currentDay: number;
   status: 'active' | 'completed' | 'planning';
 }
@@ -528,7 +528,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
 export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@gmail.com' }: { name?: string; email?: string } = {}) => {
   const todayStr = getLocalDateString();
   const startDate = todayStr;
-  const duration = 30; // Challenge duration default (30, 60, or 90 days)
+  const duration = 90; // Default 90-day challenge for Project 90
 
   // Compute end date: startDate + duration - 1
   const s = new Date(startDate);
@@ -548,8 +548,8 @@ export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@
       theme: 'dark'
     },
     challenge: {
-      id: `ch_apex_${Date.now()}`,
-      name: 'Apex OS: Personal Management System',
+      id: `ch_project90_${Date.now()}`,
+      name: 'Project 90: Personal Management System',
       startDate: startDate,
       endDate: endDate,
       totalDurationDays: duration,
