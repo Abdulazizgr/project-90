@@ -64,7 +64,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('p19_active_tab', tab);
       try {
-        window.history.replaceState(null, '', `#${tab}`);
+        window.history.pushState({ apexTrap: 'active', tab }, '', `#${tab}`);
       } catch {}
     }
     setTimeout(() => {
@@ -141,9 +141,46 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     } catch {}
   };
 
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
+  const confirmDialogRef = useRef<ConfirmDialogOptions | null>(null);
+  confirmDialogRef.current = confirmDialog;
+
+  const confirmAction = (options: ConfirmDialogOptions) => {
+    setConfirmDialog(options);
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog(null);
+  };
+
   // Banking-grade auto-lock on app exit / backgrounding / tab-switch & inactivity (CBE / Telebirr style)
   useEffect(() => {
     if (!isAuthenticated) return;
+
+    // Armed history trap for mobile Android / iOS back gesture:
+    // Ensures there is always a base entry so the browser NEVER silently exits
+    const armHistoryTrap = () => {
+      if (typeof window === 'undefined') return;
+      try {
+        if (!window.history.state || window.history.state.apexTrap !== 'active') {
+          window.history.replaceState({ apexTrap: 'base' }, '');
+          window.history.pushState({ apexTrap: 'active', tab: activeTab }, '', window.location.hash || '#dashboard');
+        }
+      } catch {}
+    };
+
+    armHistoryTrap();
+
+    // Re-arm on any user touch/gesture so Chrome's History Manipulation Intervention
+    // registers it as a user-activated history entry (cannot be skipped by Android back button)
+    const gestureEvents = ['touchstart', 'pointerdown', 'mousedown', 'click', 'keydown'];
+    const handleUserGesture = () => {
+      armHistoryTrap();
+    };
+
+    gestureEvents.forEach((evt) => {
+      window.addEventListener(evt, handleUserGesture, { passive: true });
+    });
 
     const handleExitOrBackground = () => {
       const autoLock = data.profile?.autoLockOnExit !== false;
@@ -166,17 +203,27 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       return 'Do you want to exit Apex OS?';
     };
 
-    // Intercept mobile hardware back button to show "Do you want to exit?" dialog
-    try {
-      window.history.pushState({ appGuard: true }, '', window.location.href);
-    } catch {}
-
+    // Popstate: Intercept mobile hardware Back button / gesture
     const handlePopState = (e: PopStateEvent) => {
-      // Re-push guard state to stay on current view while asking confirmation
+      // 1. Immediately re-arm the history trap so the browser never exits on subsequent pops
       try {
-        window.history.pushState({ appGuard: true }, '', window.location.href);
+        window.history.pushState({ apexTrap: 'active', tab: activeTab }, '', window.location.hash || '#dashboard');
       } catch {}
 
+      // 2. If the "Do you want to exit?" dialog is already open and user presses back again, confirm exit
+      if (confirmDialogRef.current) {
+        closeConfirmDialog();
+        lockSession();
+        handleSignOut();
+        return;
+      }
+
+      // 3. Play audio feedback
+      try {
+        playSound('pop');
+      } catch {}
+
+      // 4. Show the confirmation modal: "Do you want to exit?"
       confirmAction({
         title: 'Do you want to exit?',
         message: 'Are you sure you want to exit Apex OS? Your session vault will be securely locked.',
@@ -184,12 +231,13 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
         cancelText: 'Stay in App',
         variant: 'warning',
         onConfirm: () => {
+          lockSession();
           handleSignOut();
         }
       });
     };
 
-    // Mobile backgrounding, pagehide, tab switch, and exit
+    // Mobile backgrounding, pagehide, tab switch, and back navigation
     window.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('pagehide', handleExitOrBackground);
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -215,6 +263,9 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }, 10000); // Check every 10 seconds
 
     return () => {
+      gestureEvents.forEach((evt) => {
+        window.removeEventListener(evt, handleUserGesture);
+      });
       window.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('pagehide', handleExitOrBackground);
       window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -224,17 +275,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       });
       clearInterval(inactivityInterval);
     };
-  }, [isAuthenticated, data.profile?.autoLockOnExit, isAppLocked]);
-
-  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
-
-  const confirmAction = (options: ConfirmDialogOptions) => {
-    setConfirmDialog(options);
-  };
-
-  const closeConfirmDialog = () => {
-    setConfirmDialog(null);
-  };
+  }, [isAuthenticated, data.profile?.autoLockOnExit, isAppLocked, activeTab]);
 
   const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
   const user = sessionResult?.data?.user;
