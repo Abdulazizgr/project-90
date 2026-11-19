@@ -11,7 +11,7 @@ import {
   Trophy, 
   Settings, 
   Flame,
-  RotateCcw
+  LogOut
 } from 'lucide-react';
 import { ApexLogo } from '@/components/common/ApexLogo';
 import { useApp } from '@/context/AppContext';
@@ -23,14 +23,26 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen }) => {
-  const { data, activeTab, setActiveTab, todayStr, handleSignOut, triggerSound } = useApp();
+  const { data, activeTab, setActiveTab, todayStr, handleSignOut, triggerSound, confirmAction } = useApp();
+
+  const triggerSignOut = () => {
+    confirmAction({
+      title: 'Sign Out?',
+      message: 'Are you sure you want to sign out of your account session?',
+      confirmText: 'Sign Out',
+      variant: 'warning',
+      onConfirm: () => {
+        handleSignOut();
+      }
+    });
+  };
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
-  const totalDays = challenge.totalDurationDays || 19;
+  const totalDays = challenge.totalDurationDays || 30;
   const rawName = challenge.name || '';
-  const challengeName = (!rawName || rawName.includes('Project 19') || rawName.includes('PROJECT 90') || rawName.includes('Project 90'))
-    ? 'Apex OS: Personal Management System'
-    : rawName;
+  const challengeName = rawName && !rawName.includes('Project 19')
+    ? rawName
+    : 'Apex OS: Personal Management System';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];
@@ -230,12 +242,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
         </div>
 
         <button
-          onClick={handleSignOut}
-          title="Reset to Day 1 Seeds"
+          onClick={triggerSignOut}
+          title="Sign Out"
           className="btn btn-ghost btn-icon"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
+          aria-label="Sign Out"
         >
-          <RotateCcw size={16} />
+          <LogOut size={16} />
         </button>
       </div>
     </aside>

@@ -118,7 +118,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
                 },
                 challenge: {
                   ...remote.challenge,
-                  totalDurationDays: localState.challenge?.totalDurationDays || remote.challenge?.totalDurationDays || 19,
+                  totalDurationDays: localState.challenge?.totalDurationDays || remote.challenge?.totalDurationDays || 30,
                   name: localState.challenge?.name || remote.challenge?.name || 'Apex OS: Personal Management System'
                 },
                 tasks: mergedTasks.length ? mergedTasks : localTasks,
@@ -212,13 +212,17 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       [targetDate]: earnedScore
     };
 
-    // Calculate Challenge Day Number
+    // Calculate Challenge Day Number with UTC date math
     if (state.challenge?.startDate) {
-      const start = new Date(state.challenge.startDate);
-      const curr = new Date(todayStr);
-      const diffTime = curr.getTime() - start.getTime();
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
-      state.challenge.currentDay = Math.max(1, Math.min(state.challenge.totalDurationDays || 19, diffDays));
+      const [sy, sm, sd] = state.challenge.startDate.split('-').map(Number);
+      const [ty, tm, td] = todayStr.split('-').map(Number);
+      if (sy && sm && sd && ty && tm && td) {
+        const startUtc = Date.UTC(sy, sm - 1, sd);
+        const todayUtc = Date.UTC(ty, tm - 1, td);
+        const diffDays = Math.round((todayUtc - startUtc) / 86400000) + 1;
+        const totalDuration = state.challenge.totalDurationDays || 30;
+        state.challenge.currentDay = Math.max(1, Math.min(totalDuration, diffDays));
+      }
     }
 
     // Ensure every category has an achievement badge
@@ -364,7 +368,7 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
           name: name.trim() || 'Apex OS: Personal Management System',
           startDate,
           endDate,
-          totalDurationDays: Number(durationDays) || 19,
+          totalDurationDays: Number(durationDays) || 30,
           currentDay: 1,
           status: 'active'
         }

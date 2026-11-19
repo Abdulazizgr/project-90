@@ -24,7 +24,8 @@ import {
   parseTimeToMinutes,
   getDayKeyFromDateStr,
   isRoutineScheduledForDay,
-  checkTimeOverlap
+  checkTimeOverlap,
+  addDaysToDateStr
 } from '@/utils/calculations';
 import { TimeEntry } from '@/utils/seedData';
 
@@ -79,15 +80,11 @@ export const MyDayView: React.FC = () => {
 
   // Date Navigation
   const handlePrevDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate((prev) => addDaysToDateStr(prev, -1));
   };
 
   const handleNextDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate((prev) => addDaysToDateStr(prev, 1));
   };
 
   // Form Reset

@@ -20,7 +20,7 @@ import {
   Lightbulb
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { generateWeeklyReport, formatDurationHuman } from '@/utils/calculations';
+import { generateWeeklyReport, formatDurationHuman, addDaysToDateStr } from '@/utils/calculations';
 
 export const WeeklyReportView: React.FC = () => {
   const { data, todayStr } = useApp();
@@ -47,15 +47,11 @@ export const WeeklyReportView: React.FC = () => {
 
   // Week navigation
   const handlePrevWeek = () => {
-    const d = new Date(currentWeekMonday);
-    d.setDate(d.getDate() - 7);
-    setCurrentWeekMonday(d.toISOString().split('T')[0]);
+    setCurrentWeekMonday((prev) => addDaysToDateStr(prev, -7));
   };
 
   const handleNextWeek = () => {
-    const d = new Date(currentWeekMonday);
-    d.setDate(d.getDate() + 7);
-    setCurrentWeekMonday(d.toISOString().split('T')[0]);
+    setCurrentWeekMonday((prev) => addDaysToDateStr(prev, 7));
   };
 
   // Generate Weekly Report Data

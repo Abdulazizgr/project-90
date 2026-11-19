@@ -12,12 +12,12 @@ export const loadDataFromStorage = (profile = {}) => {
     if (raw) {
       const parsed = JSON.parse(raw);
       if (parsed && parsed.challenge && parsed.categories && parsed.routines && parsed.tasks) {
-        // Automatically migrate any legacy challenge names or durations
-        if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19') || parsed.challenge.name.includes('PROJECT 90') || parsed.challenge.name.includes('Project 90')) {
+        // Automatically migrate any legacy Project 19 challenge names or missing durations
+        if (!parsed.challenge.name || parsed.challenge.name.includes('Project 19')) {
           parsed.challenge.name = 'Apex OS: Personal Management System';
         }
         if (!parsed.challenge.totalDurationDays) {
-          parsed.challenge.totalDurationDays = 19;
+          parsed.challenge.totalDurationDays = 30;
         }
         if (!parsed.challenge.currentDay) {
           parsed.challenge.currentDay = 1;

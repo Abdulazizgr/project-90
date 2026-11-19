@@ -43,8 +43,21 @@ export const Topbar: React.FC<TopbarProps> = ({
     toggleSound, 
     setActiveModal, 
     handleSignOut,
+    confirmAction,
     todayStr
   } = useApp();
+
+  const triggerSignOut = () => {
+    confirmAction({
+      title: 'Sign Out?',
+      message: 'Are you sure you want to sign out of your account session?',
+      confirmText: 'Sign Out',
+      variant: 'warning',
+      onConfirm: () => {
+        handleSignOut();
+      }
+    });
+  };
 
   const [prayerInfo, setPrayerInfo] = useState(() => getPrayerTimes());
 
@@ -80,7 +93,7 @@ export const Topbar: React.FC<TopbarProps> = ({
   const todayScore = data.dayScores?.[todayStr] || progress.percentage;
   const scoreMeta = getScoreLevel(todayScore);
   const currentDay = data.challenge?.currentDay || 1;
-  const totalDays = data.challenge?.totalDurationDays || 19;
+  const totalDays = data.challenge?.totalDurationDays || 30;
 
   return (
     <header className="topbar">
@@ -199,14 +212,15 @@ export const Topbar: React.FC<TopbarProps> = ({
           {currentTheme === 'dark' ? <Sun size={17} color="#f59e0b" /> : <Moon size={17} />}
         </button>
 
-        {/* Reset / Reload Seeds Button */}
+        {/* Sign Out Button */}
         <button
           className="btn btn-ghost btn-icon"
-          onClick={handleSignOut}
-          title="Reset to Day 1 Seeds"
+          onClick={triggerSignOut}
+          title="Sign Out"
+          aria-label="Sign Out"
           style={{ padding: '0.4rem', color: 'var(--text-muted)' }}
         >
-          <RotateCcw size={17} />
+          <LogOut size={17} />
         </button>
       </div>
     </header>

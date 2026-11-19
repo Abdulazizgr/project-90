@@ -528,7 +528,7 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
 export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@gmail.com' }: { name?: string; email?: string } = {}) => {
   const todayStr = getLocalDateString();
   const startDate = todayStr;
-  const duration = 19; // Project duration default (configurable)
+  const duration = 30; // Challenge duration default (30, 60, or 90 days)
 
   // Compute end date: startDate + duration - 1
   const s = new Date(startDate);

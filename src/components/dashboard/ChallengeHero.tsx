@@ -9,11 +9,11 @@ export const ChallengeHero = () => {
   const { data, setActiveTab, todayStr } = useApp();
   const challenge = data.challenge || {};
   const currentDay = challenge.currentDay || 1;
-  const totalDays = challenge.totalDurationDays || 19;
+  const totalDays = challenge.totalDurationDays || 30;
   const rawName = challenge.name || '';
-  const challengeName = (!rawName || rawName.includes('Project 19') || rawName.includes('PROJECT 90') || rawName.includes('Project 90'))
-    ? 'Apex OS: Personal Management System'
-    : rawName;
+  const challengeName = rawName && !rawName.includes('Project 19')
+    ? rawName
+    : 'Apex OS: Personal Management System';
   const pctComplete = Math.min(100, Math.round((currentDay / totalDays) * 100));
 
   const routines = data.routines || [];

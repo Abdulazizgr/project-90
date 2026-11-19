@@ -30,6 +30,16 @@ export const formatDurationHuman = (totalMinutes: number): string => {
   return `${minutes}m`;
 };
 
+export const addDaysToDateStr = (dateStr: string, days: number): string => {
+  if (!dateStr) return dateStr;
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length === 3 && parts[0] && parts[1] && parts[2]) {
+    const d = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2] + days));
+    return d.toISOString().split('T')[0];
+  }
+  return dateStr;
+};
+
 export const getDayKeyFromDateStr = (dateStr: string): DayKey => {
   if (!dateStr) return 'mon';
   const parts = dateStr.split('-');

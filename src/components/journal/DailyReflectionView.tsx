@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { DailyReflection } from '@/utils/seedData';
-import { formatDurationHuman } from '@/utils/calculations';
+import { formatDurationHuman, addDaysToDateStr } from '@/utils/calculations';
 
 export const DailyReflectionView: React.FC = () => {
   const { data, todayStr, saveDailyReflection, triggerSound } = useApp();
@@ -46,15 +46,11 @@ export const DailyReflectionView: React.FC = () => {
 
   // Date Navigation
   const handlePrevDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() - 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate((prev) => addDaysToDateStr(prev, -1));
   };
 
   const handleNextDay = () => {
-    const d = new Date(selectedDate);
-    d.setDate(d.getDate() + 1);
-    setSelectedDate(d.toISOString().split('T')[0]);
+    setSelectedDate((prev) => addDaysToDateStr(prev, 1));
   };
 
   const handleSave = (e: React.FormEvent) => {
