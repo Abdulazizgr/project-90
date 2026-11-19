@@ -347,7 +347,7 @@ export const MoneyTrackerView: React.FC = () => {
             {mask(formatCurrency(metrics.netBalance, currency))}
           </div>
           <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
-            Inflow minus personal
+            Inflow - Personal - Company Owed
           </p>
         </div>
 

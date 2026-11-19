@@ -666,10 +666,10 @@ export const calculateFinancialMetrics = (transactions: Transaction[] = []) => {
     }
   });
 
-  // Net Cash Balance: Income minus what you personally spent
-  // Note: Company expenses paid from pocket that are pending reimbursement are owed back to you!
-  const netBalance = totalIncome - totalPersonalExpense;
-  const currentPocketBalance = totalIncome - totalPersonalExpense - pendingCompanyReimbursement;
+  // Net Cash Balance: Income minus personal expenses AND minus unreimbursed company expenses paid out of pocket.
+  // When company reimburses the expense, the money is restored to your balance!
+  const netBalance = totalIncome - totalPersonalExpense - pendingCompanyReimbursement;
+  const currentPocketBalance = netBalance;
 
   return {
     totalIncome,
