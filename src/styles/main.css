@@ -357,6 +357,51 @@ option {
   min-height: 80px;
 }
 
+/* Date & Time Native Picker Indicators */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+[data-theme='light'] input[type="date"],
+[data-theme='light'] input[type="time"],
+[data-theme='light'] input[type="datetime-local"] {
+  color-scheme: light;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1) brightness(1.25);
+  opacity: 0.9;
+  padding: 4px;
+  border-radius: 4px;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+[data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: none;
+  opacity: 0.75;
+}
+
+[data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator:hover,
+[data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator:hover,
+[data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  filter: none;
+}
+
 /* Progress Bar */
 .progress-bar-container {
   width: 100%;
