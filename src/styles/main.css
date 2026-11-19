@@ -839,23 +839,24 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
   }
 
   /* Mobile Bottom Navigation Bar */
+  /* Mobile Bottom Navigation Bar (5 Items Premium Dock) */
   .mobile-bottom-nav {
     display: flex !important;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 64px;
-    background: var(--bg-glass);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid var(--border-color);
+    height: 66px;
+    background: rgba(10, 14, 26, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     z-index: 50;
     align-items: center;
     justify-content: space-around;
-    padding: 0 0.25rem;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    box-shadow: var(--shadow-md);
+    padding: 0 0.5rem;
+    padding-bottom: env(safe-area-inset-bottom, 4px);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.5);
   }
 
   .mobile-nav-btn {
@@ -866,12 +867,13 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 0.64rem;
+    font-size: 0.66rem;
     font-weight: 500;
-    padding: 0.25rem 0.15rem;
-    border-radius: var(--radius-md);
+    padding: 0.35rem 0.2rem;
+    border-radius: var(--radius-lg);
     cursor: pointer;
     flex: 1;
+    max-width: 70px;
     min-width: 0;
     transition: all var(--transition-fast);
     position: relative;
@@ -881,7 +883,6 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 
   .mobile-nav-btn.active {
     color: var(--primary-light);
-    font-weight: 700;
   }
 
   .mobile-nav-icon-wrap {
@@ -889,26 +890,37 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     display: flex;
     align-items: center;
     justify-content: center;
+    width: 44px;
+    height: 28px;
+    border-radius: 14px;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     margin-bottom: 2px;
   }
 
+  .mobile-nav-icon-wrap.active-icon-pill {
+    background: rgba(99, 102, 241, 0.16);
+    color: var(--primary-light);
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.22);
+    transform: translateY(-2px);
+  }
+
   .mobile-nav-dot {
-    position: absolute;
-    bottom: -4px;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--primary-light);
-    box-shadow: 0 0 6px var(--primary-glow);
+    display: none;
   }
 
   .mobile-nav-label {
-    line-height: 1;
-    font-size: 0.62rem;
+    line-height: 1.1;
+    font-size: 0.66rem;
+    font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 58px;
+    letter-spacing: -0.01em;
+  }
+
+  .mobile-nav-btn.active .mobile-nav-label {
+    font-weight: 800;
+    color: var(--primary-light);
   }
 
   .global-timer-bar {

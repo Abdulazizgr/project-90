@@ -32,7 +32,8 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
   } = useApp();
 
   const defaultOwnerEmail = data.profile?.email || 'abdulazizisa579@gmail.com';
-  const [identifier, setIdentifier] = useState(defaultOwnerEmail);
+  // Do not pre-fill or autofill identifier; user must enter credentials manually
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -260,8 +261,8 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
           </div>
         )}
 
-        {/* Sign In Form */}
-        <form onSubmit={handleSignIn}>
+        {/* Sign In Form with Autofill completely disabled */}
+        <form onSubmit={handleSignIn} autoComplete="off" data-lpignore="true" data-form-type="other">
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
               Email or Username
@@ -270,9 +271,16 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
               <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type="text"
+                name="apex_user_id"
+                id="apex_user_id"
+                autoComplete="one-time-code"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-lpignore="true"
                 className="input"
                 required
-                placeholder="abdulazizisa579@gmail.com"
+                placeholder="Enter email or username"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 style={{ width: '100%', paddingLeft: '38px', fontSize: '0.9rem' }}
@@ -288,6 +296,13 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
               <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type={showPassword ? 'text' : 'password'}
+                name="apex_secure_vault_code"
+                id="apex_secure_vault_code"
+                autoComplete="new-password"
+                autoCorrect="off"
+                autoCapitalize="off"
+                spellCheck="false"
+                data-lpignore="true"
                 className="input"
                 required
                 placeholder="Enter password"

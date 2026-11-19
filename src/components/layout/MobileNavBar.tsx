@@ -17,14 +17,13 @@ import { useApp } from '@/context/AppContext';
 export const MobileNavBar: React.FC = () => {
   const { activeTab, setActiveTab, triggerSound } = useApp();
 
+  // 5 Core Mobile Navigation Items
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'my_day', label: 'My Day', icon: Clock },
     { id: 'routines', label: 'Routines', icon: SunMedium },
     { id: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { id: 'calendar', label: 'Calendar', icon: CalendarDays },
     { id: 'finance', label: 'Money', icon: Wallet },
-    { id: 'reports', label: 'Reports', icon: BarChart3 }
+    { id: 'calendar', label: 'Calendar', icon: CalendarDays }
   ];
 
   return (
@@ -43,9 +42,8 @@ export const MobileNavBar: React.FC = () => {
               triggerSound('click');
             }}
           >
-            <div className="mobile-nav-icon-wrap">
-              <Icon size={19} strokeWidth={isActive ? 2.5 : 1.8} />
-              {isActive && <span className="mobile-nav-dot" />}
+            <div className={`mobile-nav-icon-wrap ${isActive ? 'active-icon-pill' : ''}`}>
+              <Icon size={isActive ? 21 : 20} strokeWidth={isActive ? 2.5 : 1.8} />
             </div>
             <span className="mobile-nav-label">{item.label}</span>
           </button>

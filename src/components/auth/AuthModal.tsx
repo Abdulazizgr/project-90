@@ -153,8 +153,8 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
           </div>
         )}
 
-        {/* Form */}
-        <form onSubmit={handleSubmit}>
+        {/* Form with autofill disabled */}
+        <form onSubmit={handleSubmit} autoComplete="off" data-lpignore="true">
           {mode === 'signup' && (
             <div className="form-group">
               <label className="form-label">Full Name</label>
@@ -162,6 +162,8 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
                 <User size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
                 <input
                   type="text"
+                  autoComplete="off"
+                  data-lpignore="true"
                   className="form-input"
                   required
                   placeholder="Your Name"
@@ -179,6 +181,8 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
               <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type="email"
+                autoComplete="one-time-code"
+                data-lpignore="true"
                 className="form-input"
                 required
                 placeholder="name@example.com"
@@ -195,6 +199,8 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
               <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input
                 type="password"
+                autoComplete="new-password"
+                data-lpignore="true"
                 className="form-input"
                 required
                 minLength={6}

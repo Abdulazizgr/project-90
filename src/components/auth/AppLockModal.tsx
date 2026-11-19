@@ -184,12 +184,19 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }
           <div style={{ flex: 1, height: '1px', background: 'var(--border-color)' }} />
         </div>
 
-        {/* Password Fallback Form */}
-        <form onSubmit={handlePasswordUnlock}>
+        {/* Password Fallback Form with autofill completely disabled */}
+        <form onSubmit={handlePasswordUnlock} autoComplete="off" data-lpignore="true" data-form-type="other">
           <div style={{ position: 'relative', marginBottom: '0.85rem' }}>
             <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
             <input
               type={showPassword ? 'text' : 'password'}
+              name="apex_unlock_code"
+              id="apex_unlock_code"
+              autoComplete="new-password"
+              autoCorrect="off"
+              autoCapitalize="off"
+              spellCheck="false"
+              data-lpignore="true"
               className="input"
               required
               placeholder="Enter password..."

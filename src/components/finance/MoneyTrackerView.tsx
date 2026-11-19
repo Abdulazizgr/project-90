@@ -74,7 +74,8 @@ export const MoneyTrackerView: React.FC = () => {
   // Filters
   const [timeRange, setTimeRange] = useState<'today' | '7days' | 'month' | 'all'>('month');
   const [typeFilter, setTypeFilter] = useState<'all' | 'personal' | 'company' | 'income'>('all');
-  const [privacyMode, setPrivacyMode] = useState(false);
+  // Privacy mode hides amounts by default for banking privacy
+  const [privacyMode, setPrivacyMode] = useState<boolean>(true);
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
