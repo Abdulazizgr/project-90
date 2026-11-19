@@ -107,7 +107,9 @@ export interface Achievement {
   icon: string;
   unlocked: boolean;
   progress: string;
-  category: 'Consistency' | 'Discipline' | 'Milestone' | 'Balance';
+  category: string;
+  categoryId?: string;
+  isCustom?: boolean;
   unlockedAt?: string;
 }
 
@@ -450,7 +452,18 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     icon: '🕌',
     unlocked: false,
     progress: '0 / 7 Days',
-    category: 'Discipline'
+    category: 'Spiritual',
+    categoryId: 'spiritual'
+  },
+  {
+    id: 'ach_career_execution',
+    title: 'RHIZAN Engineering Sprint',
+    description: 'Complete 10 high-impact Career & RHIZAN development sessions',
+    icon: '💼',
+    unlocked: false,
+    progress: '0 / 10 Sessions',
+    category: 'Career & RHIZAN',
+    categoryId: 'career'
   },
   {
     id: 'ach_fitness_discipline',
@@ -459,7 +472,8 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     icon: '💪',
     unlocked: false,
     progress: '0 / 3 Workouts',
-    category: 'Discipline'
+    category: 'Fitness',
+    categoryId: 'fitness'
   },
   {
     id: 'ach_learning_streak',
@@ -468,7 +482,28 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
     icon: '🧠',
     unlocked: false,
     progress: '0 / 5 Hours',
-    category: 'Discipline'
+    category: 'Learning',
+    categoryId: 'learning'
+  },
+  {
+    id: 'ach_english_fluency',
+    title: 'English Fluency Momentum',
+    description: 'Log 7 consistent days of spoken English & communication practice',
+    icon: '🗣️',
+    unlocked: false,
+    progress: '0 / 7 Days',
+    category: 'English',
+    categoryId: 'english'
+  },
+  {
+    id: 'ach_personal_mastery',
+    title: 'Personal Growth & Order',
+    description: 'Complete 7 sessions of personal development, organization, and mindfulness',
+    icon: '👤',
+    unlocked: false,
+    progress: '0 / 7 Sessions',
+    category: 'Personal',
+    categoryId: 'personal'
   },
   {
     id: 'ach_task_finisher',

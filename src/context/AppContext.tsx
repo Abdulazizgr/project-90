@@ -221,8 +221,28 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       state.challenge.currentDay = Math.max(1, Math.min(state.challenge.totalDurationDays || 19, diffDays));
     }
 
+    // Ensure every category has an achievement badge
+    const existingAchievements: Achievement[] = [...(state.achievements || DEFAULT_ACHIEVEMENTS)];
+    (state.categories || []).forEach((cat: Category) => {
+      const hasBadge = existingAchievements.some(
+        (a) => a.categoryId === cat.id || a.id === `ach_cat_${cat.id}` || a.title?.toLowerCase().includes(cat.name.toLowerCase())
+      );
+      if (!hasBadge) {
+        existingAchievements.push({
+          id: `ach_cat_${cat.id}`,
+          title: `${cat.name} Mastery`,
+          description: `Consistently complete routines and track progress in ${cat.name}`,
+          icon: cat.icon || '🎯',
+          unlocked: false,
+          progress: '0 / 7 Sessions',
+          category: cat.name,
+          categoryId: cat.id
+        });
+      }
+    });
+
     // Evaluate Achievements
-    const updatedAchievements = (state.achievements || DEFAULT_ACHIEVEMENTS).map((ach: Achievement) => {
+    const updatedAchievements = existingAchievements.map((ach: Achievement) => {
       let unlocked = ach.unlocked;
       let progressStr = ach.progress;
 
@@ -234,17 +254,75 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
       }
 
       // 7-Day Streak
-      if (ach.id === 'ach_7day_streak') {
+      else if (ach.id === 'ach_7day_streak') {
         const successfulDays = Object.values(updatedDayScores).filter((s: any) => typeof s === 'number' && s >= 70).length;
         progressStr = `${Math.min(7, successfulDays)} / 7 Days`;
         if (successfulDays >= 7) unlocked = true;
       }
 
+      // 14-Day Commitment
+      else if (ach.id === 'ach_14day_commitment') {
+        const successfulDays = Object.values(updatedDayScores).filter((s: any) => typeof s === 'number' && s >= 70).length;
+        progressStr = `${Math.min(14, successfulDays)} / 14 Days`;
+        if (successfulDays >= 14) unlocked = true;
+      }
+
+      // 30-Day Master Sprint
+      else if (ach.id === 'ach_30day_consistency') {
+        const successfulDays = Object.values(updatedDayScores).filter((s: any) => typeof s === 'number' && s >= 70).length;
+        progressStr = `${Math.min(30, successfulDays)} / 30 Days`;
+        if (successfulDays >= 30) unlocked = true;
+      }
+
       // Task Finisher (25 tasks completed)
-      if (ach.id === 'ach_task_finisher') {
+      else if (ach.id === 'ach_task_finisher') {
         const completedTasksCount = (state.tasks || []).filter((t: Task) => t.status === 'completed').length;
         progressStr = `${Math.min(25, completedTasksCount)} / 25 Tasks`;
         if (completedTasksCount >= 25) unlocked = true;
+      }
+
+      // Weekly Champion (85%+)
+      else if (ach.id === 'ach_weekly_champion') {
+        const highestScore = Math.max(0, ...(Object.values(updatedDayScores).filter((s) => typeof s === 'number') as number[]));
+        progressStr = `${highestScore}% / 85%`;
+        if (highestScore >= 85) unlocked = true;
+      }
+
+      // Category-Specific Badges (dynamic tracking for any core or custom category)
+      else if (ach.categoryId || ach.id?.startsWith('ach_cat_') || ach.id === 'ach_spiritual_consistency' || ach.id === 'ach_fitness_discipline' || ach.id === 'ach_learning_streak') {
+        const cat = (state.categories || []).find((c: Category) => 
+          c.id === ach.categoryId || 
+          ach.id === `ach_cat_${c.id}` || 
+          ach.title?.toLowerCase().includes(c.name.toLowerCase()) || 
+          ach.category?.toLowerCase() === c.name.toLowerCase()
+        );
+
+        const targetCatId = cat ? cat.id : ach.categoryId;
+        if (targetCatId) {
+          const catRoutines = (state.routines || []).filter((r: Routine) => r.categoryId === targetCatId);
+          const catRoutineIds = new Set(catRoutines.map((r: Routine) => r.id));
+
+          let completedSessions = 0;
+          const allLogs = state.routineLogsHistory || {};
+          for (const d of Object.keys(allLogs)) {
+            const logsForDay = allLogs[d] || {};
+            for (const rId of Object.keys(logsForDay)) {
+              if (catRoutineIds.has(rId) && (logsForDay[rId]?.completed || logsForDay[rId]?.status === 'done')) {
+                completedSessions++;
+              }
+            }
+          }
+
+          const allTimeEntries = Object.values(state.timeEntriesHistory || {}).flat() as any[];
+          const timeCount = allTimeEntries.filter((te) => te && te.categoryId === targetCatId).length;
+          
+          const totalActivity = completedSessions + timeCount;
+          const target = ach.id === 'ach_career_execution' ? 10 : 7;
+          progressStr = `${Math.min(target, totalActivity)} / ${target} Sessions`;
+          if (totalActivity >= target) {
+            unlocked = true;
+          }
+        }
       }
 
       return { ...ach, unlocked, progress: progressStr };
@@ -777,6 +855,51 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     });
   };
 
+  // --- Achievements API ---
+  const addAchievement = (newAch: Partial<Achievement>) => {
+    setData((prev: any) => {
+      const achId = `ach_custom_${Date.now()}`;
+      const achObj: Achievement = {
+        id: achId,
+        title: newAch.title || 'Custom Mastery Badge',
+        description: newAch.description || 'Custom focus milestone',
+        icon: newAch.icon || '🏅',
+        unlocked: false,
+        progress: '0 / 7 Sessions',
+        category: newAch.category || 'Custom',
+        categoryId: newAch.categoryId,
+        isCustom: true
+      };
+      const nextState = {
+        ...prev,
+        achievements: [...(prev.achievements || []), achObj]
+      };
+      return recomputeState(nextState);
+    });
+    triggerCelebration();
+  };
+
+  const updateAchievement = (achId: string, fields: Partial<Achievement>) => {
+    setData((prev: any) => {
+      const nextState = {
+        ...prev,
+        achievements: (prev.achievements || []).map((a: Achievement) => (a.id === achId ? { ...a, ...fields } : a))
+      };
+      return recomputeState(nextState);
+    });
+  };
+
+  const deleteAchievement = (achId: string) => {
+    setData((prev: any) => {
+      const nextState = {
+        ...prev,
+        achievements: (prev.achievements || []).filter((a: Achievement) => a.id !== achId)
+      };
+      return recomputeState(nextState);
+    });
+    triggerSound('pop');
+  };
+
   const handleSignOut = async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('p19_authenticated');
@@ -844,6 +967,10 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     // Reflection API
     saveDailyReflection,
     saveJournalEntry,
+    // Achievements API
+    addAchievement,
+    updateAchievement,
+    deleteAchievement,
     // Backup & Data
     handleExport,
     handleImport,
