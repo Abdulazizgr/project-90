@@ -9,7 +9,8 @@ import {
   CalendarDays, 
   BarChart3,
   Trophy,
-  Settings
+  Settings,
+  Wallet
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
@@ -22,6 +23,7 @@ export const MobileNavBar: React.FC = () => {
     { id: 'routines', label: 'Routines', icon: SunMedium },
     { id: 'tasks', label: 'Tasks', icon: CheckSquare },
     { id: 'calendar', label: 'Calendar', icon: CalendarDays },
+    { id: 'finance', label: 'Money', icon: Wallet },
     { id: 'reports', label: 'Reports', icon: BarChart3 }
   ];
 

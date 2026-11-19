@@ -12,19 +12,18 @@ interface AppLockModalProps {
 }
 
 export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }) => {
-  const { data, triggerSound } = useApp();
+  const { data, triggerSound, handleSignOut } = useApp();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isBiometricVerifying, setIsBiometricVerifying] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  if (!isLocked) return null;
-
-  const hasBiometrics = isBiometricsRegistered();
   const ownerPassword = data.profile?.password || 'password';
+  const ownerEmail = data.profile?.email || 'abdulazizisa579@gmail.com';
+  const ownerName = data.profile?.name || 'Abdulaziz';
 
-  const handleBiometricUnlock = async () => {
-    setErrorMsg('');
+  const handleBiometricUnlock = async (isManual = true) => {
+    if (isManual) setErrorMsg('');
     setIsBiometricVerifying(true);
     try {
       const res = await verifyBiometrics();
@@ -32,15 +31,34 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }
         triggerSound('level-up');
         onUnlock();
       } else {
-        setErrorMsg(res.error || 'Fingerprint verification failed. Use your password.');
-        triggerSound('pop');
+        if (isManual) {
+          setErrorMsg(res.error || 'Fingerprint verification failed. Please try again or use your password.');
+          triggerSound('pop');
+        }
       }
     } catch {
-      setErrorMsg('Biometric authentication failed. Use your password.');
+      if (isManual) {
+        setErrorMsg('Biometric authentication failed. Please use your password.');
+      }
     } finally {
       setIsBiometricVerifying(false);
     }
   };
+
+  // Attempt biometric prompt on initial lock mount if registered
+  React.useEffect(() => {
+    if (isLocked) {
+      const hasBio = isBiometricsRegistered();
+      if (hasBio) {
+        const timer = setTimeout(() => {
+          handleBiometricUnlock(false).catch(() => {});
+        }, 400);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [isLocked]);
+
+  if (!isLocked) return null;
 
   const handlePasswordUnlock = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,7 +145,7 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }
           <button
             type="button"
             className="btn btn-primary"
-            onClick={handleBiometricUnlock}
+            onClick={() => handleBiometricUnlock(true)}
             disabled={isBiometricVerifying}
             style={{
               width: '100%',
@@ -206,7 +224,26 @@ export const AppLockModal: React.FC<AppLockModalProps> = ({ isLocked, onUnlock }
             Unlock with Password
           </button>
         </form>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '0.85rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '200px' }}>
+            {ownerName} ({ownerEmail})
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('apex_session_locked');
+              }
+              handleSignOut();
+            }}
+            style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 700, cursor: 'pointer', padding: 0 }}
+          >
+            Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
 };
+

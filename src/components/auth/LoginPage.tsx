@@ -27,7 +27,8 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
     setData,
     toggleTheme, 
     triggerSound, 
-    setIsAuthenticated 
+    setIsAuthenticated,
+    unlockSession
   } = useApp();
 
   const defaultOwnerEmail = data.profile?.email || 'abdulazizisa579@gmail.com';
@@ -43,7 +44,10 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
   const completeLogin = () => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('p19_authenticated', 'true');
+      localStorage.removeItem('apex_session_locked');
+      localStorage.setItem('apex_last_active_time', String(Date.now()));
     }
+    if (unlockSession) unlockSession();
     if (setIsAuthenticated) setIsAuthenticated(true);
     if (onLoginSuccess) onLoginSuccess();
   };
@@ -102,7 +106,7 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
                               password.trim() === 'password';
 
       if (!isPasswordMatch && !remoteSuccess) {
-        setErrorMsg('Incorrect password. Seeded password is "password"');
+        setErrorMsg('Incorrect password. Please try again.');
         setIsLoading(false);
         triggerSound('pop');
         return;
@@ -277,14 +281,9 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
           </div>
 
           <div style={{ marginBottom: '1.35rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-              <label style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-                Password
-              </label>
-              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-                Default: <code style={{ color: 'var(--primary-light)', padding: '0.1rem 0.3rem', background: 'rgba(99,102,241,0.1)', borderRadius: '4px' }}>password</code>
-              </span>
-            </div>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+              Password
+            </label>
             <div style={{ position: 'relative' }}>
               <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: 'var(--text-muted)' }} />
               <input

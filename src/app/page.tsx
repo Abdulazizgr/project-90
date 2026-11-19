@@ -41,6 +41,7 @@ function MainApp() {
     isViewLoading,
     isAppLocked,
     setIsAppLocked,
+    unlockSession,
     setIsAuthenticated,
     activeTab, 
     isAuthModalOpen, 
@@ -221,8 +222,8 @@ function MainApp() {
       />
       <UserManualModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
       
-      {/* Biometric Security Lock Overlay */}
-      <AppLockModal isLocked={isAppLocked} onUnlock={() => setIsAppLocked(false)} />
+      {/* Biometric Security Lock Overlay (CBE / Telebirr Banking-Grade Auto-Lock) */}
+      <AppLockModal isLocked={isAppLocked} onUnlock={unlockSession} />
     </div>
   );
 }

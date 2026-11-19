@@ -310,119 +310,129 @@ export const MoneyTrackerView: React.FC = () => {
         </div>
       </div>
 
-      {/* 4 Executive Financial KPI Cards */}
+      {/* 4 Executive Financial KPI Cards (2x2 on mobile, 4-col on desktop) */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
-        gap: '0.85rem',
-        marginBottom: '1.25rem'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 150px), 1fr))',
+        gap: '0.75rem',
+        marginBottom: '1rem'
       }}>
         {/* Net Cash Balance */}
-        <div className="card" style={{ padding: '1.15rem', borderLeft: '4px solid #10b981' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              NET CASH BALANCE
+        <div className="card" style={{ padding: '0.95rem 1rem', borderLeft: '4px solid #10b981', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.02em' }}>
+              NET BALANCE
             </span>
-            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
-              <DollarSign size={16} />
+            <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(16, 185, 129, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#10b981' }}>
+              <DollarSign size={14} />
             </div>
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 900, color: metrics.netBalance >= 0 ? 'var(--text-primary)' : '#ef4444', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '1.28rem', fontWeight: 900, color: metrics.netBalance >= 0 ? '#10b981' : '#ef4444', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
             {mask(formatCurrency(metrics.netBalance, currency))}
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>
-            Income minus personal spending
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
+            Inflow minus personal
           </p>
         </div>
 
-        {/* Company Reimbursable Owed (Highlights company expenses) */}
+        {/* Company Reimbursable Owed */}
         <div 
           className="card" 
           onClick={() => setIsFinanceReportOpen(true)}
           style={{ 
-            padding: '1.15rem', 
+            padding: '0.95rem 1rem', 
             borderLeft: '4px solid #f59e0b',
-            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.03))',
+            background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(217, 119, 6, 0.02))',
             cursor: 'pointer',
-            transition: 'transform var(--transition-fast)'
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between'
           }}
+          title="Click to view weekly finance reimbursement report"
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: '#f59e0b' }}>
-              COMPANY OWED (REIMBURSABLE)
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#f59e0b', letterSpacing: '0.02em' }}>
+              COMPANY OWED
             </span>
-            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
-              <Building2 size={16} />
+            <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(245, 158, 11, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#f59e0b' }}>
+              <Building2 size={14} />
             </div>
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '1.28rem', fontWeight: 900, color: '#f59e0b', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
             {mask(formatCurrency(metrics.pendingCompanyReimbursement, currency))}
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.35rem' }}>
-            <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-              {metrics.pendingCount} pending item(s) to claim
-            </p>
-            <span style={{ fontSize: '0.7rem', color: '#f59e0b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-              Submit Report <ChevronRight size={13} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.25rem' }}>
+            <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+              {metrics.pendingCount} pending
+            </span>
+            <span style={{ fontSize: '0.66rem', color: '#f59e0b', fontWeight: 700, display: 'flex', alignItems: 'center' }}>
+              Claim <ChevronRight size={12} />
             </span>
           </div>
         </div>
 
         {/* Total Income */}
-        <div className="card" style={{ padding: '1.15rem', borderLeft: '4px solid var(--primary-light)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
-              TOTAL INFLOW / PAYROLL
+        <div className="card" style={{ padding: '0.95rem 1rem', borderLeft: '4px solid var(--primary-light)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.02em' }}>
+              TOTAL INFLOW
             </span>
-            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(99, 102, 241, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-light)' }}>
-              <ArrowDownLeft size={16} />
+            <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(99, 102, 241, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-light)' }}>
+              <ArrowDownLeft size={14} />
             </div>
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '1.28rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
             {mask(formatCurrency(metrics.totalIncome, currency))}
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>
-            Salary, freelance, and earned income
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
+            Payroll deposits
           </p>
         </div>
 
         {/* Personal Outflow */}
-        <div className="card" style={{ padding: '1.15rem', borderLeft: '4px solid #ef4444' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
-            <span style={{ fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+        <div className="card" style={{ padding: '0.95rem 1rem', borderLeft: '4px solid #ef4444', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.25rem' }}>
+            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: 'var(--text-secondary)', letterSpacing: '0.02em' }}>
               PERSONAL OUTFLOW
             </span>
-            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
-              <ArrowUpRight size={16} />
+            <div style={{ width: '26px', height: '26px', borderRadius: '7px', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' }}>
+              <ArrowUpRight size={14} />
             </div>
           </div>
-          <div style={{ fontSize: '1.45rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.2 }}>
+          <div style={{ fontSize: '1.28rem', fontWeight: 900, color: 'var(--text-primary)', lineHeight: 1.15, letterSpacing: '-0.02em' }}>
             {mask(formatCurrency(metrics.totalPersonalExpense, currency))}
           </div>
-          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: '0.35rem 0 0 0' }}>
-            Personal living costs (non-refundable)
+          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.25rem 0 0 0' }}>
+            Living costs (non-refundable)
           </p>
         </div>
       </div>
 
-      {/* Filter Toolbar & Actions */}
+      {/* Filter Toolbar & Actions (Mobile First Horizontal Scrolling) */}
       <div 
         className="card"
         style={{
-          padding: '0.85rem 1rem',
+          padding: '0.75rem 0.85rem',
           marginBottom: '1rem',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.75rem'
+          flexDirection: 'column',
+          gap: '0.65rem'
         }}
       >
-        {/* Category / Type Tabs */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+        {/* Row 1: Category / Type Tabs (Swipeable on Mobile) */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '0.4rem', 
+          overflowX: 'auto',
+          whiteSpace: 'nowrap',
+          paddingBottom: '2px',
+          scrollbarWidth: 'none',
+          WebkitOverflowScrolling: 'touch'
+        }}>
           {[
             { id: 'all', label: 'All Activity' },
-            { id: 'personal', label: '👤 Personal Only' },
+            { id: 'personal', label: '👤 Personal' },
             { id: 'company', label: '💼 Company (Reimbursable)' },
             { id: 'income', label: '💰 Income' }
           ].map((tab) => (
@@ -431,48 +441,75 @@ export const MoneyTrackerView: React.FC = () => {
               type="button"
               className={`btn btn-sm ${typeFilter === tab.id ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setTypeFilter(tab.id as any)}
-              style={{ fontSize: '0.76rem', fontWeight: 700, padding: '0.35rem 0.65rem' }}
+              style={{ 
+                fontSize: '0.75rem', 
+                fontWeight: 700, 
+                padding: '0.35rem 0.75rem',
+                borderRadius: '8px',
+                flexShrink: 0
+              }}
             >
               {tab.label}
             </button>
           ))}
         </div>
 
-        {/* Time Range Pills */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
-          {[
-            { id: 'today', label: 'Today' },
-            { id: '7days', label: '7 Days' },
-            { id: 'month', label: 'This Month' },
-            { id: 'all', label: 'All Time' }
-          ].map((r) => (
-            <button
-              key={r.id}
-              type="button"
-              className={`btn btn-sm ${timeRange === r.id ? 'btn-secondary' : 'btn-ghost'}`}
-              onClick={() => setTimeRange(r.id as any)}
-              style={{
-                fontSize: '0.74rem',
-                fontWeight: 600,
-                padding: '0.3rem 0.6rem',
-                borderColor: timeRange === r.id ? 'var(--primary-light)' : 'transparent'
-              }}
-            >
-              {r.label}
-            </button>
-          ))}
+        {/* Row 2: Time Range Pills & Quick Summary */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          gap: '0.5rem',
+          flexWrap: 'wrap'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '0.35rem',
+            overflowX: 'auto',
+            scrollbarWidth: 'none',
+            WebkitOverflowScrolling: 'touch'
+          }}>
+            {[
+              { id: 'today', label: 'Today' },
+              { id: '7days', label: '7 Days' },
+              { id: 'month', label: 'This Month' },
+              { id: 'all', label: 'All Time' }
+            ].map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                className={`btn btn-sm ${timeRange === r.id ? 'btn-secondary' : 'btn-ghost'}`}
+                onClick={() => setTimeRange(r.id as any)}
+                style={{
+                  fontSize: '0.72rem',
+                  fontWeight: 600,
+                  padding: '0.28rem 0.6rem',
+                  borderRadius: '6px',
+                  flexShrink: 0,
+                  borderColor: timeRange === r.id ? 'var(--primary-light)' : 'transparent'
+                }}
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+
+          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+            Showing <strong>{filteredTransactions.length}</strong> record(s)
+          </span>
         </div>
       </div>
 
       {/* Transactions List */}
       <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '0.95rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <Receipt size={17} color="var(--primary-light)" />
+        <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+            <Receipt size={16} color="var(--primary-light)" />
             <span>Transaction Ledger ({filteredTransactions.length})</span>
           </h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-            Showing {timeRange.toUpperCase()} records
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+            {timeRange.toUpperCase()} View
           </span>
         </div>
 
@@ -494,119 +531,158 @@ export const MoneyTrackerView: React.FC = () => {
                 <div
                   key={tx.id || idx}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '0.9rem 1.25rem',
+                    padding: '0.85rem 1rem',
                     borderBottom: idx < filteredTransactions.length - 1 ? '1px solid var(--border-color)' : 'none',
-                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.01)'
+                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)'
                   }}
                 >
-                  {/* Left: Icon & Details */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0 }}>
-                    <div style={{
-                      width: '38px',
-                      height: '38px',
-                      borderRadius: '10px',
-                      background: isIncome 
-                        ? 'rgba(16, 185, 129, 0.15)' 
-                        : isCompany 
-                          ? 'rgba(245, 158, 11, 0.15)' 
-                          : 'rgba(99, 102, 241, 0.12)',
-                      color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--primary-light)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      {isIncome ? <ArrowDownLeft size={18} /> : isCompany ? <Building2 size={18} /> : <User size={18} />}
-                    </div>
-
-                    <div style={{ minWidth: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.15rem' }}>
-                        <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                          {tx.title}
-                        </span>
-                        {isCompany && (
-                          <span 
-                            className="badge" 
-                            style={{ 
-                              fontSize: '0.66rem',
-                              background: tx.reimbursed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                              color: tx.reimbursed ? '#10b981' : '#f59e0b',
-                              border: `1px solid ${tx.reimbursed ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
-                            }}
-                          >
-                            {tx.reimbursed ? '✓ Reimbursed by Company' : '⌛ Pending Finance Reimbursement'}
-                          </span>
-                        )}
-                        {!isIncome && !isCompany && (
-                          <span className="badge" style={{ fontSize: '0.66rem', background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
-                            Personal
-                          </span>
-                        )}
+                  {/* Top Row: Icon + Title + Amount (Never Collides) */}
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between', 
+                    gap: '0.75rem', 
+                    marginBottom: '0.45rem' 
+                  }}>
+                    {/* Left: Icon & Title & Category */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
+                      <div style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '10px',
+                        background: isIncome 
+                          ? 'rgba(16, 185, 129, 0.15)' 
+                          : isCompany 
+                            ? 'rgba(245, 158, 11, 0.15)' 
+                            : 'rgba(99, 102, 241, 0.12)',
+                        color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--primary-light)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        {isIncome ? <ArrowDownLeft size={19} /> : isCompany ? <Building2 size={19} /> : <User size={19} />}
                       </div>
 
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.74rem', color: 'var(--text-muted)' }}>
-                        <span>{tx.date}</span>
-                        <span>•</span>
-                        <span>{tx.category}</span>
-                        {tx.notes && (
-                          <>
-                            <span>•</span>
-                            <span style={{ fontStyle: 'italic', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                              {tx.notes}
-                            </span>
-                          </>
-                        )}
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <h4 style={{ 
+                          fontSize: '0.92rem', 
+                          fontWeight: 800, 
+                          color: 'var(--text-primary)', 
+                          margin: 0,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}>
+                          {tx.title}
+                        </h4>
+                        <div style={{ 
+                          fontSize: '0.72rem', 
+                          color: 'var(--text-muted)', 
+                          marginTop: '2px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '0.4rem', 
+                          whiteSpace: 'nowrap', 
+                          overflow: 'hidden', 
+                          textOverflow: 'ellipsis' 
+                        }}>
+                          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{tx.category}</span>
+                          <span>•</span>
+                          <span>{tx.date}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Right: Big Clean Amount */}
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{
+                        fontSize: '1.05rem',
+                        fontWeight: 900,
+                        color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--text-primary)',
+                        letterSpacing: '-0.02em',
+                        lineHeight: 1.15
+                      }}>
+                        {isIncome ? '+' : '-'}{mask(formatCurrency(tx.amount, currency))}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: Amount & Actions */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexShrink: 0 }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div style={{
-                        fontSize: '0.98rem',
-                        fontWeight: 900,
-                        color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--text-primary)'
-                      }}>
-                        {isIncome ? '+' : '-'}{mask(formatCurrency(tx.amount, currency))}
-                      </div>
+                  {/* Bottom Row: Status Badges & Action Buttons */}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.5rem',
+                    flexWrap: 'wrap',
+                    paddingTop: '0.35rem',
+                    borderTop: '1px dashed rgba(255, 255, 255, 0.05)',
+                    fontSize: '0.72rem'
+                  }}>
+                    {/* Badges / Reimbursement Status */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
                       {isCompany && (
                         <button
                           type="button"
                           onClick={() => toggleReimbursementStatus(tx.id)}
+                          className="badge"
+                          title="Click to toggle repayment status"
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            padding: 0,
-                            color: tx.reimbursed ? 'var(--text-muted)' : '#f59e0b',
                             fontSize: '0.68rem',
+                            fontWeight: 700,
+                            padding: '0.22rem 0.55rem',
+                            borderRadius: '6px',
                             cursor: 'pointer',
-                            textDecoration: 'underline'
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            background: tx.reimbursed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            color: tx.reimbursed ? '#10b981' : '#f59e0b',
+                            border: `1px solid ${tx.reimbursed ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
                           }}
                         >
-                          {tx.reimbursed ? 'Mark as Unpaid' : 'Mark as Repaid'}
+                          <span>{tx.reimbursed ? '✓ Reimbursed by Company' : '⏳ Pending Finance Claim'}</span>
+                          <span style={{ textDecoration: 'underline', opacity: 0.85, fontSize: '0.64rem' }}>
+                            ({tx.reimbursed ? 'Mark Unpaid' : 'Mark Repaid'})
+                          </span>
                         </button>
+                      )}
+
+                      {!isIncome && !isCompany && (
+                        <span className="badge" style={{ fontSize: '0.66rem', background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
+                          👤 Personal Outflow
+                        </span>
+                      )}
+
+                      {isIncome && (
+                        <span className="badge" style={{ fontSize: '0.66rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
+                          💰 Payroll Deposit
+                        </span>
+                      )}
+
+                      {tx.notes && (
+                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          "{tx.notes}"
+                        </span>
                       )}
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    {/* Edit & Delete Action Buttons */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: 'auto' }}>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon"
+                        className="btn btn-ghost btn-icon btn-sm"
                         onClick={() => openEditModal(tx)}
-                        style={{ padding: '0.35rem' }}
+                        style={{ padding: '0.3rem', color: 'var(--text-muted)' }}
                         title="Edit entry"
                       >
                         <Edit3 size={14} />
                       </button>
                       <button
                         type="button"
-                        className="btn btn-ghost btn-icon"
+                        className="btn btn-ghost btn-icon btn-sm"
                         onClick={() => handleDelete(tx)}
-                        style={{ padding: '0.35rem', color: '#ef4444' }}
+                        style={{ padding: '0.3rem', color: '#ef4444' }}
                         title="Delete entry"
                       >
                         <Trash2 size={14} />
@@ -981,3 +1057,4 @@ export const MoneyTrackerView: React.FC = () => {
     </div>
   );
 };
+

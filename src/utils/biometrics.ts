@@ -91,12 +91,18 @@ export const verifyBiometrics = async (): Promise<{ success: boolean; error?: st
     window.crypto.getRandomValues(challenge);
 
     const savedCredId = localStorage.getItem('apex_biometric_credential_id');
-    const allowCredentials: PublicKeyCredentialDescriptor[] = savedCredId
-      ? [{
-          id: Uint8Array.from(atob(savedCredId.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)),
-          type: 'public-key'
-        }]
-      : [];
+    let allowCredentials: PublicKeyCredentialDescriptor[] = [];
+    if (savedCredId) {
+      try {
+        const padded = savedCredId.padEnd(savedCredId.length + (4 - (savedCredId.length % 4)) % 4, '=');
+        const binary = atob(padded.replace(/-/g, '+').replace(/_/g, '/'));
+        const bytes = Uint8Array.from(binary, c => c.charCodeAt(0));
+        allowCredentials = [{ id: bytes, type: 'public-key' }];
+      } catch {
+        // Fall back to resident key prompt if base64 decoding fails
+        allowCredentials = [];
+      }
+    }
 
     const publicKeyCredentialRequestOptions: PublicKeyCredentialRequestOptions = {
       challenge,
@@ -126,3 +132,4 @@ export const isBiometricsRegistered = (): boolean => {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem('apex_biometric_enabled') === 'true';
 };
+

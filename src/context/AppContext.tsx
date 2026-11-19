@@ -93,22 +93,84 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     return true;
   });
 
-  const [isAppLocked, setIsAppLocked] = useState<boolean>(false);
+  const [isAppLocked, setIsAppLocked] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    const wasAuthed = localStorage.getItem('p19_authenticated') === 'true';
+    const isExplicitlyLocked = localStorage.getItem('apex_session_locked') === 'true';
+    // When returning to an authenticated session, require lock screen by default (like CBE / Telebirr)
+    if (wasAuthed) {
+      return true;
+    }
+    return isExplicitlyLocked;
+  });
 
-  // Auto-lock when user switches away from the app / minimizes (if enabled)
+  const unlockSession = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('apex_session_locked');
+      localStorage.setItem('apex_last_active_time', String(Date.now()));
+    }
+    setIsAppLocked(false);
+  };
+
+  const lockSession = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('apex_session_locked', 'true');
+      localStorage.setItem('apex_last_active_time', String(Date.now()));
+    }
+    setIsAppLocked(true);
+  };
+
+  // Banking-grade auto-lock on app exit / backgrounding / tab-switch & inactivity (CBE / Telebirr style)
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        const autoLock = data.profile?.autoLockOnExit !== false;
-        if (autoLock && isAuthenticated) {
-          setIsAppLocked(true);
-        }
+    if (!isAuthenticated) return;
+
+    const handleExitOrBackground = () => {
+      const autoLock = data.profile?.autoLockOnExit !== false;
+      if (autoLock) {
+        lockSession();
       }
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [data.profile?.autoLockOnExit, isAuthenticated]);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handleExitOrBackground();
+      }
+    };
+
+    // Mobile backgrounding, pagehide, and tab switch
+    window.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('pagehide', handleExitOrBackground);
+    window.addEventListener('beforeunload', handleExitOrBackground);
+
+    // Inactivity timeout: 3 minutes of no interaction inside the app expires session (CBE / Telebirr style)
+    let lastActivity = Date.now();
+    const updateActivity = () => {
+      lastActivity = Date.now();
+    };
+
+    const activityEvents = ['mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach((evt) => {
+      window.addEventListener(evt, updateActivity, { passive: true });
+    });
+
+    const inactivityInterval = setInterval(() => {
+      const idleTimeMs = Date.now() - lastActivity;
+      const INACTIVITY_TIMEOUT_MS = 3 * 60 * 1000; // 3 minutes
+      if (idleTimeMs >= INACTIVITY_TIMEOUT_MS && !isAppLocked) {
+        lockSession();
+      }
+    }, 10000); // Check every 10 seconds
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pagehide', handleExitOrBackground);
+      window.removeEventListener('beforeunload', handleExitOrBackground);
+      activityEvents.forEach((evt) => {
+        window.removeEventListener(evt, updateActivity);
+      });
+      clearInterval(inactivityInterval);
+    };
+  }, [isAuthenticated, data.profile?.autoLockOnExit, isAppLocked]);
 
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
 
@@ -1069,6 +1131,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     isViewLoading,
     isAppLocked,
     setIsAppLocked,
+    unlockSession,
+    lockSession,
     activeTab,
     setActiveTab,
     activeModal,
