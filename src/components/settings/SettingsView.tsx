@@ -12,16 +12,13 @@ import {
   RotateCcw, 
   Save, 
   CheckCircle2, 
-  Layers, 
-  Plus, 
-  Trash2,
-  Sparkles,
-  Calendar,
-  Clock,
-  Flame,
-  Target
+  Target,
+  User,
+  Shield,
+  Palette
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 
 export const SettingsView = () => {
   const { 
@@ -32,18 +29,14 @@ export const SettingsView = () => {
     createNewChallenge,
     toggleTheme, 
     toggleSound, 
-    addCategory, 
-    deleteCategory, 
     handleExport, 
     handleImport, 
     handleReset,
-    clearAllDataToScratch,
     loadCleanUserAccount 
   } = useApp();
 
   const profile = data.profile || {};
   const challenge = data.challenge || {};
-  const categories = data.categories || [];
 
   const [name, setName] = useState(profile.name || 'Abdulaziz');
   const [email, setEmail] = useState(profile.email || 'abdulazizisa579@gmail.com');
@@ -54,16 +47,30 @@ export const SettingsView = () => {
   // Challenge Configuration states
   const [challengeName, setChallengeName] = useState(challenge.name || 'Apex OS');
   const [startDate, setStartDate] = useState(challenge.startDate || todayStr);
-  const [durationDays, setDurationDays] = useState(challenge.totalDurationDays || 19);
+  const [durationDays, setDurationDays] = useState(challenge.totalDurationDays || 30);
   const [challengeStatus, setChallengeStatus] = useState(challenge.status || 'active');
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [challengeSuccess, setChallengeSuccess] = useState(false);
 
-  // New Category states
-  const [newCatName, setNewCatName] = useState('');
-  const [newCatIcon, setNewCatIcon] = useState('🎯');
-  const [newCatColor, setNewCatColor] = useState('#6366f1');
+  // Confirmation Modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText: string;
+    variant: 'danger' | 'warning' | 'primary';
+    action: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Confirm',
+    variant: 'warning',
+    action: () => {}
+  });
+
+  const isSoundEnabled = data.profile?.soundEnabled !== false && data.soundEnabled !== false;
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
@@ -83,31 +90,52 @@ export const SettingsView = () => {
     updateChallenge({
       name: challengeName.trim(),
       startDate,
-      totalDurationDays: Number(durationDays) || 19,
+      totalDurationDays: Number(durationDays) || 30,
       status: challengeStatus as any
     });
     setChallengeSuccess(true);
     setTimeout(() => setChallengeSuccess(false), 2500);
   };
 
-  const handleStartBrandNewChallenge = () => {
-    if (confirm(`Start a brand new challenge "${challengeName}" starting ${startDate} for ${durationDays} days?`)) {
-      createNewChallenge(challengeName.trim(), startDate, Number(durationDays) || 19);
-      setChallengeSuccess(true);
-      setTimeout(() => setChallengeSuccess(false), 2500);
-    }
+  const triggerResetToDay1 = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Reset Challenge to Day 1?',
+      message: `Are you sure you want to restart "${challengeName}" to Day 1 (duration: ${durationDays} days starting ${startDate})? Your existing routine logs and completion history will be preserved.`,
+      confirmText: 'Yes, Reset to Day 1',
+      variant: 'warning',
+      action: () => {
+        createNewChallenge(challengeName.trim(), startDate, Number(durationDays) || 30);
+        setChallengeSuccess(true);
+        setTimeout(() => setChallengeSuccess(false), 2500);
+      }
+    });
   };
 
-  const handleCreateCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-    addCategory({
-      name: newCatName.trim(),
-      icon: newCatIcon || '🎯',
-      color: newCatColor,
-      description: 'Custom life focus category'
+  const triggerLoadTemplates = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Load Default Templates?',
+      message: 'This will restore the standard suite of daily routines, sample tasks, and core life categories. Any custom tasks you created will remain untouched.',
+      confirmText: 'Load Templates',
+      variant: 'primary',
+      action: () => {
+        loadCleanUserAccount();
+      }
     });
-    setNewCatName('');
+  };
+
+  const triggerResetAccount = () => {
+    setConfirmModal({
+      isOpen: true,
+      title: 'Permanently Reset Account?',
+      message: 'CRITICAL WARNING: This will permanently wipe all your logged data, tasks, habits, daily reflections, and time entries. This action cannot be undone.',
+      confirmText: 'Permanently Reset Everything',
+      variant: 'danger',
+      action: () => {
+        handleReset();
+      }
+    });
   };
 
   const handleFileImport = (e: any) => {
@@ -129,11 +157,22 @@ export const SettingsView = () => {
   // Compute challenge end date preview
   const sDate = new Date(startDate || todayStr);
   const eDate = new Date(sDate);
-  eDate.setDate(sDate.getDate() + ((Number(durationDays) || 19) - 1));
+  eDate.setDate(sDate.getDate() + ((Number(durationDays) || 30) - 1));
   const endDatePreview = eDate.toISOString().split('T')[0];
 
   return (
     <div className="page-container" style={{ paddingBottom: '5rem' }}>
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        confirmText={confirmModal.confirmText}
+        variant={confirmModal.variant}
+        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmModal.action}
+      />
+
       {/* Header Deck */}
       <div className="card" style={{
         background: 'var(--bg-card-header)',
@@ -148,51 +187,51 @@ export const SettingsView = () => {
               <h2 style={{ fontSize: '1.35rem', fontWeight: 800 }}>Settings & Challenge Configuration</h2>
             </div>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
-              Configure your challenge duration, start date, profile, themes, and backup your personal management records.
+              Configure your challenge duration, start date, profile, themes, sound feedback, and backup your personal records.
             </p>
           </div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 290px), 1fr))', gap: '1.25rem', alignItems: 'start' }}>
-        {/* CHALLENGE CONFIGURATION (Configurable duration, start date, challenge name) */}
-        <div className="card" style={{ padding: '1.25rem', borderLeft: '4px solid var(--primary-light)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      {/* ROW 1: Challenge Configuration (Full Row) */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div className="card" style={{ padding: '1.35rem', borderLeft: '4px solid var(--primary-light)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <Target size={18} color="var(--primary-light)" />
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <Target size={19} color="var(--primary-light)" />
                 <span>Challenge Configuration</span>
               </h3>
               <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                Customize challenge name, start date, and length (19, 30, 90 days)
+                Customize challenge title, start date, and length (30, 60, 90 days)
               </p>
             </div>
             {challengeSuccess && (
-              <span className="badge badge-excellent" style={{ fontSize: '0.7rem' }}>
-                <CheckCircle2 size={12} /> Saved
+              <span className="badge badge-excellent" style={{ fontSize: '0.72rem' }}>
+                <CheckCircle2 size={13} /> Saved
               </span>
             )}
           </div>
 
           <form onSubmit={handleSaveChallenge}>
-            <div style={{ marginBottom: '0.85rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
-                Challenge Name
-              </label>
-              <input
-                type="text"
-                className="input"
-                value={challengeName}
-                onChange={(e) => setChallengeName(e.target.value)}
-                placeholder="e.g. Apex OS, Sprint Alpha, Daily Mastery"
-                required
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '0.85rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Challenge Name
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={challengeName}
+                  onChange={(e) => setChallengeName(e.target.value)}
+                  placeholder="e.g. Apex OS, Sprint Alpha, Daily Mastery"
+                  required
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Start Date
                 </label>
                 <input
@@ -206,7 +245,7 @@ export const SettingsView = () => {
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Duration (Days)
                 </label>
                 <input
@@ -222,42 +261,49 @@ export const SettingsView = () => {
               </div>
             </div>
 
-            {/* Quick Duration Buttons */}
-            <div style={{ display: 'flex', gap: '0.4rem', marginBottom: '0.85rem' }}>
-              {[19, 30, 60, 90].map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  className={`btn btn-sm ${Number(durationDays) === d ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setDurationDays(d)}
-                  style={{ fontSize: '0.72rem', padding: '0.25rem 0.6rem' }}
-                >
-                  {d} Days
-                </button>
-              ))}
-            </div>
-
+            {/* Quick Duration Buttons (30, 60, 90) & Live calculation */}
             <div style={{
-              padding: '0.65rem 0.85rem',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+              padding: '0.75rem 1rem',
               background: 'var(--bg-input)',
               borderRadius: 'var(--radius-md)',
-              fontSize: '0.75rem',
-              color: 'var(--text-secondary)',
-              marginBottom: '1rem',
-              display: 'flex',
-              justifyContent: 'space-between'
+              marginBottom: '1.15rem'
             }}>
-              <span>Current: Day {challenge.currentDay || 1} of {durationDays}</span>
-              <span>Ends: <strong style={{ color: 'var(--text-primary)' }}>{endDatePreview}</strong></span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  Quick Presets:
+                </span>
+                {[30, 60, 90].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    className={`btn btn-sm ${Number(durationDays) === d ? 'btn-primary' : 'btn-secondary'}`}
+                    onClick={() => setDurationDays(d)}
+                    style={{ fontSize: '0.74rem', padding: '0.28rem 0.75rem', fontWeight: 700 }}
+                  >
+                    {d} Days
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
+                <span>Progress: <strong style={{ color: 'var(--text-primary)' }}>Day {challenge.currentDay || 1} of {durationDays}</strong></span>
+                <span>Ends: <strong style={{ color: 'var(--primary-light)' }}>{endDatePreview}</strong></span>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 className="btn btn-secondary btn-sm"
-                onClick={handleStartBrandNewChallenge}
+                onClick={triggerResetToDay1}
+                style={{ fontWeight: 600 }}
               >
-                Reset to Day 1
+                <RotateCcw size={14} /> Reset to Day 1
               </button>
               <button
                 type="submit"
@@ -269,39 +315,46 @@ export const SettingsView = () => {
             </div>
           </form>
         </div>
+      </div>
 
-        {/* USER PROFILE */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+      {/* ROW 2: User Profile & Goal (Full Row) */}
+      <div style={{ marginBottom: '1.25rem' }}>
+        <div className="card" style={{ padding: '1.35rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.1rem', flexWrap: 'wrap', gap: '0.5rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 800 }}>User Profile & Goal</h3>
-              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Personal identity and timezone</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <User size={19} color="var(--primary-light)" />
+                <span>User Profile & Primary Mission</span>
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Personal credentials, target timezone, and central life purpose
+              </p>
             </div>
             {saveSuccess && (
-              <span className="badge badge-excellent" style={{ fontSize: '0.7rem' }}>
-                <CheckCircle2 size={12} /> Saved
+              <span className="badge badge-excellent" style={{ fontSize: '0.72rem' }}>
+                <CheckCircle2 size={13} /> Saved
               </span>
             )}
           </div>
 
           <form onSubmit={handleSaveProfile}>
-            <div style={{ marginBottom: '0.85rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
-                User Name *
-              </label>
-              <input
-                type="text"
-                className="input"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '0.75rem', marginBottom: '0.85rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  User Name *
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Owner Email / Login ID *
                 </label>
                 <input
@@ -313,8 +366,9 @@ export const SettingsView = () => {
                   style={{ width: '100%' }}
                 />
               </div>
+
               <div>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Login Password *
                 </label>
                 <input
@@ -328,34 +382,36 @@ export const SettingsView = () => {
               </div>
             </div>
 
-            <div style={{ marginBottom: '0.85rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
-                Primary Goal / Purpose
-              </label>
-              <textarea
-                className="input"
-                rows={2}
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                placeholder="e.g. Master daily discipline across spiritual, RHIZAN engineering, and physical health"
-                style={{ width: '100%', resize: 'vertical' }}
-              />
-            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1rem', marginBottom: '1.15rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Primary Mission / Purpose
+                </label>
+                <textarea
+                  className="input"
+                  rows={2}
+                  value={goal}
+                  onChange={(e) => setGoal(e.target.value)}
+                  placeholder="e.g. Master daily discipline across spiritual, RHIZAN engineering, and physical health"
+                  style={{ width: '100%', resize: 'vertical' }}
+                />
+              </div>
 
-            <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
-                System Timezone
-              </label>
-              <input
-                type="text"
-                className="input"
-                value={timezone}
-                onChange={(e) => setTimezone(e.target.value)}
-                style={{ width: '100%' }}
-              />
-              <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '0.2rem', display: 'block' }}>
-                Configured for Africa/Addis_Ababa (East Africa Time, UTC+3)
-              </span>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  System Timezone
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={timezone}
+                  onChange={(e) => setTimezone(e.target.value)}
+                  style={{ width: '100%', marginBottom: '0.25rem' }}
+                />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  Configured for Africa/Addis_Ababa (East Africa Time, UTC+3)
+                </span>
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -365,114 +421,163 @@ export const SettingsView = () => {
             </div>
           </form>
         </div>
+      </div>
 
-        {/* APPEARANCE & PREFERENCES */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem' }}>Appearance & Sound</h3>
+      {/* ROW 3: Appearance & Sound + Backup & Recovery in One Row (2 Columns) */}
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', 
+        gap: '1.25rem', 
+        alignItems: 'stretch' 
+      }}>
+        {/* Card 3: Appearance & Sound */}
+        <div className="card" style={{ padding: '1.35rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Palette size={19} color="var(--primary-light)" />
+              <span>Appearance & Sound</span>
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '1.15rem' }}>
+              Theme switching and interactive audio completion triggers
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0.65rem 0.85rem',
-              background: 'var(--bg-input)',
-              borderRadius: 'var(--radius-md)'
-            }}>
-              <div>
-                <strong style={{ fontSize: '0.85rem' }}>Theme Mode</strong>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Current: {data.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
-                </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {/* Theme Mode Toggle */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.75rem 1rem',
+                background: 'var(--bg-input)',
+                borderRadius: 'var(--radius-md)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.15rem' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>Theme Mode</strong>
+                    <span className="badge" style={{ fontSize: '0.68rem', background: 'var(--bg-surface)', color: 'var(--text-secondary)' }}>
+                      {data.theme === 'dark' ? 'Dark Mode' : 'Light Mode'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Switch between dark and light themes
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={toggleTheme}
+                  style={{ gap: '0.35rem', fontWeight: 600 }}
+                >
+                  {data.theme === 'dark' ? <Sun size={14} color="#f59e0b" /> : <Moon size={14} />}
+                  <span>{data.theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+                </button>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={toggleTheme}
-                style={{ gap: '0.35rem' }}
-              >
-                {data.theme === 'dark' ? <Sun size={14} /> : <Moon size={14} />}
-                <span>Toggle Theme</span>
-              </button>
-            </div>
 
-            <div style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              padding: '0.65rem 0.85rem',
-              background: 'var(--bg-input)',
-              borderRadius: 'var(--radius-md)'
-            }}>
-              <div>
-                <strong style={{ fontSize: '0.85rem' }}>Audio Feedback</strong>
-                <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
-                  Completion sound effects: {data.soundEnabled ? 'Enabled' : 'Muted'}
-                </p>
+              {/* Audio Feedback Toggle */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.75rem 1rem',
+                background: 'var(--bg-input)',
+                borderRadius: 'var(--radius-md)'
+              }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.15rem' }}>
+                    <strong style={{ fontSize: '0.88rem' }}>Audio Feedback</strong>
+                    <span 
+                      className="badge" 
+                      style={{ 
+                        fontSize: '0.68rem', 
+                        fontWeight: 700,
+                        background: isSoundEnabled ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-surface)',
+                        color: isSoundEnabled ? '#10b981' : 'var(--text-muted)',
+                        border: isSoundEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid var(--border-color)'
+                      }}
+                    >
+                      {isSoundEnabled ? 'Enabled' : 'Muted'}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                    Completion chimes & routine audio cues
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className={`btn btn-sm ${isSoundEnabled ? 'btn-secondary' : 'btn-primary'}`}
+                  onClick={toggleSound}
+                  style={{ gap: '0.35rem', fontWeight: 700 }}
+                >
+                  {isSoundEnabled ? <VolumeX size={14} /> : <Volume2 size={14} />}
+                  <span>{isSoundEnabled ? 'Mute' : 'Enable'}</span>
+                </button>
               </div>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={toggleSound}
-                style={{ gap: '0.35rem' }}
-              >
-                {data.soundEnabled ? <Volume2 size={14} /> : <VolumeX size={14} />}
-                <span>{data.soundEnabled ? 'Mute' : 'Enable'}</span>
-              </button>
             </div>
           </div>
         </div>
 
-        {/* BACKUP & DATA MANAGEMENT */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <h3 style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem' }}>Backup & Recovery</h3>
+        {/* Card 4: Backup & Recovery */}
+        <div className="card" style={{ padding: '1.35rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+              <Shield size={19} color="var(--primary-light)" />
+              <span>Backup & Recovery</span>
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginBottom: '1.15rem' }}>
+              Export snapshots, restore backups, or reset your operational data
+            </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={handleExport}
-                style={{ flex: 1, gap: '0.35rem', fontWeight: 700 }}
-              >
-                <Download size={14} />
-                <span>Export JSON Backup</span>
-              </button>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={handleExport}
+                  style={{ flex: 1, gap: '0.4rem', fontWeight: 700, minWidth: '135px' }}
+                >
+                  <Download size={14} />
+                  <span>Export Backup</span>
+                </button>
 
-              <label className="btn btn-secondary btn-sm" style={{ flex: 1, gap: '0.35rem', fontWeight: 700, cursor: 'pointer', margin: 0 }}>
-                <Upload size={14} />
-                <span>Import Backup</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileImport}
-                  style={{ display: 'none' }}
-                />
-              </label>
-            </div>
+                <label 
+                  className="btn btn-secondary btn-sm" 
+                  style={{ flex: 1, gap: '0.4rem', fontWeight: 700, cursor: 'pointer', margin: 0, minWidth: '135px' }}
+                >
+                  <Upload size={14} />
+                  <span>Import Backup</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    onChange={handleFileImport}
+                    style={{ display: 'none' }}
+                  />
+                </label>
+              </div>
 
-            <div style={{
-              paddingTop: '0.75rem',
-              borderTop: '1px solid var(--border-color)',
-              display: 'flex',
-              gap: '0.5rem'
-            }}>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={loadCleanUserAccount}
-                style={{ flex: 1, fontSize: '0.75rem' }}
-              >
-                Load Default Templates
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={handleReset}
-                style={{ color: '#ef4444', fontSize: '0.75rem' }}
-              >
-                Reset Account
-              </button>
+              <div style={{
+                paddingTop: '0.85rem',
+                borderTop: '1px solid var(--border-color)',
+                display: 'flex',
+                gap: '0.6rem',
+                flexWrap: 'wrap'
+              }}>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={triggerLoadTemplates}
+                  style={{ flex: 1, fontSize: '0.75rem', fontWeight: 600, minWidth: '140px' }}
+                >
+                  Load Default Templates
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={triggerResetAccount}
+                  style={{ color: '#ef4444', fontSize: '0.75rem', fontWeight: 600, minWidth: '120px' }}
+                >
+                  Reset Account
+                </button>
+              </div>
             </div>
           </div>
         </div>

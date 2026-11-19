@@ -708,10 +708,15 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const toggleSound = () => {
-    setData((prev: any) => ({
-      ...prev,
-      profile: { ...prev.profile, soundEnabled: !prev.profile?.soundEnabled }
-    }));
+    setData((prev: any) => {
+      const isCurrentlyEnabled = prev.profile?.soundEnabled !== false && prev.soundEnabled !== false;
+      const nextSound = !isCurrentlyEnabled;
+      return {
+        ...prev,
+        soundEnabled: nextSound,
+        profile: { ...prev.profile, soundEnabled: nextSound }
+      };
+    });
   };
 
   const updateProfile = (fields: any) => {
