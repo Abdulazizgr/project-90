@@ -51,7 +51,7 @@ export const HabitsView = () => {
     <div className="page-container">
       {/* Top Banner: Score Progress & Levels */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(18, 25, 43, 0.9), rgba(26, 35, 60, 0.8))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.75rem'
       }}>

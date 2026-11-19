@@ -228,7 +228,8 @@ export const RoutineRunnerModal = () => {
                           alignItems: 'center',
                           justifyContent: 'center',
                           background: isDone ? '#10b981' : isCurrent ? pillarColor : 'var(--bg-input)',
-                          color: '#ffffff',
+                          color: (isDone || isCurrent) ? '#ffffff' : 'var(--text-secondary)',
+                          border: (!isDone && !isCurrent) ? '1px solid var(--border-color)' : 'none',
                           fontSize: '0.68rem',
                           fontWeight: 700
                         }}>

@@ -173,7 +173,7 @@ export const TasksView: React.FC = () => {
     <div className="page-container" style={{ paddingBottom: '5rem' }}>
       {/* Top Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.95), rgba(15, 23, 42, 0.95))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.25rem',
         padding: '1.25rem'
@@ -398,7 +398,7 @@ export const TasksView: React.FC = () => {
                   flexWrap: 'wrap',
                   gap: '0.5rem',
                   paddingTop: '0.45rem',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.05)',
+                  borderTop: '1px solid var(--border-color)',
                   fontSize: '0.72rem'
                 }}>
                   {/* Metadata */}

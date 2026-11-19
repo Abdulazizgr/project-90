@@ -133,7 +133,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
           justifyContent: 'space-between',
           alignItems: 'center',
           padding: '0.4rem 0.6rem',
-          background: 'rgba(255, 255, 255, 0.03)',
+          background: 'var(--card-inner-bg)',
+          border: '1px solid var(--card-inner-border)',
           borderRadius: 'var(--radius-sm)',
           fontSize: '0.72rem'
         }}>

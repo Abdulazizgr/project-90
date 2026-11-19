@@ -86,7 +86,7 @@ export const DailyReflectionView: React.FC = () => {
     <div className="page-container" style={{ paddingBottom: '5rem', maxWidth: '800px', margin: '0 auto' }}>
       {/* Top Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.95), rgba(15, 23, 42, 0.95))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.25rem',
         padding: '1.25rem'

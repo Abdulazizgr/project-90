@@ -73,6 +73,13 @@
   --transition-fast: 0.15s ease;
   --transition-normal: 0.25s ease;
   --transition-slow: 0.4s ease;
+
+  /* Theme-aware Banners, Cards & Inner Containers */
+  --bg-card-header: linear-gradient(135deg, rgba(20, 28, 48, 0.95), rgba(15, 23, 42, 0.95));
+  --bg-hero: linear-gradient(135deg, rgba(20, 27, 45, 0.95), rgba(15, 23, 42, 0.98));
+  --border-hero: rgba(99, 102, 241, 0.35);
+  --card-inner-bg: rgba(255, 255, 255, 0.03);
+  --card-inner-border: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme='light'] {
@@ -102,4 +109,11 @@
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+
+  /* Theme-aware Banners, Cards & Inner Containers */
+  --bg-card-header: linear-gradient(135deg, #ffffff, #f8fafc);
+  --bg-hero: linear-gradient(135deg, #ffffff, #f8fafc);
+  --border-hero: rgba(99, 102, 241, 0.25);
+  --card-inner-bg: rgba(0, 0, 0, 0.025);
+  --card-inner-border: rgba(0, 0, 0, 0.06);
 }

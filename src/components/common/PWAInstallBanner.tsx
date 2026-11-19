@@ -86,13 +86,13 @@ export const PWAInstallBanner: React.FC = () => {
           left: '12px',
           right: '12px',
           zIndex: 99,
-          background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.98), rgba(15, 23, 42, 0.98))',
+          background: 'var(--bg-card)',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(99, 102, 241, 0.4)',
+          border: '1px solid var(--border-hero)',
           borderRadius: 'var(--radius-lg)',
           padding: '0.85rem 1rem',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.6)',
+          boxShadow: 'var(--shadow-lg)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -103,7 +103,7 @@ export const PWAInstallBanner: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
           <ApexLogo size={38} />
           <div style={{ minWidth: 0 }}>
-            <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: 0, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: 0, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Install Apex OS App
             </h4>
             <p style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', margin: 0 }}>

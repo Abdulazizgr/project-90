@@ -26,7 +26,7 @@ export const AchievementsView = () => {
     <div className="page-container">
       {/* Top Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.95), rgba(15, 23, 42, 0.95))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.75rem',
         padding: '1.5rem'

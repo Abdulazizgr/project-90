@@ -217,7 +217,7 @@ export const WeeklyScheduleView = () => {
     <div className="page-container">
       {/* Header Deck */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.9))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.5rem',
         position: 'relative',
@@ -705,10 +705,10 @@ export const WeeklyScheduleView = () => {
                 {/* DYNAMIC POINTS ALLOCATION & MAX POINTS CALCULATOR WIDGET */}
                 {/* ========================================================= */}
                 <div style={{
-                  background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.7), rgba(15, 23, 42, 0.9))',
+                  background: 'var(--bg-input)',
                   border: modalBudgetAnalysis.isOverBudget 
                     ? '1px solid rgba(239, 68, 68, 0.4)' 
-                    : '1px solid rgba(99, 102, 241, 0.35)',
+                    : '1px solid var(--border-color)',
                   borderRadius: 'var(--radius-md)',
                   padding: '1rem',
                   marginBottom: '1rem'

@@ -47,7 +47,7 @@ export const GoalsView = () => {
     <div className="page-container">
       {/* Top Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.9), rgba(15, 23, 42, 0.9))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.75rem'
       }}>
@@ -253,8 +253,8 @@ export const GoalsView = () => {
 
       {/* Weekly Review Summary Card (SRS Section 20) */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(26, 35, 60, 0.9), rgba(18, 25, 43, 0.9))',
-        border: '1px solid rgba(99, 102, 241, 0.3)'
+        background: 'var(--bg-card)',
+        border: '1px solid var(--border-color)'
       }}>
         <div className="card-header">
           <div>

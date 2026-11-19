@@ -193,8 +193,8 @@ export const OnboardingFlow = ({ onComplete }) => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'radial-gradient(ellipse at top center, #1e1b4b 0%, #0f172a 45%, #030712 100%)',
-      color: '#f8fafc',
+      background: 'radial-gradient(ellipse at top center, rgba(99, 102, 241, 0.15) 0%, var(--bg-app) 70%)',
+      color: 'var(--text-primary)',
       padding: '2rem 1.5rem',
       display: 'flex',
       flexDirection: 'column',
@@ -255,12 +255,12 @@ export const OnboardingFlow = ({ onComplete }) => {
                       ? 'rgba(99, 102, 241, 0.25)' 
                       : isDone 
                         ? 'rgba(16, 185, 129, 0.2)' 
-                        : 'rgba(255, 255, 255, 0.05)',
+                        : 'var(--bg-input)',
                     border: isActive 
                       ? '1px solid #6366f1' 
                       : isDone 
                         ? '1px solid rgba(16, 185, 129, 0.4)' 
-                        : '1px solid rgba(255, 255, 255, 0.08)',
+                        : '1px solid var(--border-color)',
                     cursor: (isDone || step.num < currentStep) ? 'pointer' : 'default',
                     fontSize: '0.78rem',
                     fontWeight: isActive ? 700 : 500,
@@ -293,9 +293,9 @@ export const OnboardingFlow = ({ onComplete }) => {
       <div style={{
         maxWidth: '960px',
         width: '100%',
-        background: 'rgba(15, 23, 42, 0.85)',
+        background: 'var(--bg-card)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
+        border: '1px solid var(--border-color)',
         borderRadius: '24px',
         padding: '2.25rem',
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.6)',
@@ -345,7 +345,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                   <div
                     key={p.id}
                     style={{
-                      background: 'rgba(30, 41, 59, 0.5)',
+                      background: 'var(--bg-input)',
                       border: `1px solid ${p.color}33`,
                       borderRadius: '16px',
                       padding: '1.2rem',
@@ -356,7 +356,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.6rem' }}>
                       <span style={{ fontSize: '1.6rem' }}>{p.icon}</span>
                       <div>
-                        <div style={{ fontSize: '1.05rem', fontWeight: 700, color: '#f8fafc' }}>
+                        <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                           {p.title}
                         </div>
                         <div style={{ fontSize: '0.72rem', color: p.color, fontWeight: 700 }}>
@@ -374,8 +374,8 @@ export const OnboardingFlow = ({ onComplete }) => {
 
             {/* The 4 System Engines */}
             <div style={{
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
               borderRadius: '16px',
               padding: '1.25rem',
               marginBottom: '2.25rem'
@@ -492,8 +492,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                   triggerSound('click');
                 }}
                 style={{
-                  background: startDateOption === 'today' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(30, 41, 59, 0.5)',
-                  border: startDateOption === 'today' ? '2px solid #6366f1' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: startDateOption === 'today' ? 'rgba(99, 102, 241, 0.15)' : 'var(--bg-input)',
+                  border: startDateOption === 'today' ? '2px solid #6366f1' : '1px solid var(--border-color)',
                   borderRadius: '16px',
                   padding: '1.25rem',
                   cursor: 'pointer',
@@ -503,7 +503,7 @@ export const OnboardingFlow = ({ onComplete }) => {
               >
                 <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>⚡</div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.2rem' }}>Start Today</div>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Immediate Day 1 launch right now</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Immediate Day 1 launch right now</div>
                 <div style={{ fontSize: '0.72rem', color: '#6366f1', fontWeight: 700, marginTop: '0.6rem' }}>
                   {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                 </div>
@@ -516,8 +516,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                   triggerSound('click');
                 }}
                 style={{
-                  background: startDateOption === 'tomorrow' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(30, 41, 59, 0.5)',
-                  border: startDateOption === 'tomorrow' ? '2px solid #10b981' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: startDateOption === 'tomorrow' ? 'rgba(16, 185, 129, 0.15)' : 'var(--bg-input)',
+                  border: startDateOption === 'tomorrow' ? '2px solid #10b981' : '1px solid var(--border-color)',
                   borderRadius: '16px',
                   padding: '1.25rem',
                   cursor: 'pointer',
@@ -540,7 +540,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                 </div>
                 <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>🌅</div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.2rem' }}>Start Tomorrow</div>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Wake up fresh tomorrow morning</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Wake up fresh tomorrow morning</div>
                 <div style={{ fontSize: '0.72rem', color: '#10b981', fontWeight: 700, marginTop: '0.6rem' }}>
                   {tomorrow.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                 </div>
@@ -553,8 +553,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                   triggerSound('click');
                 }}
                 style={{
-                  background: startDateOption === 'monday' ? 'rgba(6, 182, 212, 0.2)' : 'rgba(30, 41, 59, 0.5)',
-                  border: startDateOption === 'monday' ? '2px solid #06b6d4' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: startDateOption === 'monday' ? 'rgba(6, 182, 212, 0.15)' : 'var(--bg-input)',
+                  border: startDateOption === 'monday' ? '2px solid #06b6d4' : '1px solid var(--border-color)',
                   borderRadius: '16px',
                   padding: '1.25rem',
                   cursor: 'pointer',
@@ -563,7 +563,7 @@ export const OnboardingFlow = ({ onComplete }) => {
               >
                 <div style={{ fontSize: '1.5rem', marginBottom: '0.4rem' }}>🚀</div>
                 <div style={{ fontSize: '1.05rem', fontWeight: 800, marginBottom: '0.2rem' }}>Next Monday</div>
-                <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Full week alignment sprint</div>
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Full week alignment sprint</div>
                 <div style={{ fontSize: '0.72rem', color: '#06b6d4', fontWeight: 700, marginTop: '0.6rem' }}>
                   {nextMon.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
                 </div>
@@ -576,8 +576,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                   triggerSound('click');
                 }}
                 style={{
-                  background: startDateOption === 'custom' ? 'rgba(168, 85, 247, 0.2)' : 'rgba(30, 41, 59, 0.5)',
-                  border: startDateOption === 'custom' ? '2px solid #a855f7' : '1px solid rgba(255, 255, 255, 0.1)',
+                  background: startDateOption === 'custom' ? 'rgba(168, 85, 247, 0.15)' : 'var(--bg-input)',
+                  border: startDateOption === 'custom' ? '2px solid #a855f7' : '1px solid var(--border-color)',
                   borderRadius: '16px',
                   padding: '1.25rem',
                   cursor: 'pointer',
@@ -607,8 +607,8 @@ export const OnboardingFlow = ({ onComplete }) => {
 
             {/* Live Countdown Display Box */}
             <div style={{
-              background: 'linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.6))',
-              border: '1px solid rgba(99, 102, 241, 0.35)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
               borderRadius: '18px',
               padding: '1.5rem',
               textAlign: 'center',
@@ -636,17 +636,17 @@ export const OnboardingFlow = ({ onComplete }) => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        background: 'rgba(10, 15, 30, 0.85)',
+                        background: 'var(--bg-surface)',
                         border: '1px solid rgba(99, 102, 241, 0.4)',
                         borderRadius: '12px',
                         padding: '0.75rem 1.25rem',
                         minWidth: '75px',
-                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)'
+                        boxShadow: 'var(--shadow-sm)'
                       }}>
                         <span className="mono" style={{
                           fontSize: '1.8rem',
                           fontWeight: 900,
-                          color: idx === 3 ? '#06b6d4' : '#f8fafc',
+                          color: idx === 3 ? '#06b6d4' : 'var(--text-primary)',
                           lineHeight: '1'
                         }}>
                           {item.val}
@@ -749,7 +749,7 @@ export const OnboardingFlow = ({ onComplete }) => {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
               {/* Routine 1: Morning */}
               <div style={{
-                background: 'rgba(30, 41, 59, 0.6)',
+                background: 'var(--bg-input)',
                 border: '1px solid rgba(16, 185, 129, 0.3)',
                 borderRadius: '16px',
                 padding: '1.25rem'
@@ -758,20 +758,20 @@ export const OnboardingFlow = ({ onComplete }) => {
                   <span style={{ fontSize: '1.4rem' }}>🌅</span>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '1rem', color: '#10b981' }}>Morning Momentum</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>06:00 AM - 08:00 AM (80 mins)</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>06:00 AM - 08:00 AM (80 mins)</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#10b981" /> 15m Hydration & Light
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#10b981" /> 30m Salah / Mindfulness & Quran
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#10b981" /> 20m Morning Movement / Stretch
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#10b981" /> 15m Daily War-Room Planning
                   </div>
                 </div>
@@ -779,7 +779,7 @@ export const OnboardingFlow = ({ onComplete }) => {
 
               {/* Routine 2: Deep Work */}
               <div style={{
-                background: 'rgba(30, 41, 59, 0.6)',
+                background: 'var(--bg-input)',
                 border: '1px solid rgba(244, 63, 94, 0.3)',
                 borderRadius: '16px',
                 padding: '1.25rem'
@@ -788,17 +788,17 @@ export const OnboardingFlow = ({ onComplete }) => {
                   <span style={{ fontSize: '1.4rem' }}>⚡</span>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '1rem', color: '#f43f5e' }}>High-Impact Focus</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>09:00 AM - 05:00 PM (3+ hours)</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>09:00 AM - 05:00 PM (3+ hours)</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#f43f5e" /> 90m Deep Work Sprint 1 (Zero Distraction)
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#f43f5e" /> 20m Movement / Restorative Break
                   </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#cbd5e1' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-primary)' }}>
                     <CheckCircle2 size={14} color="#f43f5e" /> 90m Deep Work Sprint 2 (High Value)
                   </div>
                 </div>
@@ -806,7 +806,7 @@ export const OnboardingFlow = ({ onComplete }) => {
 
               {/* Routine 3: Evening */}
               <div style={{
-                background: 'rgba(30, 41, 59, 0.6)',
+                background: 'var(--bg-input)',
                 border: '1px solid rgba(168, 85, 247, 0.3)',
                 borderRadius: '16px',
                 padding: '1.25rem'
@@ -815,7 +815,7 @@ export const OnboardingFlow = ({ onComplete }) => {
                   <span style={{ fontSize: '1.4rem' }}>🌙</span>
                   <div>
                     <div style={{ fontWeight: 800, fontSize: '1rem', color: '#a855f7' }}>Evening Wind-Down</div>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>08:00 PM - 10:00 PM (60 mins)</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>08:00 PM - 10:00 PM (60 mins)</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.82rem' }}>
@@ -834,8 +834,8 @@ export const OnboardingFlow = ({ onComplete }) => {
 
             {/* Daily Habit Scorecard Anchors */}
             <div style={{
-              background: 'rgba(15, 23, 42, 0.5)',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
               borderRadius: '16px',
               padding: '1.25rem',
               marginBottom: '2rem'
@@ -858,9 +858,10 @@ export const OnboardingFlow = ({ onComplete }) => {
                       fontSize: '0.78rem',
                       fontWeight: 600,
                       padding: '0.35rem 0.75rem',
-                      background: 'rgba(255, 255, 255, 0.06)',
+                      background: 'var(--bg-surface)',
                       borderRadius: 'var(--radius-full)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: '1px solid var(--border-color)',
+                      color: 'var(--text-secondary)'
                     }}
                   >
                     {tag}
@@ -945,8 +946,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                     <div
                       key={event.id}
                       style={{
-                        background: 'rgba(30, 41, 59, 0.7)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'var(--bg-input)',
+                        border: '1px solid var(--border-color)',
                         borderRadius: '14px',
                         padding: '1rem',
                         display: 'flex',
@@ -986,8 +987,8 @@ export const OnboardingFlow = ({ onComplete }) => {
                                   fontWeight: 800,
                                   padding: '0.1rem 0.35rem',
                                   borderRadius: '4px',
-                                  background: isIncluded ? '#10b981' : 'rgba(255, 255, 255, 0.05)',
-                                  color: isIncluded ? '#ffffff' : '#64748b'
+                                  background: isIncluded ? '#10b981' : 'var(--bg-surface)',
+                                  color: isIncluded ? '#ffffff' : 'var(--text-muted)'
                                 }}
                               >
                                 {d.label}
@@ -1014,8 +1015,8 @@ export const OnboardingFlow = ({ onComplete }) => {
 
             {/* Quick Add Custom Weekly Event Form */}
             <div style={{
-              background: 'rgba(15, 23, 42, 0.6)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              background: 'var(--bg-input)',
+              border: '1px solid var(--border-color)',
               borderRadius: '16px',
               padding: '1.25rem',
               marginBottom: '2rem'
@@ -1092,9 +1093,9 @@ export const OnboardingFlow = ({ onComplete }) => {
                         style={{
                           padding: '0.25rem 0.6rem',
                           borderRadius: '6px',
-                          border: isSelected ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.1)',
-                          background: isSelected ? 'rgba(16, 185, 129, 0.25)' : 'rgba(255, 255, 255, 0.05)',
-                          color: isSelected ? '#34d399' : '#94a3b8',
+                          border: isSelected ? '1px solid #10b981' : '1px solid var(--border-color)',
+                          background: isSelected ? 'rgba(16, 185, 129, 0.25)' : 'var(--bg-surface)',
+                          color: isSelected ? '#10b981' : 'var(--text-secondary)',
                           fontSize: '0.75rem',
                           fontWeight: 700,
                           cursor: 'pointer'

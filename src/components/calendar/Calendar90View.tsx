@@ -59,7 +59,7 @@ export const Calendar90View = () => {
     if (status === 'good') return '#3b82f6';
     if (status === 'average') return '#eab308';
     if (status === 'poor') return '#ef4444';
-    return 'rgba(255, 255, 255, 0.08)'; // future
+    return 'var(--border-color)'; // future
   };
 
   const getStatusBg = (status: string, isToday?: boolean) => {
@@ -79,7 +79,7 @@ export const Calendar90View = () => {
     <div className="page-container">
       {/* Header Deck */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, rgba(20, 28, 48, 0.9), rgba(15, 23, 42, 0.9))',
+        background: 'var(--bg-card-header)',
         border: '1px solid var(--border-color)',
         marginBottom: '1.75rem'
       }}>
@@ -108,7 +108,7 @@ export const Calendar90View = () => {
               <span>🟡 Average (50-69)</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem' }}>
-              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'rgba(255,255,255,0.2)' }} />
+              <span style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--text-muted)' }} />
               <span>⚪ Future</span>
             </div>
           </div>

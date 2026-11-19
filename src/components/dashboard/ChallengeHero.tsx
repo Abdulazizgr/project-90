@@ -35,8 +35,8 @@ export const ChallengeHero = () => {
     <div 
       className="card" 
       style={{
-        background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.95), rgba(15, 23, 42, 0.98))',
-        border: '1px solid rgba(99, 102, 241, 0.35)',
+        background: 'var(--bg-hero)',
+        border: '1px solid var(--border-hero)',
         position: 'relative',
         overflow: 'hidden',
         marginBottom: '1.5rem',
@@ -56,7 +56,7 @@ export const ChallengeHero = () => {
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, lineHeight: 1.2 }}>
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: 'var(--text-primary)', margin: 0, lineHeight: 1.2 }}>
             Apex OS:
           </h2>
           <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.15rem' }}>
@@ -127,9 +127,9 @@ export const ChallengeHero = () => {
         gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
         gap: '0.65rem',
         padding: '0.75rem',
-        background: 'rgba(255, 255, 255, 0.03)',
+        background: 'var(--card-inner-bg)',
         borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-color-subtle)'
+        border: '1px solid var(--card-inner-border)'
       }}>
         {/* Today's Completion */}
         <div>

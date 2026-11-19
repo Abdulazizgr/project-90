@@ -232,8 +232,8 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
                       height: '28px',
                       borderRadius: '50%',
                       background: c,
-                      border: color === c ? '3px solid #ffffff' : 'none',
-                      boxShadow: color === c ? '0 0 10px rgba(255,255,255,0.4)' : 'none',
+                      border: color === c ? '3px solid var(--text-primary)' : '2px solid transparent',
+                      boxShadow: color === c ? '0 0 8px rgba(99, 102, 241, 0.5)' : 'none',
                       cursor: 'pointer'
                     }}
                   />

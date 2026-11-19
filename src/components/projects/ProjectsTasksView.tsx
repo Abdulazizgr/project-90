@@ -267,8 +267,8 @@ export const ProjectsTasksView = () => {
     <div className="animate-fade-in" style={{ padding: '0.25rem 0', maxWidth: '1400px', margin: '0 auto' }}>
       {/* Header & Global Stats Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.75), rgba(15, 23, 42, 0.9))',
-        border: '1px solid rgba(99, 102, 241, 0.25)',
+        background: 'var(--bg-card-header)',
+        border: '1px solid var(--border-color)',
         borderRadius: '20px',
         padding: '1.75rem',
         marginBottom: '1.5rem',
@@ -342,7 +342,7 @@ export const ProjectsTasksView = () => {
           gap: '1rem',
           marginTop: '1.5rem',
           paddingTop: '1.25rem',
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)'
+          borderTop: '1px solid var(--border-color)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div style={{
@@ -567,7 +567,7 @@ export const ProjectsTasksView = () => {
                     padding: '1.15rem',
                     cursor: 'pointer',
                     border: isSelected ? `2px solid ${proj.categoryColor || '#6366f1'}` : '1px solid var(--border-color)',
-                    background: isSelected ? 'rgba(30, 41, 59, 0.85)' : 'rgba(15, 23, 42, 0.55)',
+                    background: isSelected ? 'var(--bg-card-hover)' : 'var(--bg-card)',
                     transition: 'all var(--transition-fast)',
                     position: 'relative'
                   }}
@@ -660,7 +660,7 @@ export const ProjectsTasksView = () => {
                     color: 'var(--text-muted)',
                     marginTop: '0.6rem',
                     paddingTop: '0.5rem',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.05)'
+                    borderTop: '1px solid var(--border-color)'
                   }}>
                     <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#38bdf8', fontWeight: 700 }}>
                       <Clock size={12} />
@@ -778,12 +778,12 @@ export const ProjectsTasksView = () => {
               {/* TOP SECTION: ADD TASK TO THIS PROJECT FORM */}
               {/* ========================================================================= */}
               <form onSubmit={handleQuickAddTask} style={{
-                background: 'linear-gradient(135deg, rgba(30, 41, 59, 0.65), rgba(15, 23, 42, 0.85))',
-                border: '1px solid rgba(99, 102, 241, 0.25)',
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-color)',
                 borderRadius: 'var(--radius-lg)',
                 padding: '1.15rem',
                 marginBottom: '1.5rem',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.25)'
+                boxShadow: 'var(--shadow-sm)'
               }}>
                 <div style={{ 
                   display: 'flex', 
@@ -820,8 +820,7 @@ export const ProjectsTasksView = () => {
                       onChange={(e) => setQuickTaskTitle(e.target.value)}
                       style={{ 
                         fontSize: '0.88rem', 
-                        padding: '0.65rem 1rem',
-                        background: 'rgba(15, 23, 42, 0.85)' 
+                        padding: '0.65rem 1rem'
                       }}
                     />
                   </div>
@@ -834,8 +833,7 @@ export const ProjectsTasksView = () => {
                       onChange={(e) => setQuickTaskStatus(e.target.value)}
                       style={{ 
                         fontSize: '0.82rem',
-                        padding: '0.65rem 0.85rem',
-                        background: 'rgba(15, 23, 42, 0.85)'
+                        padding: '0.65rem 0.85rem'
                       }}
                       title="Initial Task Status"
                     >
@@ -853,8 +851,7 @@ export const ProjectsTasksView = () => {
                       onChange={(e) => setQuickTaskPriority(e.target.value)}
                       style={{ 
                         fontSize: '0.82rem',
-                        padding: '0.65rem 0.8rem',
-                        background: 'rgba(15, 23, 42, 0.85)'
+                        padding: '0.65rem 0.8rem'
                       }}
                       title="Task Priority"
                     >
@@ -974,7 +971,7 @@ export const ProjectsTasksView = () => {
                   <div style={{
                     textAlign: 'center',
                     padding: '3rem 1.5rem',
-                    background: 'rgba(255, 255, 255, 0.02)',
+                    background: 'var(--card-inner-bg)',
                     borderRadius: 'var(--radius-lg)',
                     border: '1px dashed var(--border-color)'
                   }}>
@@ -1033,7 +1030,7 @@ export const ProjectsTasksView = () => {
                                   ? '#10b981' 
                                   : isInProgress 
                                     ? 'rgba(245, 158, 11, 0.2)' 
-                                    : 'rgba(255, 255, 255, 0.05)',
+                                    : 'var(--bg-input)',
                                 border: isDone 
                                   ? '1px solid #10b981' 
                                   : isInProgress 
@@ -1121,7 +1118,8 @@ export const ProjectsTasksView = () => {
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.25rem',
-                              background: 'rgba(255, 255, 255, 0.04)',
+                              background: 'var(--card-inner-bg)',
+                              border: '1px solid var(--card-inner-border)',
                               padding: '0.2rem 0.5rem',
                               borderRadius: 'var(--radius-full)'
                             }} title="Total time tracked on this task">
