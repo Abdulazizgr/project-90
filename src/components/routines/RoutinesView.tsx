@@ -27,7 +27,8 @@ export const RoutinesView = () => {
     setActiveModal, 
     setModalData, 
     logRoutineTaskExecution,
-    triggerSound 
+    triggerSound,
+    confirmAction 
   } = useApp();
 
   const routines = data.routines || [];
@@ -58,10 +59,16 @@ export const RoutinesView = () => {
   };
 
   const handleDeleteRoutine = (routineId: string, title: string) => {
-    if (confirm(`Delete routine "${title}"?`)) {
-      deleteRoutine(routineId);
-      triggerSound('pop');
-    }
+    confirmAction({
+      title: 'Delete Routine?',
+      message: `Are you sure you want to delete routine "${title}"? This will remove its scheduled time blocks.`,
+      confirmText: 'Delete Routine',
+      variant: 'danger',
+      onConfirm: () => {
+        deleteRoutine(routineId);
+        triggerSound('pop');
+      }
+    });
   };
 
   const handleLaunchRunner = (routine: any) => {

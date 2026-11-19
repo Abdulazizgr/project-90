@@ -36,7 +36,8 @@ export const MyDayView: React.FC = () => {
     updateTimeEntry, 
     deleteTimeEntry, 
     setActiveTab, 
-    triggerSound 
+    triggerSound,
+    confirmAction 
   } = useApp();
 
   const [selectedDate, setSelectedDate] = useState<string>(todayStr);
@@ -584,9 +585,15 @@ export const MyDayView: React.FC = () => {
                         type="button"
                         className="btn btn-ghost btn-sm btn-icon"
                         onClick={() => {
-                          if (confirm(`Delete "${entry.activityName}"?`)) {
-                            deleteTimeEntry(selectedDate, entry.id);
-                          }
+                          confirmAction({
+                            title: 'Delete Activity Entry?',
+                            message: `Are you sure you want to delete "${entry.activityName}" from today's timeline?`,
+                            confirmText: 'Delete Entry',
+                            variant: 'danger',
+                            onConfirm: () => {
+                              deleteTimeEntry(selectedDate, entry.id);
+                            }
+                          });
                         }}
                         title="Delete Entry"
                         style={{ color: '#ef4444' }}

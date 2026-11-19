@@ -39,7 +39,8 @@ export const ProjectsTasksView = () => {
     awardTaskPoints,
     deleteTask, 
     startTimer, 
-    triggerSound
+    triggerSound,
+    confirmAction
   } = useApp();
 
   const [selectedCategoryId, setSelectedCategoryId] = useState('all');
@@ -624,9 +625,18 @@ export const ProjectsTasksView = () => {
                         className="btn btn-ghost btn-icon btn-sm"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (confirm(`Delete project "${proj.name}" and all its tasks?`)) {
-                            deleteProject(proj.categoryId, proj.id);
-                          }
+                          confirmAction({
+                            title: 'Delete Project?',
+                            message: `Are you sure you want to delete project "${proj.name}" and all its tasks? This action cannot be undone.`,
+                            confirmText: 'Delete Project',
+                            variant: 'danger',
+                            onConfirm: () => {
+                              deleteProject(proj.categoryId, proj.id);
+                              if (selectedProjectId === proj.id) {
+                                setSelectedProjectId(null);
+                              }
+                            }
+                          });
                         }}
                         style={{ color: '#ef4444', opacity: 0.6 }}
                         title="Delete Project"
@@ -1156,7 +1166,15 @@ export const ProjectsTasksView = () => {
                             <button
                               type="button"
                               className="btn btn-ghost btn-icon btn-sm"
-                              onClick={() => deleteTask(activeProject.categoryId, activeProject.id, task.id)}
+                              onClick={() => {
+                                confirmAction({
+                                  title: 'Delete Task?',
+                                  message: `Are you sure you want to delete "${task.title}"?`,
+                                  confirmText: 'Delete Task',
+                                  variant: 'danger',
+                                  onConfirm: () => deleteTask(activeProject.categoryId, activeProject.id, task.id)
+                                });
+                              }}
                               title="Delete Task"
                               style={{ color: '#ef4444', opacity: 0.7 }}
                             >

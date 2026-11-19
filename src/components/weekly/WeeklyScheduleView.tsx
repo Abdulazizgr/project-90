@@ -39,7 +39,8 @@ export const WeeklyScheduleView = () => {
     updateRecurringWeeklyEvent, 
     deleteRecurringWeeklyEvent,
     setIsSetupWizardOpen,
-    triggerSound
+    triggerSound,
+    confirmAction
   } = useApp();
 
   const categories = data.categories || [];
@@ -581,9 +582,15 @@ export const WeeklyScheduleView = () => {
                             <button
                               className="btn btn-ghost btn-icon btn-sm"
                               onClick={() => {
-                                if (window.confirm(`Delete recurring event "${event.title}"?`)) {
-                                  deleteRecurringWeeklyEvent(event.id);
-                                }
+                                confirmAction({
+                                  title: 'Delete Recurring Event?',
+                                  message: `Are you sure you want to delete recurring event "${event.title}" from your weekly schedule?`,
+                                  confirmText: 'Delete Event',
+                                  variant: 'danger',
+                                  onConfirm: () => {
+                                    deleteRecurringWeeklyEvent(event.id);
+                                  }
+                                });
                               }}
                               title="Delete"
                               style={{ width: '20px', height: '20px', padding: 0 }}

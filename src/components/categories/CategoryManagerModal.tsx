@@ -37,7 +37,8 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
     deletePillar,
     activeModal,
     setActiveModal,
-    triggerSound
+    triggerSound,
+    confirmAction
   } = useApp();
 
   const isModalOpen = isOpen || activeModal === 'pillar_modal' || activeModal === 'category_manager';
@@ -110,9 +111,15 @@ export const CategoryManagerModal: React.FC<CategoryManagerModalProps> = ({ isOp
       ? `Delete "${pillarName}"? This will also remove the ${routineCount} routine(s) attached to it.`
       : `Delete focus pillar "${pillarName}"?`;
 
-    if (confirm(msg)) {
-      deletePillar(pillarId);
-    }
+    confirmAction({
+      title: 'Delete Life Pillar?',
+      message: msg,
+      confirmText: 'Delete Pillar',
+      variant: 'danger',
+      onConfirm: () => {
+        deletePillar(pillarId);
+      }
+    });
   };
 
   return (

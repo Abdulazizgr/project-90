@@ -14,7 +14,7 @@ import { useApp } from '../../context/AppContext';
 import { getCategoryMeta } from '../../utils/calculations';
 
 export const GoalsView = () => {
-  const { data, updateGoalProgress, addGoal, deleteGoal } = useApp();
+  const { data, updateGoalProgress, addGoal, deleteGoal, confirmAction } = useApp();
 
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
@@ -189,7 +189,15 @@ export const GoalsView = () => {
 
                   <button
                     className="btn btn-ghost btn-icon btn-sm"
-                    onClick={() => deleteGoal(goal.id)}
+                    onClick={() => {
+                      confirmAction({
+                        title: 'Delete Goal?',
+                        message: `Are you sure you want to delete goal "${goal.title}"?`,
+                        confirmText: 'Delete Goal',
+                        variant: 'danger',
+                        onConfirm: () => deleteGoal(goal.id)
+                      });
+                    }}
                     title="Delete Goal"
                     style={{ color: '#ef4444' }}
                   >

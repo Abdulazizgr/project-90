@@ -26,6 +26,16 @@ import {
   parseTimeToMinutes
 } from '../utils/calculations';
 import { authClient } from '../lib/auth-client';
+import { ConfirmationModal } from '../components/common/ConfirmationModal';
+
+export interface ConfirmDialogOptions {
+  title: string;
+  message: string;
+  confirmText?: string;
+  cancelText?: string;
+  variant?: 'danger' | 'warning' | 'primary';
+  onConfirm: () => void | Promise<void>;
+}
 
 const AppContext = createContext<any>(null);
 
@@ -42,6 +52,16 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }
     return false;
   });
+
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
+
+  const confirmAction = (options: ConfirmDialogOptions) => {
+    setConfirmDialog(options);
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog(null);
+  };
 
   const sessionResult = (authClient as any)?.useSession ? (authClient as any).useSession() : { data: null, isPending: false };
   const user = sessionResult?.data?.user;
@@ -744,11 +764,17 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
   };
 
   const handleReset = () => {
-    if (confirm('Are you sure you want to reset all data back to the clean Apex OS baseline?')) {
-      const clean = resetToCleanUserData(data.profile);
-      setData(clean);
-      triggerSound('pop');
-    }
+    confirmAction({
+      title: 'Permanently Reset Account?',
+      message: 'CRITICAL WARNING: This will permanently wipe all your logged data, tasks, habits, daily reflections, and time tracking. This action cannot be undone.',
+      confirmText: 'Permanently Reset',
+      variant: 'danger',
+      onConfirm: () => {
+        const clean = resetToCleanUserData(data.profile);
+        setData(clean);
+        triggerSound('pop');
+      }
+    });
   };
 
   const handleSignOut = async () => {
@@ -821,10 +847,27 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     // Backup & Data
     handleExport,
     handleImport,
-    handleReset
+    handleReset,
+    // Global Confirmation Dialog
+    confirmAction,
+    closeConfirmDialog
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return (
+    <AppContext.Provider value={value}>
+      {children}
+      <ConfirmationModal
+        isOpen={!!confirmDialog}
+        title={confirmDialog?.title || ''}
+        message={confirmDialog?.message || ''}
+        confirmText={confirmDialog?.confirmText}
+        cancelText={confirmDialog?.cancelText}
+        variant={confirmDialog?.variant}
+        onClose={closeConfirmDialog}
+        onConfirm={confirmDialog?.onConfirm || (() => {})}
+      />
+    </AppContext.Provider>
+  );
 };
 
 export const useApp = () => {

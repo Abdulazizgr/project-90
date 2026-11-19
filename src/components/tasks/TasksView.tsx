@@ -28,7 +28,8 @@ export const TasksView: React.FC = () => {
     updateTask, 
     deleteTask, 
     toggleTaskStatus, 
-    triggerSound 
+    triggerSound,
+    confirmAction 
   } = useApp();
 
   const categories = data.categories || [];
@@ -446,9 +447,13 @@ export const TasksView: React.FC = () => {
                       type="button"
                       className="btn btn-ghost btn-sm btn-icon"
                       onClick={() => {
-                        if (confirm(`Delete task "${task.title}"?`)) {
-                          deleteTask(task.id);
-                        }
+                        confirmAction({
+                          title: 'Delete Task?',
+                          message: `Are you sure you want to delete "${task.title}"? This cannot be undone.`,
+                          confirmText: 'Delete Task',
+                          variant: 'danger',
+                          onConfirm: () => deleteTask(task.id)
+                        });
                       }}
                       title="Delete Task"
                       style={{ color: '#ef4444', padding: '0.3rem' }}

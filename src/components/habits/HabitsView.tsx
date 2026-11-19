@@ -22,7 +22,8 @@ export const HabitsView = () => {
     setHabitStatus, 
     deleteHabit, 
     setActiveModal, 
-    setModalData 
+    setModalData,
+    confirmAction 
   } = useApp();
 
   const [selectedCategoryTab, setSelectedCategoryTab] = useState('all');
@@ -282,7 +283,15 @@ export const HabitsView = () => {
 
                 <button
                   className="btn btn-ghost btn-icon btn-sm"
-                  onClick={() => deleteHabit(habit.id)}
+                  onClick={() => {
+                    confirmAction({
+                      title: 'Delete Habit?',
+                      message: `Are you sure you want to delete habit "${habit.name}"?`,
+                      confirmText: 'Delete Habit',
+                      variant: 'danger',
+                      onConfirm: () => deleteHabit(habit.id)
+                    });
+                  }}
                   title="Delete Habit"
                   style={{ color: '#ef4444' }}
                 >

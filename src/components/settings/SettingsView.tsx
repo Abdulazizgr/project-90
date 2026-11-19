@@ -19,7 +19,6 @@ import {
   Calendar
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 
 export const SettingsView = () => {
   const { 
@@ -33,7 +32,8 @@ export const SettingsView = () => {
     handleExport, 
     handleImport, 
     handleReset,
-    loadCleanUserAccount 
+    loadCleanUserAccount,
+    confirmAction 
   } = useApp();
 
   const profile = data.profile || {};
@@ -53,23 +53,6 @@ export const SettingsView = () => {
 
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [challengeSuccess, setChallengeSuccess] = useState(false);
-
-  // Confirmation Modal state
-  const [confirmModal, setConfirmModal] = useState<{
-    isOpen: boolean;
-    title: string;
-    message: string;
-    confirmText: string;
-    variant: 'danger' | 'warning' | 'primary';
-    action: () => void;
-  }>({
-    isOpen: false,
-    title: '',
-    message: '',
-    confirmText: 'Confirm',
-    variant: 'warning',
-    action: () => {}
-  });
 
   const isSoundEnabled = data.profile?.soundEnabled !== false && data.soundEnabled !== false;
 
@@ -99,13 +82,12 @@ export const SettingsView = () => {
   };
 
   const triggerResetToDay1 = () => {
-    setConfirmModal({
-      isOpen: true,
+    confirmAction({
       title: 'Reset Challenge to Day 1?',
       message: `Are you sure you want to restart "${challengeName}" to Day 1 (duration: ${durationDays} days starting ${startDate})? Your existing routine logs and completion history will be preserved.`,
-      confirmText: 'Yes, Reset to Day 1',
+      confirmText: 'Reset to Day 1',
       variant: 'warning',
-      action: () => {
+      onConfirm: () => {
         createNewChallenge(challengeName.trim(), startDate, Number(durationDays) || 30);
         setChallengeSuccess(true);
         setTimeout(() => setChallengeSuccess(false), 2500);
@@ -114,26 +96,24 @@ export const SettingsView = () => {
   };
 
   const triggerLoadTemplates = () => {
-    setConfirmModal({
-      isOpen: true,
+    confirmAction({
       title: 'Load Default Templates?',
       message: 'This will restore the standard suite of daily routines, sample tasks, and core life categories. Any custom tasks you created will remain untouched.',
       confirmText: 'Load Templates',
       variant: 'primary',
-      action: () => {
+      onConfirm: () => {
         loadCleanUserAccount();
       }
     });
   };
 
   const triggerResetAccount = () => {
-    setConfirmModal({
-      isOpen: true,
+    confirmAction({
       title: 'Permanently Reset Account?',
       message: 'CRITICAL WARNING: This will permanently wipe all your logged data, tasks, habits, daily reflections, and time entries. This action cannot be undone.',
-      confirmText: 'Permanently Reset Everything',
+      confirmText: 'Permanently Reset',
       variant: 'danger',
-      action: () => {
+      onConfirm: () => {
         handleReset();
       }
     });
@@ -163,17 +143,6 @@ export const SettingsView = () => {
 
   return (
     <div className="page-container" style={{ paddingBottom: '5rem' }}>
-      {/* Confirmation Modal */}
-      <ConfirmationModal
-        isOpen={confirmModal.isOpen}
-        title={confirmModal.title}
-        message={confirmModal.message}
-        confirmText={confirmModal.confirmText}
-        variant={confirmModal.variant}
-        onClose={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
-        onConfirm={confirmModal.action}
-      />
-
       {/* Header Deck */}
       <div className="card" style={{
         background: 'var(--bg-card-header)',
