@@ -565,14 +565,23 @@ export const TasksView: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.3rem' }}>
                     Planned Date
                   </label>
-                  <input
-                    type="date"
-                    className="input"
-                    value={plannedDate}
-                    onChange={(e) => setPlannedDate(e.target.value)}
-                    required
-                    style={{ width: '100%' }}
-                  />
+                  <div className="date-input-wrapper">
+                    <input
+                      type="date"
+                      className="input"
+                      value={plannedDate}
+                      onChange={(e) => setPlannedDate(e.target.value)}
+                      onClick={(e) => {
+                        try {
+                          (e.currentTarget as any).showPicker?.();
+                        } catch {}
+                      }}
+                      required
+                    />
+                    <div className="date-input-icon">
+                      <Calendar size={18} />
+                    </div>
+                  </div>
                 </div>
 
                 <div>

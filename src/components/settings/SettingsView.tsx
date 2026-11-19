@@ -15,7 +15,8 @@ import {
   Target,
   User,
   Shield,
-  Palette
+  Palette,
+  Calendar
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { ConfirmationModal } from '@/components/common/ConfirmationModal';
@@ -234,14 +235,23 @@ export const SettingsView = () => {
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Start Date
                 </label>
-                <input
-                  type="date"
-                  className="input"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  required
-                  style={{ width: '100%' }}
-                />
+                <div className="date-input-wrapper">
+                  <input
+                    type="date"
+                    className="input"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    onClick={(e) => {
+                      try {
+                        (e.currentTarget as any).showPicker?.();
+                      } catch {}
+                    }}
+                    required
+                  />
+                  <div className="date-input-icon">
+                    <Calendar size={18} />
+                  </div>
+                </div>
               </div>
 
               <div>

@@ -357,7 +357,46 @@ option {
   min-height: 80px;
 }
 
-/* Date & Time Native Picker Indicators */
+/* Date & Time Native Picker Indicators & Custom Icons */
+.date-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.date-input-wrapper input[type="date"],
+.date-input-wrapper input[type="time"],
+.date-input-wrapper input[type="datetime-local"] {
+  width: 100% !important;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
+}
+
+.date-input-wrapper .date-input-icon {
+  position: absolute;
+  right: 0.85rem;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-light);
+  z-index: 1;
+}
+
+.date-input-wrapper input[type="date"]::-webkit-calendar-picker-indicator,
+.date-input-wrapper input[type="time"]::-webkit-calendar-picker-indicator,
+.date-input-wrapper input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  width: 2.5rem !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+  z-index: 2 !important;
+}
+
 input[type="date"],
 input[type="time"],
 input[type="datetime-local"] {
@@ -370,36 +409,33 @@ input[type="datetime-local"] {
   color-scheme: light;
 }
 
+/* Fallback for standalone date inputs without wrapper */
 input[type="date"]::-webkit-calendar-picker-indicator,
 input[type="time"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
-  filter: invert(1) brightness(1.25);
-  opacity: 0.9;
-  padding: 4px;
-  border-radius: 4px;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23818cf8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: 18px 18px !important;
+  width: 20px !important;
+  height: 20px !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transition: transform 0.15s ease;
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover,
 input[type="time"]::-webkit-calendar-picker-indicator:hover,
 input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 [data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator,
 [data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator,
 [data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-  filter: none;
-  opacity: 0.75;
-}
-
-[data-theme='light'] input[type="date"]::-webkit-calendar-picker-indicator:hover,
-[data-theme='light'] input[type="time"]::-webkit-calendar-picker-indicator:hover,
-[data-theme='light'] input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
-  opacity: 1;
-  filter: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='4' rx='2' ry='2'/%3E%3Cline x1='16' x2='16' y1='2' y2='6'/%3E%3Cline x1='8' x2='8' y1='2' y2='6'/%3E%3Cline x1='3' x2='21' y1='10' y2='10'/%3E%3C/svg%3E") !important;
+  opacity: 0.85 !important;
 }
 
 /* Progress Bar */
