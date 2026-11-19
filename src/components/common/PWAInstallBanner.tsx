@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Download, X, Smartphone, Share2, PlusSquare } from 'lucide-react';
+import { Download, X, Share2, PlusSquare } from 'lucide-react';
+import { ApexLogo } from '@/components/common/ApexLogo';
 
 export const PWAInstallBanner: React.FC = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -100,20 +101,7 @@ export const PWAInstallBanner: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-          <div
-            style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0
-            }}
-          >
-            <Smartphone size={20} color="#fff" />
-          </div>
+          <ApexLogo size={38} />
           <div style={{ minWidth: 0 }}>
             <h4 style={{ fontSize: '0.85rem', fontWeight: 800, margin: 0, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Install Apex OS App
