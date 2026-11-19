@@ -24,7 +24,8 @@ import {
   FileText,
   Lock,
   Sparkles,
-  Fingerprint
+  Fingerprint,
+  X
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { Transaction, TransactionType, ExpenseType } from '@/utils/seedData';
@@ -718,93 +719,197 @@ export const MoneyTrackerView: React.FC = () => {
         )}
       </div>
 
-      {/* MODAL 1: ADD / EDIT TRANSACTION */}
+      {/* MODAL 1: ADD / EDIT TRANSACTION (Mobile-First Modern Banking Quality) */}
       {isAddModalOpen && (
         <div className="modal-overlay" onClick={() => setIsAddModalOpen(false)}>
           <div 
             className="modal-content" 
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: '520px', padding: '1.75rem', borderRadius: '20px' }}
+            style={{ 
+              maxWidth: '480px', 
+              padding: '1.5rem', 
+              borderRadius: '24px',
+              position: 'relative'
+            }}
           >
-            <div className="modal-header" style={{ marginBottom: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--primary-glow)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary-light)' }}>
-                  <Receipt size={18} />
-                </div>
-                <div>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
-                    {editingTxId ? 'Edit Transaction' : 'Record Transaction'}
-                  </h3>
-                  <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
-                    Log income, personal expense, or reimbursable company expense
-                  </p>
-                </div>
+            {/* Top Close Button */}
+            <button
+              type="button"
+              className="btn btn-ghost btn-icon"
+              onClick={() => setIsAddModalOpen(false)}
+              style={{
+                position: 'absolute',
+                top: '1rem',
+                right: '1rem',
+                padding: '0.4rem',
+                color: 'var(--text-muted)'
+              }}
+              title="Close dialog"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Header */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '1.25rem', paddingRight: '2rem' }}>
+              <div style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '11px',
+                background: type === 'income' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+                color: type === 'income' ? '#10b981' : 'var(--primary-light)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Receipt size={19} />
+              </div>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, margin: 0, color: 'var(--text-primary)' }}>
+                  {editingTxId ? 'Edit Transaction' : 'Record Transaction'}
+                </h3>
+                <p style={{ fontSize: '0.74rem', color: 'var(--text-muted)', margin: 0 }}>
+                  Personal spending, company reimbursement, or payroll
+                </p>
               </div>
             </div>
 
             {formError && (
-              <div style={{ padding: '0.6rem 0.85rem', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '0.8rem', marginBottom: '1rem' }}>
+              <div style={{ padding: '0.65rem 0.85rem', borderRadius: '10px', background: 'rgba(239, 68, 68, 0.12)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', fontSize: '0.8rem', marginBottom: '1rem' }}>
                 {formError}
               </div>
             )}
 
-            <form onSubmit={handleSaveTransaction}>
-              {/* Type Switcher: Expense vs Income */}
-              <div style={{ marginBottom: '1.1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                  Transaction Type *
+            <form onSubmit={handleSaveTransaction} autoComplete="off">
+              {/* 1. Transaction Type Segmented Toggle */}
+              <div style={{
+                display: 'flex',
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '14px',
+                padding: '3px',
+                marginBottom: '1.15rem',
+                gap: '4px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setType('expense');
+                    setCategory(EXPENSE_CATEGORIES[0]);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '0.55rem',
+                    borderRadius: '11px',
+                    border: 'none',
+                    background: type === 'expense' ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'transparent',
+                    color: type === 'expense' ? '#ffffff' : 'var(--text-muted)',
+                    fontSize: '0.82rem',
+                    fontWeight: type === 'expense' ? 800 : 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <ArrowUpRight size={15} />
+                  <span>Expense</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setType('income');
+                    setCategory(INCOME_CATEGORIES[0]);
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: '0.55rem',
+                    borderRadius: '11px',
+                    border: 'none',
+                    background: type === 'income' ? 'linear-gradient(135deg, #10b981, #059669)' : 'transparent',
+                    color: type === 'income' ? '#ffffff' : 'var(--text-muted)',
+                    fontSize: '0.82rem',
+                    fontWeight: type === 'income' ? 800 : 600,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  <ArrowDownLeft size={15} />
+                  <span>Income / Payroll</span>
+                </button>
+              </div>
+
+              {/* 2. Hero Amount Input (Clean, Centered, Banking Style) */}
+              <div style={{
+                textAlign: 'center',
+                padding: '1.15rem 1rem',
+                borderRadius: '16px',
+                background: 'rgba(255, 255, 255, 0.025)',
+                border: '1px solid var(--border-color)',
+                marginBottom: '1.15rem'
+              }}>
+                <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.35rem' }}>
+                  Amount ({currency}) *
                 </label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                  <button
-                    type="button"
-                    className={`btn ${type === 'expense' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => {
-                      setType('expense');
-                      setCategory(EXPENSE_CATEGORIES[0]);
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                  <span style={{ fontSize: '1.6rem', fontWeight: 900, color: type === 'income' ? '#10b981' : '#ef4444' }}>
+                    {type === 'income' ? '+' : '-'}
+                  </span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    required
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    style={{
+                      fontSize: '2.1rem',
+                      fontWeight: 900,
+                      textAlign: 'center',
+                      width: '180px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderBottom: '2px solid rgba(255, 255, 255, 0.15)',
+                      color: type === 'income' ? '#10b981' : '#ffffff',
+                      outline: 'none',
+                      padding: '0.1rem 0',
+                      letterSpacing: '-0.02em'
                     }}
-                    style={{ justifyContent: 'center', fontWeight: 700, fontSize: '0.82rem' }}
-                  >
-                    <ArrowUpRight size={15} /> Expense
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn ${type === 'income' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => {
-                      setType('income');
-                      setCategory(INCOME_CATEGORIES[0]);
-                    }}
-                    style={{ justifyContent: 'center', fontWeight: 700, fontSize: '0.82rem' }}
-                  >
-                    <ArrowDownLeft size={15} /> Income / Payroll
-                  </button>
+                  />
+                  <span style={{ fontSize: '0.95rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                    {currency}
+                  </span>
                 </div>
               </div>
 
-              {/* If Expense: Personal vs Company Reimbursable Radio */}
+              {/* 3. Expense Ownership Selector (Personal vs Company) */}
               {type === 'expense' && (
-                <div style={{
-                  padding: '0.85rem',
-                  borderRadius: 'var(--radius-md)',
-                  background: 'var(--bg-input)',
-                  border: '1px solid var(--border-color)',
-                  marginBottom: '1.1rem'
-                }}>
-                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 800, color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
-                    Who owns this expense? *
+                <div style={{ marginBottom: '1.15rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                    Expense Ownership *
                   </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
+                    {/* Personal Card */}
                     <div
                       onClick={() => setExpenseType('personal')}
                       style={{
-                        padding: '0.65rem',
-                        borderRadius: '10px',
+                        padding: '0.75rem',
+                        borderRadius: '14px',
                         border: expenseType === 'personal' ? '2px solid var(--primary-light)' : '1px solid var(--border-color)',
-                        background: expenseType === 'personal' ? 'rgba(99, 102, 241, 0.12)' : 'var(--bg-card)',
+                        background: expenseType === 'personal' ? 'rgba(99, 102, 241, 0.14)' : 'rgba(255, 255, 255, 0.02)',
                         cursor: 'pointer',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 800, fontSize: '0.82rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 800, fontSize: '0.84rem', color: expenseType === 'personal' ? 'var(--primary-light)' : 'var(--text-primary)' }}>
                         <User size={15} /> Personal
                       </div>
                       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
@@ -812,131 +917,134 @@ export const MoneyTrackerView: React.FC = () => {
                       </p>
                     </div>
 
+                    {/* Company Card */}
                     <div
                       onClick={() => setExpenseType('company')}
                       style={{
-                        padding: '0.65rem',
-                        borderRadius: '10px',
+                        padding: '0.75rem',
+                        borderRadius: '14px',
                         border: expenseType === 'company' ? '2px solid #f59e0b' : '1px solid var(--border-color)',
-                        background: expenseType === 'company' ? 'rgba(245, 158, 11, 0.15)' : 'var(--bg-card)',
+                        background: expenseType === 'company' ? 'rgba(245, 158, 11, 0.16)' : 'rgba(255, 255, 255, 0.02)',
                         cursor: 'pointer',
-                        textAlign: 'center'
+                        textAlign: 'center',
+                        transition: 'all 0.15s ease'
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 800, fontSize: '0.82rem', color: '#f59e0b' }}>
-                        <Building2 size={15} /> Company
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', fontWeight: 800, fontSize: '0.84rem', color: '#f59e0b' }}>
+                        <Building2 size={15} /> Company Owed
                       </div>
                       <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', margin: '0.2rem 0 0 0' }}>
-                        Claim back from finance
+                        Reimbursable by finance
                       </p>
                     </div>
                   </div>
 
+                  {/* Company Reimbursement Toggle Card (Replaces the ugly checkbox!) */}
                   {expenseType === 'company' && (
-                    <div style={{ marginTop: '0.6rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <input
-                        type="checkbox"
-                        id="reimbursedCheck"
-                        checked={isReimbursed}
-                        onChange={(e) => setIsReimbursed(e.target.checked)}
-                      />
-                      <label htmlFor="reimbursedCheck" style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                        Already repaid by the company finance team
-                      </label>
+                    <div
+                      onClick={() => setIsReimbursed(!isReimbursed)}
+                      style={{
+                        marginTop: '0.6rem',
+                        padding: '0.75rem 0.9rem',
+                        borderRadius: '12px',
+                        background: isReimbursed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                        border: isReimbursed ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(245, 158, 11, 0.35)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        {isReimbursed ? <CheckCircle2 size={17} color="#10b981" /> : <Clock size={17} color="#f59e0b" />}
+                        <div>
+                          <strong style={{ fontSize: '0.8rem', color: isReimbursed ? '#10b981' : '#f59e0b', display: 'block' }}>
+                            {isReimbursed ? 'Already Repaid by Finance' : 'Pending Company Reimbursement'}
+                          </strong>
+                          <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                            {isReimbursed ? 'Finance team already settled this' : 'Tap here if already repaid'}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="badge" style={{ fontSize: '0.68rem', fontWeight: 700, padding: '0.2rem 0.5rem', background: isReimbursed ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)', color: isReimbursed ? '#10b981' : '#f59e0b' }}>
+                        {isReimbursed ? 'Settled' : 'To Claim'}
+                      </span>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Title & Amount Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                    Title / Description *
-                  </label>
-                  <input
-                    type="text"
-                    className="input"
-                    required
-                    placeholder={type === 'income' ? 'e.g. Monthly Full-time Salary' : 'e.g. Client Dinner, Taxi ride, WiFi'}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    style={{ width: '100%' }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                    Amount ({currency}) *
-                  </label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0.01"
-                    className="input"
-                    required
-                    placeholder="0.00"
-                    value={amount}
-                    onChange={(e) => setAmount(e.target.value)}
-                    style={{ width: '100%', fontWeight: 700 }}
-                  />
-                </div>
-              </div>
-
-              {/* Category & Date Row */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                    Category *
-                  </label>
-                  <select
-                    className="input"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    style={{ width: '100%' }}
-                  >
-                    {(type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                    Date *
-                  </label>
-                  <input
-                    type="date"
-                    className="input"
-                    value={txDate}
-                    onChange={(e) => setTxDate(e.target.value)}
-                    style={{ width: '100%' }}
-                    required
-                  />
-                </div>
-              </div>
-
-              {/* Notes */}
-              <div style={{ marginBottom: '1.25rem' }}>
+              {/* 4. Full Width Title / Description (No Truncation) */}
+              <div style={{ marginBottom: '1rem' }}>
                 <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                  Notes / Receipt Details (Optional)
+                  Title / Description *
                 </label>
                 <input
                   type="text"
                   className="input"
-                  placeholder="Receipt reference, finance approval notes, etc."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  style={{ width: '100%' }}
+                  required
+                  placeholder={type === 'income' ? 'e.g. Monthly Full-time Salary' : 'e.g. Client Dinner, Hotel Booking, WiFi'}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.9rem' }}
                 />
               </div>
 
-              {/* Actions */}
+              {/* 5. Category (Full Width, Never Truncated) */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Category *
+                </label>
+                <select
+                  className="input"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.88rem' }}
+                >
+                  {(type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 6. Date */}
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Transaction Date *
+                </label>
+                <input
+                  type="date"
+                  className="input"
+                  value={txDate}
+                  onChange={(e) => setTxDate(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.88rem' }}
+                  required
+                />
+              </div>
+
+              {/* 7. Notes / Details */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Notes / Receipt Reference (Optional)
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Receipt number, invoice reference, or meeting notes..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  style={{ width: '100%', fontSize: '0.88rem' }}
+                />
+              </div>
+
+              {/* Action Buttons */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
                 <button
                   type="button"
                   className="btn btn-secondary"
                   onClick={() => setIsAddModalOpen(false)}
+                  style={{ justifyContent: 'center', fontWeight: 600, borderRadius: '12px', padding: '0.75rem' }}
                 >
                   Cancel
                 </button>
@@ -944,7 +1052,7 @@ export const MoneyTrackerView: React.FC = () => {
                   type="submit"
                   className="btn btn-primary"
                   disabled={isSaving}
-                  style={{ fontWeight: 700 }}
+                  style={{ justifyContent: 'center', fontWeight: 800, borderRadius: '12px', padding: '0.75rem', gap: '0.4rem' }}
                 >
                   {isSaving ? (
                     <>
