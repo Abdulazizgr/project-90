@@ -233,6 +233,20 @@ export const MoneyTrackerView: React.FC = () => {
 
   const mask = (val: string) => (privacyMode ? '••••••' : val);
 
+  const formatTxDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const parts = dateStr.split('-');
+      if (parts.length !== 3) return dateStr;
+      const [y, m, d] = parts;
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const monthName = months[parseInt(m, 10) - 1] || m;
+      return `${monthName} ${parseInt(d, 10)}, ${y}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
   return (
     <div className="page-container" style={{ paddingBottom: '5rem' }}>
       {/* Top Banner Deck */}
@@ -409,291 +423,298 @@ export const MoneyTrackerView: React.FC = () => {
         </div>
       </div>
 
-      {/* Filter Toolbar & Actions (Mobile First Horizontal Scrolling) */}
-      <div 
-        className="card"
-        style={{
-          padding: '0.75rem 0.85rem',
-          marginBottom: '1rem',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '0.65rem'
-        }}
-      >
-        {/* Row 1: Category / Type Tabs (Swipeable on Mobile) */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '0.4rem', 
-          overflowX: 'auto',
-          whiteSpace: 'nowrap',
-          paddingBottom: '2px',
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch'
-        }}>
-          {[
-            { id: 'all', label: 'All Activity' },
-            { id: 'personal', label: '👤 Personal' },
-            { id: 'company', label: '💼 Company (Reimbursable)' },
-            { id: 'income', label: '💰 Income' }
-          ].map((tab) => (
+      {/* Unified Professional Segmented Activity Filters (iOS / Modern Banking Style) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        background: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid var(--border-color)',
+        borderRadius: '14px',
+        padding: '3px',
+        marginBottom: '0.65rem',
+        gap: '3px',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        WebkitOverflowScrolling: 'touch'
+      }}>
+        {[
+          { id: 'all', label: 'All Activity' },
+          { id: 'personal', label: 'Personal' },
+          { id: 'company', label: 'Company Owed' },
+          { id: 'income', label: 'Inflow' }
+        ].map((tab) => {
+          const isActive = typeFilter === tab.id;
+          return (
             <button
               key={tab.id}
               type="button"
-              className={`btn btn-sm ${typeFilter === tab.id ? 'btn-primary' : 'btn-ghost'}`}
               onClick={() => setTypeFilter(tab.id as any)}
-              style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 700, 
-                padding: '0.35rem 0.75rem',
-                borderRadius: '8px',
-                flexShrink: 0
+              style={{
+                flex: 1,
+                minWidth: '70px',
+                padding: '0.48rem 0.5rem',
+                borderRadius: '11px',
+                border: 'none',
+                background: isActive ? 'var(--primary)' : 'transparent',
+                color: isActive ? '#ffffff' : 'var(--text-muted)',
+                fontSize: '0.76rem',
+                fontWeight: isActive ? 800 : 600,
+                cursor: 'pointer',
+                textAlign: 'center',
+                transition: 'all 0.15s ease',
+                whiteSpace: 'nowrap'
               }}
             >
               {tab.label}
             </button>
-          ))}
-        </div>
+          );
+        })}
+      </div>
 
-        {/* Row 2: Time Range Pills & Quick Summary */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          gap: '0.5rem',
-          flexWrap: 'wrap'
-        }}>
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: '0.35rem',
-            overflowX: 'auto',
-            scrollbarWidth: 'none',
-            WebkitOverflowScrolling: 'touch'
-          }}>
-            {[
-              { id: 'today', label: 'Today' },
-              { id: '7days', label: '7 Days' },
-              { id: 'month', label: 'This Month' },
-              { id: 'all', label: 'All Time' }
-            ].map((r) => (
+      {/* Date Range Chips Bar */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: '1.15rem',
+        padding: '0 0.15rem',
+        flexWrap: 'wrap',
+        gap: '0.5rem'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', overflowX: 'auto', scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+          {[
+            { id: 'today', label: 'Today' },
+            { id: '7days', label: '7 Days' },
+            { id: 'month', label: 'This Month' },
+            { id: 'all', label: 'All Time' }
+          ].map((r) => {
+            const isActive = timeRange === r.id;
+            return (
               <button
                 key={r.id}
                 type="button"
-                className={`btn btn-sm ${timeRange === r.id ? 'btn-secondary' : 'btn-ghost'}`}
                 onClick={() => setTimeRange(r.id as any)}
                 style={{
+                  padding: '0.28rem 0.65rem',
+                  borderRadius: '20px',
+                  border: isActive ? '1px solid var(--primary-light)' : '1px solid rgba(255, 255, 255, 0.08)',
+                  background: isActive ? 'rgba(99, 102, 241, 0.16)' : 'transparent',
+                  color: isActive ? 'var(--primary-light)' : 'var(--text-muted)',
                   fontSize: '0.72rem',
-                  fontWeight: 600,
-                  padding: '0.28rem 0.6rem',
-                  borderRadius: '6px',
-                  flexShrink: 0,
-                  borderColor: timeRange === r.id ? 'var(--primary-light)' : 'transparent'
+                  fontWeight: isActive ? 700 : 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  flexShrink: 0
                 }}
               >
                 {r.label}
               </button>
-            ))}
-          </div>
-
-          <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: 'auto' }}>
-            Showing <strong>{filteredTransactions.length}</strong> record(s)
-          </span>
+            );
+          })}
         </div>
+
+        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+          {filteredTransactions.length} record{filteredTransactions.length !== 1 ? 's' : ''}
+        </span>
       </div>
 
-      {/* Transactions List */}
-      <div className="card" style={{ padding: '0', overflow: 'hidden' }}>
-        <div style={{ padding: '0.85rem 1rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '0.92rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-            <Receipt size={16} color="var(--primary-light)" />
-            <span>Transaction Ledger ({filteredTransactions.length})</span>
-          </h3>
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
-            {timeRange.toUpperCase()} View
-          </span>
-        </div>
-
+      {/* Transaction Ledger Cards (Mobile-First, 100% Readable, No Truncation) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
         {filteredTransactions.length === 0 ? (
-          <div style={{ padding: '3rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Receipt size={36} style={{ margin: '0 auto 0.75rem auto', opacity: 0.4 }} />
-            <p style={{ fontSize: '0.9rem', fontWeight: 600, margin: '0 0 0.35rem 0' }}>No transactions recorded for this period</p>
+          <div className="card" style={{ padding: '3.5rem 1.5rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Receipt size={40} style={{ margin: '0 auto 0.75rem auto', opacity: 0.35 }} />
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, margin: '0 0 0.35rem 0', color: 'var(--text-secondary)' }}>
+              No transactions found
+            </h4>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
-              Click "Record Transaction" to add your payroll or expense.
+              Tap "Record Transaction" above to log payroll or an expense.
             </p>
           </div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            {filteredTransactions.map((tx, idx) => {
-              const isIncome = tx.type === 'income';
-              const isCompany = tx.type === 'expense' && tx.expenseType === 'company';
+          filteredTransactions.map((tx) => {
+            const isIncome = tx.type === 'income';
+            const isCompany = tx.type === 'expense' && tx.expenseType === 'company';
 
-              return (
-                <div
-                  key={tx.id || idx}
-                  style={{
-                    padding: '0.85rem 1rem',
-                    borderBottom: idx < filteredTransactions.length - 1 ? '1px solid var(--border-color)' : 'none',
-                    background: idx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.015)'
-                  }}
-                >
-                  {/* Top Row: Icon + Title + Amount (Never Collides) */}
-                  <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between', 
-                    gap: '0.75rem', 
-                    marginBottom: '0.45rem' 
-                  }}>
-                    {/* Left: Icon & Title & Category */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
-                      <div style={{
-                        width: '38px',
-                        height: '38px',
-                        borderRadius: '10px',
-                        background: isIncome 
-                          ? 'rgba(16, 185, 129, 0.15)' 
-                          : isCompany 
-                            ? 'rgba(245, 158, 11, 0.15)' 
-                            : 'rgba(99, 102, 241, 0.12)',
-                        color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--primary-light)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
-                        {isIncome ? <ArrowDownLeft size={19} /> : isCompany ? <Building2 size={19} /> : <User size={19} />}
-                      </div>
-
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <h4 style={{ 
-                          fontSize: '0.92rem', 
-                          fontWeight: 800, 
-                          color: 'var(--text-primary)', 
-                          margin: 0,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}>
-                          {tx.title}
-                        </h4>
-                        <div style={{ 
-                          fontSize: '0.72rem', 
-                          color: 'var(--text-muted)', 
-                          marginTop: '2px', 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '0.4rem', 
-                          whiteSpace: 'nowrap', 
-                          overflow: 'hidden', 
-                          textOverflow: 'ellipsis' 
-                        }}>
-                          <span style={{ fontWeight: 600, color: 'var(--text-secondary)' }}>{tx.category}</span>
-                          <span>•</span>
-                          <span>{tx.date}</span>
-                        </div>
-                      </div>
+            return (
+              <div
+                key={tx.id}
+                className="card"
+                style={{
+                  padding: '1.05rem 1.15rem',
+                  borderRadius: '16px',
+                  background: 'var(--bg-card)',
+                  border: isCompany && !tx.reimbursed 
+                    ? '1px solid rgba(245, 158, 11, 0.35)' 
+                    : '1px solid var(--border-color)',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.7rem'
+                }}
+              >
+                {/* Top Section: Icon, Title & Amount (Full Text, Natural Wrapping) */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.85rem' }}>
+                  {/* Left: Category Icon & Full Title */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      width: '42px',
+                      height: '42px',
+                      borderRadius: '12px',
+                      background: isIncome 
+                        ? 'rgba(16, 185, 129, 0.15)' 
+                        : isCompany 
+                          ? 'rgba(245, 158, 11, 0.15)' 
+                          : 'rgba(99, 102, 241, 0.12)',
+                      color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--primary-light)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      marginTop: '2px'
+                    }}>
+                      {isIncome ? <ArrowDownLeft size={22} /> : isCompany ? <Building2 size={22} /> : <User size={22} />}
                     </div>
 
-                    {/* Right: Big Clean Amount */}
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{
-                        fontSize: '1.05rem',
-                        fontWeight: 900,
-                        color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--text-primary)',
-                        letterSpacing: '-0.02em',
-                        lineHeight: 1.15
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <h4 style={{ 
+                        fontSize: '0.98rem', 
+                        fontWeight: 800, 
+                        color: 'var(--text-primary)', 
+                        margin: '0 0 0.3rem 0',
+                        lineHeight: 1.35,
+                        wordBreak: 'break-word',
+                        whiteSpace: 'normal'
                       }}>
-                        {isIncome ? '+' : '-'}{mask(formatCurrency(tx.amount, currency))}
+                        {tx.title}
+                      </h4>
+                      <div style={{ 
+                        fontSize: '0.75rem', 
+                        color: 'var(--text-secondary)', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.45rem',
+                        flexWrap: 'wrap'
+                      }}>
+                        <span style={{ fontWeight: 600 }}>{tx.category}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>•</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{formatTxDate(tx.date)}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Bottom Row: Status Badges & Action Buttons */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '0.5rem',
-                    flexWrap: 'wrap',
-                    paddingTop: '0.35rem',
-                    borderTop: '1px dashed rgba(255, 255, 255, 0.05)',
-                    fontSize: '0.72rem'
-                  }}>
-                    {/* Badges / Reimbursement Status */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
-                      {isCompany && (
-                        <button
-                          type="button"
-                          onClick={() => toggleReimbursementStatus(tx.id)}
-                          className="badge"
-                          title="Click to toggle repayment status"
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 700,
-                            padding: '0.22rem 0.55rem',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            background: tx.reimbursed ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                            color: tx.reimbursed ? '#10b981' : '#f59e0b',
-                            border: `1px solid ${tx.reimbursed ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
-                          }}
-                        >
-                          <span>{tx.reimbursed ? '✓ Reimbursed by Company' : '⏳ Pending Finance Claim'}</span>
-                          <span style={{ textDecoration: 'underline', opacity: 0.85, fontSize: '0.64rem' }}>
-                            ({tx.reimbursed ? 'Mark Unpaid' : 'Mark Repaid'})
-                          </span>
-                        </button>
-                      )}
-
-                      {!isIncome && !isCompany && (
-                        <span className="badge" style={{ fontSize: '0.66rem', background: 'var(--bg-surface)', color: 'var(--text-muted)' }}>
-                          👤 Personal Outflow
-                        </span>
-                      )}
-
-                      {isIncome && (
-                        <span className="badge" style={{ fontSize: '0.66rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>
-                          💰 Payroll Deposit
-                        </span>
-                      )}
-
-                      {tx.notes && (
-                        <span style={{ color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '160px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          "{tx.notes}"
-                        </span>
-                      )}
+                  {/* Right: Big Crisp Readable Amount */}
+                  <div style={{ textAlign: 'right', flexShrink: 0, paddingLeft: '0.4rem' }}>
+                    <div style={{
+                      fontSize: '1.18rem',
+                      fontWeight: 900,
+                      color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--text-primary)',
+                      letterSpacing: '-0.02em',
+                      lineHeight: 1.15
+                    }}>
+                      {isIncome ? '+' : '-'}{mask(formatCurrency(tx.amount, currency))}
                     </div>
-
-                    {/* Edit & Delete Action Buttons */}
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginLeft: 'auto' }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon btn-sm"
-                        onClick={() => openEditModal(tx)}
-                        style={{ padding: '0.3rem', color: 'var(--text-muted)' }}
-                        title="Edit entry"
-                      >
-                        <Edit3 size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost btn-icon btn-sm"
-                        onClick={() => handleDelete(tx)}
-                        style={{ padding: '0.3rem', color: '#ef4444' }}
-                        title="Delete entry"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                    <div style={{ 
+                      fontSize: '0.68rem', 
+                      fontWeight: 700, 
+                      color: isIncome ? '#10b981' : isCompany ? '#f59e0b' : 'var(--text-muted)', 
+                      marginTop: '3px' 
+                    }}>
+                      {isIncome ? 'Payroll Deposit' : isCompany ? (tx.reimbursed ? 'Reimbursed' : 'Company Claim') : 'Personal Living'}
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Optional Note (Fully Readable, No Truncation) */}
+                {tx.notes && (
+                  <div style={{
+                    padding: '0.5rem 0.75rem',
+                    borderRadius: '8px',
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    borderLeft: '3px solid var(--border-color)',
+                    fontSize: '0.78rem',
+                    color: 'var(--text-muted)',
+                    lineHeight: 1.45,
+                    wordBreak: 'break-word',
+                    whiteSpace: 'normal'
+                  }}>
+                    "{tx.notes}"
+                  </div>
+                )}
+
+                {/* Bottom Footer: Reimbursement Status Pill & Action Buttons */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: '0.55rem',
+                  borderTop: '1px solid rgba(255, 255, 255, 0.06)',
+                  gap: '0.5rem',
+                  flexWrap: 'wrap'
+                }}>
+                  {/* Status / Claim Action */}
+                  <div>
+                    {isCompany ? (
+                      <button
+                        type="button"
+                        onClick={() => toggleReimbursementStatus(tx.id)}
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.4rem',
+                          padding: '0.35rem 0.65rem',
+                          borderRadius: '8px',
+                          border: tx.reimbursed ? '1px solid rgba(16, 185, 129, 0.35)' : '1px solid rgba(245, 158, 11, 0.4)',
+                          background: tx.reimbursed ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.15)',
+                          color: tx.reimbursed ? '#10b981' : '#f59e0b',
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        {tx.reimbursed ? (
+                          <>
+                            <CheckCircle2 size={13} />
+                            <span>Reimbursed by Company (Tap to Undo)</span>
+                          </>
+                        ) : (
+                          <>
+                            <Clock size={13} />
+                            <span>Pending Claim • Tap to Mark Repaid ✓</span>
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        {isIncome ? '💰 Monthly Earned Income' : '👤 Personal Expense (Non-refundable)'}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Edit and Delete Actions */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginLeft: 'auto' }}>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => openEditModal(tx)}
+                      style={{ padding: '0.25rem 0.55rem', fontSize: '0.74rem', gap: '0.3rem', color: 'var(--text-secondary)' }}
+                    >
+                      <Edit3 size={13} />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => handleDelete(tx)}
+                      style={{ padding: '0.25rem 0.55rem', fontSize: '0.74rem', gap: '0.3rem', color: '#ef4444' }}
+                    >
+                      <Trash2 size={13} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
       </div>
 
