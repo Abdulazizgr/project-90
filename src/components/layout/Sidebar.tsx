@@ -11,9 +11,9 @@ import {
   Trophy, 
   Settings, 
   Flame,
-  Sparkles,
   RotateCcw
 } from 'lucide-react';
+import { ApexLogo } from '@/components/common/ApexLogo';
 import { useApp } from '@/context/AppContext';
 import { calculateDailyProgress, calculateCurrentStreak } from '@/utils/calculations';
 
@@ -54,23 +54,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
     <aside className={`sidebar ${isMobileOpen ? 'open' : ''}`}>
       {/* Brand Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', padding: '0.25rem 0.5rem' }}>
-        <div style={{
-          width: '38px',
-          height: '38px',
-          borderRadius: '10px',
-          background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          boxShadow: '0 4px 12px var(--primary-glow)'
-        }}>
-          <Sparkles size={20} color="#ffffff" />
-        </div>
-        <div>
-          <h1 style={{ fontSize: '1.1rem', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.1 }}>
-            {challengeName}
+        <ApexLogo size={42} />
+        <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <h1 style={{ 
+            fontSize: '1.08rem', 
+            fontWeight: 900, 
+            letterSpacing: '-0.02em', 
+            color: 'var(--text-primary)',
+            lineHeight: 1.15,
+            margin: 0,
+            whiteSpace: 'nowrap'
+          }}>
+            Apex OS:
           </h1>
-          <p style={{ fontSize: '0.68rem', color: 'var(--text-muted)', fontWeight: 500 }}>Personal Management OS</p>
+          <div style={{ 
+            fontSize: '0.78rem', 
+            fontWeight: 700, 
+            color: 'var(--text-primary)',
+            lineHeight: 1.25,
+            whiteSpace: 'nowrap',
+            letterSpacing: '-0.01em'
+          }}>
+            Personal Management System
+          </div>
+          <p style={{ 
+            fontSize: '0.66rem', 
+            color: 'var(--text-muted)', 
+            fontWeight: 500,
+            lineHeight: 1.2,
+            margin: 0,
+            whiteSpace: 'nowrap'
+          }}>
+            Personal Management OS
+          </p>
         </div>
       </div>
 

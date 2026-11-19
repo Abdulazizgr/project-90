@@ -56,10 +56,13 @@ export const ChallengeHero = () => {
             </span>
           </div>
 
-          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#ffffff', margin: 0 }}>
-            {challengeName}
+          <h2 style={{ fontSize: '1.4rem', fontWeight: 900, letterSpacing: '-0.02em', color: '#ffffff', margin: 0, lineHeight: 1.2 }}>
+            Apex OS:
           </h2>
-          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0' }}>
+          <div style={{ fontSize: '0.98rem', fontWeight: 700, color: 'var(--text-primary)', marginTop: '0.15rem' }}>
+            Personal Management System
+          </div>
+          <p style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', margin: '0.15rem 0 0', fontWeight: 500 }}>
             Personal Management OS
           </p>
         </div>

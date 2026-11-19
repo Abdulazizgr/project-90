@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User, LogIn, UserPlus, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Mail, Lock, User, LogIn, UserPlus, CheckCircle2, AlertCircle } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { authClient } from '@/lib/auth-client';
 import { useApp } from '@/context/AppContext';
+import { ApexLogo } from '@/components/common/ApexLogo';
 
 export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) => {
   const { updateProfile, triggerSound, loadCleanUserAccount } = useApp();
@@ -80,18 +81,7 @@ export const AuthModal = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () 
         {/* Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{
-              width: '38px',
-              height: '38px',
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px var(--primary-glow)'
-            }}>
-              <Sparkles size={20} color="#ffffff" />
-            </div>
+            <ApexLogo size={38} />
             <div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>
                 {mode === 'login' ? 'Sign In to Apex OS' : 'Create Your Account'}

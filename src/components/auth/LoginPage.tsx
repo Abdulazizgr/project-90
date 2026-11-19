@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { 
-  Sparkles, 
   Mail, 
   Lock, 
   LogIn, 
@@ -17,6 +16,7 @@ import {
   Calendar,
   Layers
 } from 'lucide-react';
+import { ApexLogo } from '@/components/common/ApexLogo';
 import confetti from 'canvas-confetti';
 import { useApp } from '@/context/AppContext';
 import { authClient } from '@/lib/auth-client';
@@ -187,24 +187,17 @@ export const LoginPage = ({ onLoginSuccess }: { onLoginSuccess?: () => void }) =
       }}>
         {/* Brand Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
-          <div style={{
-            width: '54px',
-            height: '54px',
-            borderRadius: '14px',
-            background: 'linear-gradient(135deg, var(--primary), #8b5cf6)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 0.9rem',
-            boxShadow: '0 8px 24px var(--primary-glow)'
-          }}>
-            <Sparkles size={26} color="#ffffff" />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.9rem' }}>
+            <ApexLogo size={54} />
           </div>
 
-          <h1 style={{ fontSize: '1.45rem', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: '0.3rem' }}>
-            Apex OS: Personal Management System
+          <h1 style={{ fontSize: '1.45rem', fontWeight: 900, letterSpacing: '-0.02em', lineHeight: 1.2, margin: '0 0 0.15rem' }}>
+            Apex OS:
           </h1>
-          <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.2rem' }}>
+            Personal Management System
+          </div>
+          <p style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', fontWeight: 500, margin: 0 }}>
             Personal Management OS
           </p>
 

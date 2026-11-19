@@ -1,9 +1,9 @@
 import { MongoClient } from 'mongodb';
 
-const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/project90';
+const uri = process.env.MONGODB_URI || 'mongodb+srv://abdulazizisa579_db_user:CFznzmDGKaVSLBDL@cluster0.krg3uvc.mongodb.net/project90';
 const options = {
-  serverSelectionTimeoutMS: 4000,
-  connectTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 8000,
+  connectTimeoutMS: 10000,
 };
 
 declare global {

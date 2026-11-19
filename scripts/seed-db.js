@@ -240,7 +240,7 @@ const seedPayload = {
 };
 
 async function seed() {
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/project90';
+  const uri = process.env.MONGODB_URI || 'mongodb+srv://abdulazizisa579_db_user:CFznzmDGKaVSLBDL@cluster0.krg3uvc.mongodb.net/project90';
   const client = new MongoClient(uri);
   try {
     await client.connect();
@@ -270,3 +270,4 @@ async function seed() {
 }
 
 seed();
+
