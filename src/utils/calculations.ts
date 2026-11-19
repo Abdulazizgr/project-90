@@ -1,7 +1,7 @@
 // PROJECT 19 / PERSONAL MANAGEMENT SYSTEM
 // Core Calculation & Insights Engine (Africa/Addis_Ababa Timezone)
 
-import { TIMEZONE, getLocalDateString, calculateMinutesBetween, Category, Routine, Task, TimeEntry, DailyReflection, Achievement } from './seedData';
+import { TIMEZONE, getLocalDateString, calculateMinutesBetween, Category, Routine, Task, TimeEntry, DailyReflection, Achievement, Transaction } from './seedData';
 
 export { getLocalDateString, calculateMinutesBetween };
 
@@ -636,3 +636,82 @@ export const getDayPointsBudget = (
 };
 
 export const calculateDailyScore = (habits: any[], habitLogs: any) => 0;
+
+// --- EXPENSE & MONEY MANAGEMENT ENGINE ---
+export const calculateFinancialMetrics = (transactions: Transaction[] = []) => {
+  let totalIncome = 0;
+  let totalPersonalExpense = 0;
+  let totalCompanyExpense = 0;
+  let pendingCompanyReimbursement = 0;
+  let settledCompanyReimbursement = 0;
+  let pendingCount = 0;
+
+  transactions.forEach((tx) => {
+    const amt = Number(tx.amount) || 0;
+    if (tx.type === 'income') {
+      totalIncome += amt;
+    } else if (tx.type === 'expense') {
+      if (tx.expenseType === 'company') {
+        totalCompanyExpense += amt;
+        if (tx.reimbursed) {
+          settledCompanyReimbursement += amt;
+        } else {
+          pendingCompanyReimbursement += amt;
+          pendingCount += 1;
+        }
+      } else {
+        // Default to personal expense
+        totalPersonalExpense += amt;
+      }
+    }
+  });
+
+  // Net Cash Balance: Income minus what you personally spent
+  // Note: Company expenses paid from pocket that are pending reimbursement are owed back to you!
+  const netBalance = totalIncome - totalPersonalExpense;
+  const currentPocketBalance = totalIncome - totalPersonalExpense - pendingCompanyReimbursement;
+
+  return {
+    totalIncome,
+    totalPersonalExpense,
+    totalCompanyExpense,
+    pendingCompanyReimbursement,
+    settledCompanyReimbursement,
+    pendingCount,
+    netBalance,
+    currentPocketBalance
+  };
+};
+
+export const filterTransactionsByDateRange = (
+  transactions: Transaction[] = [],
+  range: 'today' | '7days' | 'month' | 'all',
+  todayStr: string
+): Transaction[] => {
+  if (range === 'all') return transactions;
+
+  if (range === 'today') {
+    return transactions.filter((t) => t.date === todayStr);
+  }
+
+  if (range === '7days') {
+    const cutoffStr = addDaysToDateStr(todayStr, -7);
+    return transactions.filter((t) => t.date >= cutoffStr && t.date <= todayStr);
+  }
+
+  if (range === 'month') {
+    const currentMonthPrefix = todayStr.substring(0, 7); // YYYY-MM
+    return transactions.filter((t) => t.date.startsWith(currentMonthPrefix));
+  }
+
+  return transactions;
+};
+
+export const formatCurrency = (amount: number, currency: string = 'ETB'): string => {
+  const num = Number(amount) || 0;
+  const formatted = num.toLocaleString('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+  return `${formatted} ${currency}`;
+};

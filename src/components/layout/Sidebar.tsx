@@ -11,7 +11,8 @@ import {
   Trophy, 
   Settings, 
   Flame,
-  LogOut
+  LogOut,
+  Wallet
 } from 'lucide-react';
 import { ApexLogo } from '@/components/common/ApexLogo';
 import { useApp } from '@/context/AppContext';
@@ -60,6 +61,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, setIsMobileOpen 
     { id: 'tasks', label: 'Daily Tasks', icon: CheckSquare, count: progress.plannedTasksCount },
     { id: 'calendar', label: 'Monthly Calendar', icon: CalendarDays },
     { id: 'reports', label: 'Weekly Reports', icon: BarChart3 },
+    { id: 'finance', label: 'Money & Expenses', icon: Wallet },
     { id: 'achievements', label: 'Achievements', icon: Trophy },
     { id: 'settings', label: 'Settings', icon: Settings }
   ];

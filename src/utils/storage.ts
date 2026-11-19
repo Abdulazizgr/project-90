@@ -1,5 +1,5 @@
 // Storage manager with LocalStorage persistence, JSON export/import and clean scratch reset
-import { getCleanUserData } from './seedData';
+import { getCleanUserData, DEFAULT_TRANSACTIONS } from './seedData';
 
 const STORAGE_KEY = 'project19_management_system_v1';
 
@@ -38,6 +38,9 @@ export const loadDataFromStorage = (profile = {}) => {
         }
         if (!parsed.profile.name || parsed.profile.name === 'User') {
           parsed.profile.name = 'Abdulaziz';
+        }
+        if (!parsed.transactions || !Array.isArray(parsed.transactions)) {
+          parsed.transactions = DEFAULT_TRANSACTIONS;
         }
         return parsed;
       }

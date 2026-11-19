@@ -19,6 +19,8 @@ import { WeeklyReportView } from '@/components/reports/WeeklyReportView';
 import { DailyReflectionView } from '@/components/journal/DailyReflectionView';
 import { AchievementsView } from '@/components/achievements/AchievementsView';
 import { SettingsView } from '@/components/settings/SettingsView';
+import { MoneyTrackerView } from '@/components/finance/MoneyTrackerView';
+import { AppLockModal } from '@/components/auth/AppLockModal';
 
 // Modals & Drawers
 import { RoutineRunnerModal } from '@/components/routines/RoutineRunnerModal';
@@ -37,6 +39,8 @@ function MainApp() {
     isAuthenticated,
     isAuthLoading,
     isViewLoading,
+    isAppLocked,
+    setIsAppLocked,
     setIsAuthenticated,
     activeTab, 
     isAuthModalOpen, 
@@ -116,6 +120,9 @@ function MainApp() {
         return <DailyReflectionView />;
       case 'achievements':
         return <AchievementsView />;
+      case 'finance':
+      case 'money':
+        return <MoneyTrackerView />;
       case 'settings':
         return <SettingsView />;
       default:
@@ -213,6 +220,9 @@ function MainApp() {
         onOpenCategoryManager={() => setIsCategoryManagerOpen(true)}
       />
       <UserManualModal isOpen={isManualOpen} onClose={() => setIsManualOpen(false)} />
+      
+      {/* Biometric Security Lock Overlay */}
+      <AppLockModal isLocked={isAppLocked} onUnlock={() => setIsAppLocked(false)} />
     </div>
   );
 }

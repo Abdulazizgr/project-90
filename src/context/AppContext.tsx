@@ -17,7 +17,9 @@ import {
   TimeEntry,
   DailyReflection,
   Achievement,
-  Challenge
+  Challenge,
+  Transaction,
+  DEFAULT_TRANSACTIONS
 } from '../utils/seedData';
 import {
   calculateDailyProgress,
@@ -90,6 +92,23 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     }
     return true;
   });
+
+  const [isAppLocked, setIsAppLocked] = useState<boolean>(false);
+
+  // Auto-lock when user switches away from the app / minimizes (if enabled)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        const autoLock = data.profile?.autoLockOnExit !== false;
+        if (autoLock && isAuthenticated) {
+          setIsAppLocked(true);
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [data.profile?.autoLockOnExit, isAuthenticated]);
 
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialogOptions | null>(null);
 
@@ -954,6 +973,75 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     triggerSound('pop');
   };
 
+  // --- Transaction & Money Management API ---
+  const addTransaction = (newTx: Partial<Transaction>) => {
+    setData((prev: any) => {
+      const tx: Transaction = {
+        id: `tx_${Date.now()}`,
+        title: newTx.title || 'Untitled',
+        amount: Number(newTx.amount) || 0,
+        type: newTx.type || 'expense',
+        expenseType: newTx.expenseType || 'personal',
+        category: newTx.category || 'General',
+        date: newTx.date || todayStr,
+        reimbursed: !!newTx.reimbursed,
+        notes: newTx.notes || '',
+        createdAt: new Date().toISOString()
+      };
+      const nextTransactions = [tx, ...(prev.transactions || [])];
+      return recomputeState({
+        ...prev,
+        transactions: nextTransactions
+      });
+    });
+  };
+
+  const updateTransaction = (txId: string, updates: Partial<Transaction>) => {
+    setData((prev: any) => {
+      const nextTransactions = (prev.transactions || []).map((t: Transaction) => {
+        if (t.id === txId) {
+          return { ...t, ...updates };
+        }
+        return t;
+      });
+      return recomputeState({
+        ...prev,
+        transactions: nextTransactions
+      });
+    });
+  };
+
+  const deleteTransaction = (txId: string) => {
+    setData((prev: any) => {
+      const nextTransactions = (prev.transactions || []).filter((t: Transaction) => t.id !== txId);
+      return recomputeState({
+        ...prev,
+        transactions: nextTransactions
+      });
+    });
+  };
+
+  const toggleReimbursementStatus = (txId: string) => {
+    setData((prev: any) => {
+      const nextTransactions = (prev.transactions || []).map((t: Transaction) => {
+        if (t.id === txId) {
+          const nextReimbursed = !t.reimbursed;
+          return {
+            ...t,
+            reimbursed: nextReimbursed,
+            reimbursedAt: nextReimbursed ? new Date().toISOString() : undefined
+          };
+        }
+        return t;
+      });
+      return recomputeState({
+        ...prev,
+        transactions: nextTransactions
+      });
+    });
+    triggerSound('habit-complete');
+  };
+
   const handleSignOut = async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('p19_authenticated');
@@ -979,6 +1067,8 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     setIsAuthenticated,
     isAuthLoading,
     isViewLoading,
+    isAppLocked,
+    setIsAppLocked,
     activeTab,
     setActiveTab,
     activeModal,
@@ -989,6 +1079,11 @@ export const AppProvider = ({ children }: { children?: React.ReactNode }) => {
     setIsAuthModalOpen,
     isDbSynced,
     todayStr,
+    // Transactions & Money Management API
+    addTransaction,
+    updateTransaction,
+    deleteTransaction,
+    toggleReimbursementStatus,
     // Theme & Audio
     toggleTheme,
     toggleSound,

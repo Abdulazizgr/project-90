@@ -14,7 +14,8 @@ import {
   Sun, 
   X,
   Layers,
-  Plus
+  Plus,
+  Wallet
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
@@ -87,6 +88,13 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
       category: 'Navigation',
       icon: Trophy,
       action: () => setActiveTab('achievements')
+    },
+    {
+      id: 'nav_finance',
+      title: 'Go to Money & Expenses Tracker',
+      category: 'Navigation',
+      icon: Wallet,
+      action: () => setActiveTab('finance')
     },
     {
       id: 'nav_journal',

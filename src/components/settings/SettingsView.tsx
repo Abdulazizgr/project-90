@@ -16,9 +16,14 @@ import {
   User,
   Shield,
   Palette,
-  Calendar
+  Calendar,
+  Fingerprint,
+  Lock,
+  Wallet,
+  AlertCircle
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { registerBiometrics, checkBiometricSupport, isBiometricsRegistered } from '@/utils/biometrics';
 
 export const SettingsView = () => {
   const { 
@@ -44,6 +49,11 @@ export const SettingsView = () => {
   const [password, setPassword] = useState(profile.password || 'password');
   const [goal, setGoal] = useState(profile.challengeGoal || '');
   const [timezone, setTimezone] = useState(profile.timezone || 'Africa/Addis_Ababa (GMT+3)');
+  const [currency, setCurrency] = useState(profile.currency || 'ETB');
+  const [autoLockOnExit, setAutoLockOnExit] = useState(profile.autoLockOnExit !== false);
+
+  const [isRegisteringBio, setIsRegisteringBio] = useState(false);
+  const [bioStatusMsg, setBioStatusMsg] = useState<{ text: string; isError?: boolean } | null>(null);
 
   // Challenge Configuration states
   const [challengeName, setChallengeName] = useState(challenge.name || 'Apex OS');
@@ -63,6 +73,25 @@ export const SettingsView = () => {
 
   const isSoundEnabled = data.profile?.soundEnabled !== false && data.soundEnabled !== false;
 
+  const handleRegisterBiometrics = async () => {
+    setIsRegisteringBio(true);
+    setBioStatusMsg(null);
+    try {
+      const res = await registerBiometrics(name || email || 'Abdulaziz');
+      if (res.success) {
+        updateProfile({ biometricsEnabled: true });
+        setBioStatusMsg({ text: 'Fingerprint enrolled successfully! You can now unlock using your fingerprint sensor.' });
+      } else {
+        setBioStatusMsg({ text: res.error || 'Failed to enroll biometric fingerprint. Please try again.', isError: true });
+      }
+    } catch (err: any) {
+      setBioStatusMsg({ text: err.message || 'Biometric authentication was cancelled or unavailable.', isError: true });
+    } finally {
+      setIsRegisteringBio(false);
+      setTimeout(() => setBioStatusMsg(null), 6000);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
@@ -72,7 +101,9 @@ export const SettingsView = () => {
       email: email.trim(),
       password: password.trim(),
       challengeGoal: goal.trim(),
-      timezone
+      timezone,
+      currency: currency.trim() || 'ETB',
+      autoLockOnExit
     });
     setIsSavingProfile(false);
     setSaveSuccess(true);
@@ -385,7 +416,7 @@ export const SettingsView = () => {
               </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1rem', marginBottom: '1.15rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '1rem', marginBottom: '1.15rem' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                   Primary Mission / Purpose
@@ -415,6 +446,23 @@ export const SettingsView = () => {
                   Configured for Africa/Addis_Ababa (East Africa Time, UTC+3)
                 </span>
               </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
+                  Primary Financial Currency
+                </label>
+                <input
+                  type="text"
+                  className="input"
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  placeholder="e.g. ETB, USD, EUR"
+                  style={{ width: '100%', marginBottom: '0.25rem' }}
+                />
+                <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                  Used across Money & Expenses tracker
+                </span>
+              </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -441,7 +489,128 @@ export const SettingsView = () => {
         </div>
       </div>
 
-      {/* ROW 3: Appearance & Sound + Backup & Recovery in One Row (2 Columns) */}
+      {/* ROW 3: Biometric Security & Hardware Vault */}
+      <div className="card" style={{ padding: '1.35rem', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: '0 0 0.35rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Fingerprint size={20} color="var(--primary-light)" />
+              <span>Biometric Security & Session Vault</span>
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>
+              Hardware-backed fingerprint / Face ID protection and automatic lock when switching apps
+            </p>
+          </div>
+
+          <span 
+            className="badge"
+            style={{
+              fontSize: '0.75rem',
+              fontWeight: 700,
+              padding: '0.35rem 0.75rem',
+              borderRadius: '20px',
+              background: profile.biometricsEnabled ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)',
+              color: profile.biometricsEnabled ? '#10b981' : 'var(--primary-light)',
+              border: profile.biometricsEnabled ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(99, 102, 241, 0.3)'
+            }}
+          >
+            {profile.biometricsEnabled ? 'Biometrics Enrolled' : 'Sensor Ready'}
+          </span>
+        </div>
+
+        {bioStatusMsg && (
+          <div style={{
+            padding: '0.75rem 1rem',
+            borderRadius: '12px',
+            marginBottom: '1rem',
+            fontSize: '0.82rem',
+            fontWeight: 600,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            background: bioStatusMsg.isError ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+            color: bioStatusMsg.isError ? '#ef4444' : '#10b981',
+            border: `1px solid ${bioStatusMsg.isError ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)'}`
+          }}>
+            {bioStatusMsg.isError ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+            <span>{bioStatusMsg.text}</span>
+          </div>
+        )}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 300px), 1fr))', gap: '1rem' }}>
+          {/* Fingerprint Sensor Action */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.85rem 1rem',
+            background: 'var(--bg-input)',
+            borderRadius: 'var(--radius-md)'
+          }}>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.88rem', marginBottom: '0.15rem' }}>
+                Phone / PC Fingerprint Sensor
+              </strong>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                WebAuthn platform authenticator (Android, iOS Face ID, Touch ID, Windows Hello)
+              </p>
+            </div>
+            <button
+              type="button"
+              className="btn btn-secondary btn-sm"
+              onClick={handleRegisterBiometrics}
+              disabled={isRegisteringBio}
+              style={{ gap: '0.4rem', fontWeight: 700, flexShrink: 0 }}
+            >
+              {isRegisteringBio ? (
+                <>
+                  <span className="btn-spinner" />
+                  <span>Scanning...</span>
+                </>
+              ) : (
+                <>
+                  <Fingerprint size={15} color="var(--primary-light)" />
+                  <span>{profile.biometricsEnabled ? 'Re-enroll / Test' : 'Enroll Fingerprint'}</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Auto Lock on App Exit Toggle */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '0.85rem 1rem',
+            background: 'var(--bg-input)',
+            borderRadius: 'var(--radius-md)'
+          }}>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.88rem', marginBottom: '0.15rem' }}>
+                Auto-Lock on App Exit / Switch
+              </strong>
+              <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+                Instantly locks with security vault when minimizing or leaving the app
+              </p>
+            </div>
+            <button
+              type="button"
+              className={`btn btn-sm ${autoLockOnExit ? 'btn-primary' : 'btn-secondary'}`}
+              onClick={() => {
+                const nextVal = !autoLockOnExit;
+                setAutoLockOnExit(nextVal);
+                updateProfile({ autoLockOnExit: nextVal });
+              }}
+              style={{ gap: '0.35rem', fontWeight: 700, flexShrink: 0 }}
+            >
+              <Lock size={14} />
+              <span>{autoLockOnExit ? 'Active (Auto-Lock)' : 'Disabled'}</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ROW 4: Appearance & Sound + Backup & Recovery in One Row (2 Columns) */}
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', 

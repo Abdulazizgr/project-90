@@ -123,6 +123,23 @@ export interface Challenge {
   status: 'active' | 'completed' | 'planning';
 }
 
+export type TransactionType = 'income' | 'expense';
+export type ExpenseType = 'personal' | 'company';
+
+export interface Transaction {
+  id: string;
+  title: string;
+  amount: number;
+  type: TransactionType;
+  expenseType?: ExpenseType; // personal vs company (reimbursable)
+  category: string;
+  date: string; // YYYY-MM-DD
+  reimbursed?: boolean; // For company expenses
+  reimbursedAt?: string;
+  notes?: string;
+  createdAt: string;
+}
+
 export interface Profile {
   name: string;
   email: string;
@@ -132,6 +149,9 @@ export interface Profile {
   timezone?: string;
   soundEnabled?: boolean;
   theme?: 'dark' | 'light';
+  currency?: string;
+  biometricsEnabled?: boolean;
+  autoLockOnExit?: boolean;
 }
 
 export const DEFAULT_CATEGORIES: Category[] = [
@@ -525,6 +545,43 @@ export const DEFAULT_ACHIEVEMENTS: Achievement[] = [
   }
 ];
 
+export const DEFAULT_TRANSACTIONS: Transaction[] = [
+  {
+    id: 'tx_init_1',
+    title: 'Monthly Full-Time Payroll Salary',
+    amount: 10000,
+    type: 'income',
+    category: 'Salary & Payroll',
+    date: getLocalDateString(),
+    notes: 'Direct monthly payroll deposit',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tx_init_2',
+    title: 'Client Lunch & Travel Expenses',
+    amount: 450,
+    type: 'expense',
+    expenseType: 'company',
+    category: 'Company Travel & Meetings',
+    date: getLocalDateString(),
+    reimbursed: false,
+    notes: 'Pending finance team reimbursement at end of week',
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: 'tx_init_3',
+    title: 'Monthly High-Speed Fiber Internet',
+    amount: 1200,
+    type: 'expense',
+    expenseType: 'personal',
+    category: 'Utilities & Bills',
+    date: getLocalDateString(),
+    reimbursed: false,
+    notes: 'Personal home utility expense',
+    createdAt: new Date().toISOString()
+  }
+];
+
 export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@gmail.com' }: { name?: string; email?: string } = {}) => {
   const todayStr = getLocalDateString();
   const startDate = todayStr;
@@ -545,7 +602,10 @@ export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@
       challengeGoal: 'Master daily discipline, RHIZAN engineering, and healthy life balance',
       timezone: TIMEZONE,
       soundEnabled: true,
-      theme: 'dark'
+      theme: 'dark',
+      currency: 'ETB',
+      biometricsEnabled: false,
+      autoLockOnExit: true
     },
     challenge: {
       id: `ch_project90_${Date.now()}`,
@@ -559,6 +619,7 @@ export const getCleanUserData = ({ name = 'Abdulaziz', email = 'abdulazizisa579@
     categories: DEFAULT_CATEGORIES,
     routines: DEFAULT_ROUTINES,
     tasks: DEFAULT_TASKS,
+    transactions: DEFAULT_TRANSACTIONS,
     routineLogsHistory: {
       [todayStr]: {}
     },
